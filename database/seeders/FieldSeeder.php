@@ -1,0 +1,141 @@
+<?php
+
+namespace Database\Seeders;
+
+use Carbon\Carbon;
+use App\Models\Field;
+use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+class FieldSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+       $data = [
+            [   'name' => 'Lapangan 1',
+                'field_type_id' => 1,
+                'description' => 'Lapangan  dengan ukuran internasional',
+                'slug' => 'lapangan-1',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 2',
+                'field_type_id' => 2,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-2',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 3',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-3',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 4',
+                'field_type_id' => 4,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-4',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 5',
+                'field_type_id' => 5,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-5',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 6',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-6',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 7',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-7',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 8',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-8',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 9',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-9',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 10',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-10',
+                'venue_id' => 1,
+            ],
+            [   'name' => 'Lapangan 11',
+                'field_type_id' => 1,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-11',
+                'venue_id' => 1,
+            ],
+
+            [   'name' => 'Lapangan 1',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-1',
+                'venue_id' => 2,
+            ],
+            [   'name' => 'Lapangan 2',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-2',
+                'venue_id' => 2,
+            ],
+            [   'name' => 'Lapangan 3',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-3',
+                'venue_id' => 2,
+            ],
+
+            [   'name' => 'Lapangan 1',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-1',
+                'venue_id' => 4,
+            ],
+            [   'name' => 'Lapangan 2',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-2',
+                'venue_id' => 4,
+            ],
+            [   'name' => 'Lapangan 3',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-3',
+                'venue_id' => 4,
+            ],
+            [   'name' => 'Lapangan 4',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-4',
+                'venue_id' => 4,
+            ],
+            [   'name' => 'Lapangan 5',
+                'field_type_id' => 6,
+                'description' => 'Lapangan dengan ukuran internasional',
+                'slug' => 'lapangan-5',
+                'venue_id' => 4,
+            ],
+
+        ];
+
+        foreach ($data as $value) {
+            Field::create($value);
+        }
+    }
+}

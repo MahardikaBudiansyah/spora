@@ -1,0 +1,25 @@
+/* Pastikan header baris tanggal seragam */
+.custom-calendar .rbc-month-view {
+    @apply border-secondary-300 dark:border-secondary-600;
+}
+.custom-calendar .rbc-month-header .rbc-header {
+    @apply text-xs font-semibold text-center py-2 border border-secondary-300 dark:border-secondary-600;
+}
+
+/* Pastikan tinggi setiap cell tanggal konsisten */
+.custom-calendar .rbc-month-view .rbc-month-row {
+    @apply border-b border-secondary-300 dark:border-secondary-600;
+}
+
+.custom-calendar .rbc-month-view .rbc-date-cell {
+    @apply h-28 border border-secondary-300 dark:border-secondary-600 pr-0; /* Atau atur berdasarkan kebutuhan */
+}
+
+.custom-calendar .rbc-month-view .rbc-row-content {
+    @apply h-full;
+}
+
+/* Agar DateCellWrapper wrapper tidak bocor */
+.custom-calendar .rbc-date-cell > div {
+    @apply w-full h-full;
+}

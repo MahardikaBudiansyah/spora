@@ -1,0 +1,21 @@
+import { ToastContainer } from "react-toastify";
+import Navbar from "@/Layouts/Merchant/Navbar";
+import Sidenav from "@/Layouts/Merchant/Sidenav";
+import Footer from "@/Layouts/Merchant/Footer";
+import LoadingSkeleton from "@/components/Common/LoadingSkeleton";
+
+export default function MerchantLayout({ children }) {
+    return (
+        <div className="flex min-h-screen bg-stone-50 dark:bg-stone-950 text-gray-700 dark:text-gray-100">
+            <Sidenav className="hidden md:block" />
+            <div className="pl-0 md:pl-64 flex flex-col min-h-screen w-full">
+                <Navbar />
+                <main id="main-content" className="m-4 md:m-2 mt-36 md:mt-24">
+                    {children ?? <LoadingSkeleton />}
+                </main>
+                <ToastContainer position="top-right" autoClose={3000} />
+                <Footer />
+            </div>
+        </div>
+    );
+}

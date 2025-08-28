@@ -1,0 +1,19 @@
+.react-calendar {
+    @apply text-sm rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800;
+}
+
+.react-calendar__tile {
+    @apply p-2 rounded hover:bg-primary-100 dark:hover:bg-primary-600;
+}
+
+.react-calendar__tile--now {
+    @apply bg-primary-50 text-primary-700;
+}
+
+.react-calendar__tile--active {
+    @apply bg-primary-500 text-white;
+}
+
+.react-calendar__navigation button {
+    @apply text-sm text-secondary-700 dark:text-secondary-100 font-medium;
+}

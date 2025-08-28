@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .custom-calendar .rbc-month-view {
+        @apply border-secondary-300 dark:border-secondary-600;
+    }
+    .custom-calendar .rbc-month-header .rbc-header {
+        @apply text-xs font-semibold text-center py-2 border border-secondary-300 dark:border-secondary-600;
+    }
+
+    .custom-calendar .rbc-month-view .rbc-month-row {
+        @apply border-b border-secondary-300 dark:border-secondary-600;
+    }
+
+    .custom-calendar .rbc-month-view .rbc-date-cell {
+        @apply h-28 border border-secondary-300 dark:border-secondary-600 pr-0;
+    }
+
+    .custom-calendar .rbc-month-view .rbc-row-content {
+        @apply h-full;
+    }
+
+    .custom-calendar .rbc-date-cell > div {
+        @apply w-full h-full;
+    }
+
+    .react-calendar {
+        @apply text-sm rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800;
+    }
+
+    .react-calendar__tile {
+        @apply p-2 rounded hover:bg-primary-100 dark:hover:bg-primary-600;
+    }
+
+    .react-calendar__tile--now {
+        @apply bg-primary-50 text-primary-700;
+    }
+
+    .react-calendar__tile--active {
+        @apply bg-primary-500 text-white;
+    }
+
+    .react-calendar__navigation button {
+        @apply text-sm text-secondary-700 dark:text-secondary-100 font-medium;
+    }
+}
+
+/* Non-Tailwind rules yang tetap dibutuhkan */
+.rbc-allday-cell {
+    display: none;
+}
+/* .rbc-time-header-content {
+    border-top: 1px solid #e5e7eb;
+} */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c4c4c4;
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Firefox */
+input[type="time"]::-moz-focus-inner {
+    border: 0;
+}
