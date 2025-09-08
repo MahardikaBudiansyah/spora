@@ -1,5 +1,6 @@
 import { React, forwardRef } from "react";
 import { tv } from "tailwind-variants";
+import Tippy from "@tippyjs/react";
 
 const button = tv({
     base: "inline-flex items-center justify-center rounded-lg px-4 py-2 font-semibold transition-all focus:outline-none focus:ring-4",
@@ -46,11 +47,12 @@ const Button = forwardRef(
             disabled = false,
             className = "",
             children,
+            tooltip, // tambahkan props tooltip
             ...props
         },
         ref
     ) => {
-        return (
+        const buttonEl = (
             <button
                 type={type}
                 disabled={disabled}
@@ -61,6 +63,13 @@ const Button = forwardRef(
                 {children}
             </button>
         );
+
+        // jika ada tooltip, bungkus dengan Tippy
+        if (tooltip) {
+            return <Tippy content={tooltip}>{buttonEl}</Tippy>;
+        }
+
+        return buttonEl;
     }
 );
 

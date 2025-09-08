@@ -16,7 +16,6 @@ class MerchantProfile extends Model
         'merchant_id',
         'nik',
         'full_name',
-        'address',
         'ktp_photo',
         'selfie_with_ktp',
         'bank_name',

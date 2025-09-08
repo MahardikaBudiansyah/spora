@@ -24,7 +24,7 @@ class VenueController extends Controller
     {
         $this->authorize('viewAny', Venue::class);
 
-        $venues = Venue::with('fields')
+        $venues = Venue::with(['fields', 'addresses.district', 'addresses.city'])
             ->where('merchant_id', auth('merchant')->id())
             ->oldest()
             ->paginate(10)
@@ -34,22 +34,29 @@ class VenueController extends Controller
         $perPage = $venues->perPage();
 
         $venues->getCollection()->transform(function ($venue, $index) use ($currentPage, $perPage) {
+            $address = $venue->addresses->first();
+            $fullAddress = $address 
+                ? ($address->district?->name ?? '') . ($address->city?->name ? ', ' . $address->city->name : '')
+                : null;
+
             return [
                 'number' => ($currentPage - 1) * $perPage + $index + 1,
                 'id' => $venue->id,
                 'slug' => $venue->slug,
                 'name' => $venue->name,
-                'location' => $venue->location,
                 'phone_number' => $venue->phone_number,
                 'field' => $venue->fields->pluck('name')->join(', '),
+                'address' => $fullAddress,
                 'updated_at' => $venue->updated_at->format('d M Y'),
             ];
         });
+
 
         return Inertia::render('Merchant/Venue/Index', [
             'venues' => $venues,
         ]);
     }
+
 
 
     public function create()
@@ -66,6 +73,12 @@ class VenueController extends Controller
 
         return Inertia::render('Merchant/Venue/Create', [
             'facilities' => $facilities,
+            'address' => [
+                'province_id' => null,
+                'city_id' => null,
+                'district_id' => null,
+                'village_id' => null,
+            ],
         ]);
     }
 
@@ -74,13 +87,20 @@ class VenueController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'description' => 'nullable|string',
-            'location' => 'required|string',
             'phone_number' => 'required|string',
             'facility' => 'array',
             'facility.*' => 'exists:facilities,id',
             'images' => 'nullable|array',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'main_image_index' => 'nullable|integer|min:0',
+            'full_address' => 'nullable|string',
+            'province_code' => 'nullable|exists:indonesia_provinces,code',
+            'city_code' => 'nullable|exists:indonesia_cities,code',
+            'district_code' => 'nullable|exists:indonesia_districts,code',
+            'village_code' => 'nullable|exists:indonesia_villages,code',
+            'postal_code' => 'nullable|string|max:10',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         // Buat venue dulu
@@ -88,11 +108,22 @@ class VenueController extends Controller
             'merchant_id' => auth('merchant')->id(),
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'location' => $validated['location'],
             'phone_number' => $validated['phone_number'],
         ]);
 
         $venue->facilities()->sync($validated['facility'] ?? []);
+
+        $venue->addresses()->create([
+            'address'       => $validated['full_address'] ?? null,
+            'province_code' => $validated['province_code'] ?? null,
+            'city_code'     => $validated['city_code'] ?? null,
+            'district_code' => $validated['district_code'] ?? null,
+            'village_code'  => $validated['village_code'] ?? null,
+            'postal_code'   => $validated['postal_code'] ?? null,
+            'latitude'      => $validated['latitude'] ?? null,
+            'longitude'     => $validated['longitude'] ?? null,
+            'type'          => 'main',
+        ]);
 
         if ($request->hasFile('images')) {
             $venueNameSlug = Str::slug($venue->name);
@@ -118,20 +149,32 @@ class VenueController extends Controller
 
     public function show(Venue $venue)
     {
-        $venue->load(['fields.type', 'fields.featuredImage', 'images', 'facilities']);
-        
+        $venue->load([
+            'fields.type',
+            'fields.featuredImage',
+            'images',
+            'facilities',
+            'addresses.province',
+            'addresses.city',
+            'addresses.district',
+            'addresses.village',
+        ]);
+
         return Inertia::render('Merchant/Venue/Show', [
             'venue' => [
                 'id' => $venue->id,
                 'name' => $venue->name,
                 'description' => $venue->description,
-                'location' => $venue->location,
                 'phone_number' => $venue->phone_number,
+
+                // fasilitas
                 'facilities' => $venue->facilities->map(fn($f) => [
                     'id' => $f->id,
                     'name' => $f->name,
                     'icon' => $f->icon,
                 ]),
+
+                // lapangan
                 'fields' => $venue->fields->map(fn($f) => [
                     'id' => $f->id,
                     'name' => $f->name,
@@ -141,12 +184,28 @@ class VenueController extends Controller
                         ? asset($f->featuredImage->image_path) 
                         : null,
                 ]),
+
+                // gambar venue
                 'images' => $venue->images->map(fn ($img) => [
                     'id' => $img->id,
                     'image_path' => asset('storage/' . $img->image_path),
                     'is_featured' => (bool) $img->is_featured,
                     'order' => $img->order,
                 ]),
+
+                // alamat
+                'address' => $venue->addresses->map(fn($addr) => [
+                    'full_address' => $addr->address,
+                    'province' => $addr->province?->name,
+                    'city' => $addr->city?->name,
+                    'district' => $addr->district?->name,
+                    'village' => $addr->village?->name,
+                    'postal_code' => $addr->postal_code,
+                    'latitude' => $addr->latitude,
+                    'longitude' => $addr->longitude,
+                    'type' => $addr->type,
+                ])->first(), // kalau cuma ada 1 alamat utama
+                            
                 'slug' => $venue->slug,
                 'created_at' => $venue->created_at->format('d M Y'),
                 'updated_at' => $venue->updated_at->format('d M Y'),
@@ -154,11 +213,16 @@ class VenueController extends Controller
         ]);
     }
 
+
     public function edit(Venue $venue)
     {
         $venue->load([
             'facilities',
-            'images' => fn ($q) => $q->orderBy('order')
+            'images' => fn ($q) => $q->orderBy('order'),
+            'addresses.province',
+            'addresses.city',
+            'addresses.district',
+            'addresses.village',
         ]);
 
         return Inertia::render('Merchant/Venue/Edit', [
@@ -166,36 +230,51 @@ class VenueController extends Controller
                 'id' => $venue->id,
                 'name' => $venue->name,
                 'description' => $venue->description,
-                'location' => $venue->location,
                 'phone_number' => $venue->phone_number,
                 'facility' => $venue->facilities->pluck('id'),
+
+                // address utama
+                'address' => $venue->addresses->map(fn($addr) => [
+                    'full_address' => $addr->address,
+                    'province_code' => $addr->province_code,
+                    'city_code' => $addr->city_code,
+                    'district_code' => $addr->district_code,
+                    'village_code' => $addr->village_code,
+                    'postal_code' => $addr->postal_code,
+                    'latitude' => $addr->latitude,
+                    'longitude' => $addr->longitude,
+                    'type' => $addr->type,
+                ])->first(),
+
+                // images
                 'images' => $venue->images->map(function ($image) {
+                    $image_path = $image->image_path;
+                    $size = $image_path && Storage::disk('public')->exists($image_path)
+                        ? Storage::disk('public')->size($image_path)
+                        : 0;
+
                     return [
                         'id' => $image->id,
                         'url' => asset('storage/' . $image->image_path),
                         'name' => basename($image->image_path),
-                        'size' => function () use ($image) {
-                            $image_path = $image->image_path;
-                            return $image_path && Storage::disk('public')->exists($image_path)
-                                ? Storage::disk('public')->size($image_path)
-                                : 0;
-                        },
-                        'is_featured' => $image->is_featured, // tambahan: agar tahu mana gambar utama
-                        'order' => $image->order,             // tambahan: bisa digunakan untuk urutan preview
+                        'size' => $size,
+                        'is_featured' => $image->is_featured,
+                        'order' => $image->order,
                     ];
                 }),
+
                 'slug' => $venue->slug,
             ],
             'facilities' => Facility::orderBy('name')->get(['id', 'name', 'icon']),
         ]);
     }
 
+
     public function update(Request $request, Venue $venue)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'description' => 'nullable|string',
-            'location' => 'required|string',
             'phone_number' => 'required|string|max:20',
             'facility' => 'array',
             'facility.*' => 'exists:facilities,id',
@@ -204,17 +283,42 @@ class VenueController extends Controller
             'existing_image_ids' => 'nullable|json',
             'main_image_index' => 'nullable|integer|min:0',
             'main_image_id' => 'nullable|integer',
+
+            // address
+            'full_address' => 'nullable|string',
+            'province_code' => 'nullable|exists:indonesia_provinces,code',
+            'city_code' => 'nullable|exists:indonesia_cities,code',
+            'district_code' => 'nullable|exists:indonesia_districts,code',
+            'village_code' => 'nullable|exists:indonesia_villages,code',
+            'postal_code' => 'nullable|string|max:10',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $venue->update([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'location' => $validated['location'] ?? null,
             'phone_number' => $validated['phone_number'] ?? null,
         ]);
 
         $venue->facilities()->sync($validated['facility'] ?? []);
 
+        $venue->addresses()->updateOrCreate(
+            ['type' => 'main'],
+            [
+                'address'       => $validated['full_address'] ?? null,
+                'province_code' => $validated['province_code'] ?? null,
+                'city_code'     => $validated['city_code'] ?? null,
+                'district_code' => $validated['district_code'] ?? null,
+                'village_code'  => $validated['village_code'] ?? null,
+                'postal_code'   => $validated['postal_code'] ?? null,
+                'latitude'      => $validated['latitude'] ?? null,
+                'longitude'     => $validated['longitude'] ?? null,
+                'type'          => 'main',
+            ]
+        );
+
+        // ✅ sync images
         UploadImageHelper::syncImages($venue, $request, [
             'slug_name' => $validated['name'],
             'folder' => "uploads/venues"
@@ -226,10 +330,12 @@ class VenueController extends Controller
     }
 
 
+
     public function destroy(Venue $venue)
     {
-        $venue->load('images');
+        $venue->load(['images', 'address']);
 
+        // Hapus images fisik + record
         foreach ($venue->images as $image) {
             if (!empty($image->image_path)) {
                 Storage::disk('public')->delete($image->image_path);
@@ -237,10 +343,19 @@ class VenueController extends Controller
             $image->delete();
         }
 
+        // Hapus address (jika ada)
+        if ($venue->address) {
+            $venue->address->delete();
+        }
+
+        // Hapus venue
         $venue->delete();
 
-        return redirect()->route('merchant.venues.index')->with('success', 'Venue berhasil dihapus!');
+        return redirect()
+            ->route('merchant.venues.index')
+            ->with('success', 'Venue berhasil dihapus!');
     }
+
 
 
 }

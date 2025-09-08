@@ -1,4 +1,4 @@
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Checkbox from "@/components/Common/Checkbox";
 
 export default function FacilitySelector({

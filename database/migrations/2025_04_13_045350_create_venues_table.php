@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('merchant_id');
             $table->string('name', 100)->require();
             $table->text('description')->nullable();
-            $table->text('location')->nullable();
             $table->string('phone_number')->nullable();
             $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
             $table->string('slug', 100)->nullable();

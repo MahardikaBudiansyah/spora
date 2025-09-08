@@ -1,7 +1,7 @@
 // components/Common/BookingSummaryTable.jsx
 import React, { useMemo } from "react";
 import { NumericFormat } from "react-number-format";
-import { formatCustom } from "@/utils/date";
+import { formatWithPattern } from "@/utils/date";
 
 export default function BookingSummaryTable({
     bookingSelections = [],
@@ -104,7 +104,7 @@ export default function BookingSummaryTable({
                     >
                         {/* Judul Tanggal */}
                         <h3 className="font-semibold text-lg mb-4">
-                            {formatCustom(
+                            {formatWithPattern(
                                 dateEntry?.date,
                                 "cccc, dd MMMM yyyy"
                             )}

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import DangerButton from "@/Components/DangerButton";
 import InputError from "@/components/common/ErrorInput";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Modal from "@/components/common/Modal";
 import SecondaryButton from "@/Components/SecondaryButton";
 import TextInput from "@/components/Common/TextInput";

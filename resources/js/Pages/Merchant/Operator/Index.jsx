@@ -1,17 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
 import { DateTime } from "luxon";
-import { luxonLocalizer } from "react-big-calendar";
+import axios from "axios";
 
 import MerchantLayout from "@/Layouts/MerchantLayout";
-import Toolbar from "@/components/merchant/calendar/Toolbar";
-import CustomDateHeader from "@/components/merchant/calendar/CustomDateHeader";
-import DateCellWrapper from "@/components/merchant/calendar/DateCellWrapper";
-
-import SidebarVenueFilter from "@/Pages/Merchant/Operator/Partials/SidebarVenueFilter";
+import FilterCalendar from "@/Pages/Merchant/Operator/Partials/FilterCalendar";
 import CalendarPanel from "@/Pages/Merchant/Operator/Partials/CalendarPanel";
 import AssignmentList from "@/Pages/Merchant/Operator/Partials/AssignmentList";
-import AssignmentModal from "@/Pages/Merchant/Operator/Partials/AssignmentModal";
+import EditAssignmentModal from "@/Pages/Merchant/Operator/Partials/EditAssignmentModal";
+import CreateAssignmentModal from "@/Pages/Merchant/Operator/Partials/CreateAssignmentModal";
 
 import {
     Card,
@@ -20,184 +17,309 @@ import {
     CardFooter,
 } from "@/components/Common/Card";
 import Button from "@/components/Common/Button";
-
-const localizer = luxonLocalizer(DateTime);
+import { toISODate } from "@/utils/date";
+import { toast } from "react-toastify";
 
 export default function Index() {
-    const { staff, venue } = usePage().props;
+    const { staff, venues, shifts, assignments } = usePage().props;
 
-    const [events, setEvents] = useState([]);
+    // === HELPER: MAP ASSIGNMENT -> EVENT ===
+    const mapAssignmentToEvent = (a) => {
+        const shift = shifts.find((s) => s.id === Number(a.shift_id));
+        const venueId = a.venue?.id || null;
+        const venueObj = venues.find((v) => v.id === venueId);
+
+        let start = DateTime.fromISO(a.date).set({
+            hour: shift?.startHour ?? 0,
+        });
+        let end = DateTime.fromISO(a.date).set({
+            hour: shift?.endHour ?? 0,
+        });
+        if (end < start) end = end.plus({ days: 1 });
+
+        return {
+            id: a.id,
+            shiftId: a.shift_id,
+            venueId,
+            venueName: `${venueObj?.name ?? "Unknown"} - ${shift?.name ?? "-"}`,
+            start,
+            end,
+        };
+    };
+
+    // === INITIAL EVENTS ===
+    const initialEvents = assignments.map(mapAssignmentToEvent);
+
+    // === STATE ===
+    const [events, setEvents] = useState(initialEvents);
     const [selectedVenues, setSelectedVenues] = useState(
-        venue.map((v) => v.id)
+        venues.map((v) => Number(v.id))
     );
+    useEffect(() => {
+        setEvents(initialEvents);
+    }, [assignments]);
+
     const [showModal, setShowModal] = useState(false);
     const [modalSlot, setModalSlot] = useState(null);
-    const [modalVenueId, setModalVenueId] = useState(venue[0]?.id || null);
+    const [modalVenueId, setModalVenueId] = useState(venues[0]?.id || null);
     const [editingEventId, setEditingEventId] = useState(null);
-    const [initialIsRange, setInitialIsRange] = useState(false); // new
+    const [isLoading, setIsLoading] = useState(false);
+    const [editingEvent, setEditingEvent] = useState(null);
 
-    const venueColors = useMemo(() => {
-        const colors = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
-        const map = {};
-        venue.forEach((v, i) => (map[v.id] = colors[i % colors.length]));
-        return map;
-    }, [venue]);
+    // === VENUE COLOR MAPS ===
+    const venueColorMaps = useMemo(() => {
+        const bgClasses = [
+            "bg-indigo-600 dark:bg-indigo-400",
+            "bg-emerald-500 dark:bg-emerald-400",
+            "bg-amber-500 dark:bg-amber-400",
+            "bg-red-500 dark:bg-red-400",
+            "bg-violet-500 dark:bg-violet-400",
+        ];
 
-    const filteredEvents = useMemo(
-        () => events.filter((ev) => selectedVenues.includes(ev.venueId)),
-        [events, selectedVenues]
-    );
+        const borderClasses = [
+            "border-l-indigo-600 dark:border-l-indigo-400",
+            "border-l-emerald-500 dark:border-l-emerald-400",
+            "border-l-amber-500 dark:border-l-amber-400",
+            "border-l-red-500 dark:border-l-red-400",
+            "border-l-violet-500 dark:border-l-violet-400",
+        ];
 
+        return venues.reduce(
+            (acc, v, i) => {
+                acc.bg[v.id] = bgClasses[i % bgClasses.length];
+                acc.border[v.id] = borderClasses[i % borderClasses.length];
+                return acc;
+            },
+            { bg: {}, border: {} }
+        );
+    }, [venues]);
+
+    // === FILTERED EVENTS ===
+    const filteredEvents = useMemo(() => {
+        return events.filter((ev) => selectedVenues.includes(ev.venueId));
+    }, [events, selectedVenues]);
+
+    // === HANDLERS ===
     const toggleVenue = (id) => {
         setSelectedVenues((prev) =>
             prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
         );
     };
 
-    const handleSelectSlot = ({ start, end }) => {
-        const startDate = DateTime.fromJSDate(start);
-        const endDate = DateTime.fromJSDate(end);
+    const handleSelectSlot = ({ start, end, resourceId }) => {
+        const startDT = DateTime.isDateTime(start)
+            ? start
+            : DateTime.fromJSDate(start);
+        const endDT = DateTime.isDateTime(end) ? end : DateTime.fromJSDate(end);
 
-        // jika start === end → single, jika beda → range
-        const isRangeSelection = startDate.hasSame(endDate, "day")
-            ? false
-            : true;
-
-        setModalSlot({ start: startDate, end: endDate });
-        setInitialIsRange(isRangeSelection); // kirim ke modal
+        setModalSlot({ start: startDT, end: endDT });
         setEditingEventId(null);
-        setModalVenueId(venue[0]?.id || null);
+        setModalVenueId(
+            resourceId || selectedVenues[0] || venues[0]?.id || null
+        );
         setShowModal(true);
     };
 
-    const handleAddOrUpdateEvent = () => {
-        if (!modalSlot || !modalVenueId) return;
-        const selectedVenue = venue.find(
-            (v) => v.id === parseInt(modalVenueId)
-        );
-        if (!selectedVenue) return;
+    // === CREATE EVENT ===
+    const handleAddEvent = async (slot, venueId, shiftId) => {
+        if (!slot || !venueId || !shiftId) return;
 
-        const startDate = modalSlot.start.toJSDate();
-        const endDate = modalSlot.end.toJSDate();
-
-        if (editingEventId) {
-            setEvents((prev) =>
-                prev.map((ev) =>
-                    ev.id === editingEventId
-                        ? {
-                              ...ev,
-                              start: startDate,
-                              end: endDate,
-                              venueId: selectedVenue.id,
-                              title: `${selectedVenue.name} - ${staff.name}`,
-                          }
-                        : ev
-                )
-            );
+        let dates = [];
+        if (Array.isArray(slot)) {
+            dates = slot;
+        } else if (slot.start && slot.end) {
+            let current = new Date(slot.start);
+            while (current <= slot.end) {
+                dates.push(new Date(current));
+                current.setDate(current.getDate() + 1);
+            }
+        } else if (slot.start) {
+            dates = [slot.start];
         } else {
-            setEvents((prev) => [
-                ...prev,
-                {
-                    id: `${selectedVenue.id}-${Date.now()}`,
-                    title: `${selectedVenue.name} - ${staff.name}`,
-                    start: startDate,
-                    end: endDate,
-                    venueId: selectedVenue.id,
-                },
-            ]);
+            return;
         }
 
-        setShowModal(false);
+        setIsLoading(true);
+
+        try {
+            const response = await axios.post(
+                route("merchant.staff.operator.store", { staff: staff.slug }),
+                {
+                    venue_id: venueId,
+                    shift_id: shiftId,
+                    dates: dates.map((d) => toISODate(d)),
+                }
+            );
+
+            const newEvents =
+                response.data.assignments.map(mapAssignmentToEvent);
+
+            setEvents((prev) => [...prev, ...newEvents]);
+
+            if (response.data.failed_dates?.length) {
+                const failed = response.data.failed_dates;
+                const msg =
+                    failed.length > 5
+                        ? `${failed.slice(0, 5).join(", ")} dan ${
+                              failed.length - 5
+                          } lainnya`
+                        : failed.join(", ");
+                toast.warn(`Beberapa tanggal gagal disimpan: ${msg}`);
+            } else {
+                toast.success("Penugasan berhasil disimpan");
+                setShowModal(false);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Gagal menyimpan penugasan");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // === UPDATE EVENT ===
+    const handleUpdateEvent = async ({ id, date, venueId, shiftId }) => {
+        if (!id || !date || !venueId || !shiftId) return;
+
+        setIsLoading(true);
+        try {
+            const response = await axios.put(
+                route("merchant.staff.operator.update", {
+                    staff: staff.slug,
+                    assignment: id,
+                }),
+                {
+                    venue_id: venueId,
+                    shift_id: shiftId,
+                    date: toISODate(date),
+                }
+            );
+
+            const updated = mapAssignmentToEvent(response.data.assignment);
+
+            setEvents((prev) =>
+                prev.map((ev) => (ev.id === id ? updated : ev))
+            );
+
+            // 🔑 update juga editingEvent biar modal tidak pegang versi lama
+            setEditingEvent(updated);
+
+            toast.success("Penugasan berhasil diperbarui");
+
+            // 🔑 tutup modal setelah update
+            setShowModal(false);
+            setEditingEvent(null);
+            setEditingEventId(null);
+        } catch (error) {
+            console.error(error);
+            toast.error("Gagal memperbarui penugasan");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteEvent = async (id) => {
+        try {
+            await axios.delete(
+                route("merchant.staff.operator.destroy", {
+                    staff: staff.slug,
+                    assignment: id,
+                })
+            );
+            setEvents((prev) => prev.filter((ev) => ev.id !== id));
+            toast.success("Penugasan berhasil dihapus");
+        } catch (error) {
+            console.error(error);
+            toast.error("Gagal menghapus penugasan");
+        }
     };
 
     const handleEditEvent = (ev) => {
-        const startDate = DateTime.fromJSDate(ev.start);
-        const endDate = DateTime.fromJSDate(ev.end);
-        setModalSlot({ start: startDate, end: endDate });
-        setInitialIsRange(!startDate.hasSame(endDate, "day"));
-        setModalVenueId(ev.venueId);
+        setEditingEvent(ev);
         setEditingEventId(ev.id);
         setShowModal(true);
     };
 
-    const handleDeleteEvent = (id) =>
-        setEvents((prev) => prev.filter((ev) => ev.id !== id));
-    const handleEventDrop = ({ event, start, end }) =>
+    const handleEventUpdate = ({ event, start, end }) => {
         setEvents((prev) =>
-            prev.map((ev) => (ev.id === event.id ? { ...ev, start, end } : ev))
+            prev.map((ev) =>
+                ev.id === event.id
+                    ? {
+                          ...ev,
+                          start: DateTime.fromJSDate(start),
+                          end: DateTime.fromJSDate(end),
+                      }
+                    : ev
+            )
         );
-    const handleEventResize = ({ event, start, end }) =>
-        setEvents((prev) =>
-            prev.map((ev) => (ev.id === event.id ? { ...ev, start, end } : ev))
-        );
-    const eventStyleGetter = (event) => ({
-        style: {
-            backgroundColor: venueColors[event.venueId] || "#4F46E5",
-            borderRadius: "4px",
-            color: "white",
-            border: "none",
-            padding: "2px 4px",
-        },
-    });
+    };
 
+    // === RENDER ===
     return (
         <MerchantLayout>
             <Head title="Penugasan Operator" />
 
             <Card className="min-h-screen flex flex-col gap-4">
-                <CardHeader className="flex justify-between items-center">
-                    <h1 className="font-bold text-lg">
-                        Penugasan Operator: {staff.name}
-                    </h1>
-                    <Button
-                        variant="light"
-                        size="xs"
-                        onClick={() => setEvents([])}
-                    >
-                        Hapus Semua Penugasan
-                    </Button>
+                <CardHeader>
+                    <div className="flex justify-between items-center p-4">
+                        <div className="font-bold text-xl">
+                            Penugasan Operator: {staff.name}
+                        </div>
+                        <Button
+                            variant="primary"
+                            size="xs"
+                            onClick={() => {
+                                setModalSlot({
+                                    start: DateTime.now().startOf("day"),
+                                    end: DateTime.now().startOf("day"),
+                                });
+                                setEditingEventId(null);
+                                setModalVenueId(
+                                    selectedVenues[0] || venues[0]?.id || null
+                                );
+                                setShowModal(true);
+                            }}
+                        >
+                            Tambah Penugasan
+                        </Button>
+                    </div>
                 </CardHeader>
 
                 <CardBody className="flex flex-row gap-4 px-4">
-                    <SidebarVenueFilter
-                        venues={venue}
-                        selectedVenues={selectedVenues}
-                        onToggleVenue={toggleVenue}
-                        venueColors={venueColors}
-                    />
                     <CalendarPanel
-                        localizer={localizer}
                         events={filteredEvents}
                         onSelectSlot={handleSelectSlot}
-                        onEventDrop={handleEventDrop}
-                        onEventResize={handleEventResize}
-                        eventStyleGetter={eventStyleGetter}
-                        toolbarComponent={(props) => (
-                            <Toolbar
-                                {...props}
-                                availableViews={["month", "week", "day"]}
-                            />
-                        )}
-                        monthComponents={{
-                            dateHeader: (props) => (
-                                <CustomDateHeader {...props} />
-                            ),
-                            dateCellWrapper: (props) => (
-                                <DateCellWrapper {...props} />
-                            ),
-                        }}
+                        onEventDrop={handleEventUpdate}
+                        onEventResize={handleEventUpdate}
+                        onEventClick={handleEditEvent}
+                        venueColors={venueColorMaps.bg}
+                        venues={venues}
+                        shifts={shifts}
                     />
-                    <AssignmentList
-                        events={filteredEvents}
-                        onEditEvent={handleEditEvent}
-                        onDeleteEvent={handleDeleteEvent}
-                    />
+
+                    <div className="flex flex-col gap-4">
+                        <FilterCalendar
+                            venues={venues}
+                            selectedVenues={selectedVenues}
+                            onToggleVenue={toggleVenue}
+                            venueColors={venueColorMaps.bg}
+                        />
+
+                        <AssignmentList
+                            events={filteredEvents}
+                            staff={staff}
+                            venues={venues}
+                            shifts={shifts}
+                            venueColors={venueColorMaps.border}
+                            onEditEvent={handleEditEvent}
+                            onDeleteEvent={handleDeleteEvent}
+                        />
+                    </div>
                 </CardBody>
 
-                <CardFooter className="flex justify-end gap-2">
+                <CardFooter className="p-8 flex justify-end gap-2">
                     <Button
                         variant="light"
-                        type="button"
                         onClick={() =>
                             router.get(route("merchant.staff.index"))
                         }
@@ -207,22 +329,33 @@ export default function Index() {
                 </CardFooter>
             </Card>
 
-            <AssignmentModal
-                show={showModal}
-                onClose={() => setShowModal(false)}
-                venues={venue}
-                modalVenueId={modalVenueId}
-                setModalVenueId={setModalVenueId}
-                modalSlot={modalSlot}
-                setModalSlot={setModalSlot}
-                onSave={handleAddOrUpdateEvent}
-                initialIsRange={initialIsRange} // pass ke modal
-                title={
-                    editingEventId
-                        ? "Edit Penugasan Operator"
-                        : "Tambahkan Penugasan Operator"
-                }
-            />
+            {editingEventId ? (
+                <EditAssignmentModal
+                    key={editingEvent?.id}
+                    show={showModal}
+                    onClose={() => {
+                        setShowModal(false);
+                        setEditingEvent(null);
+                        setEditingEventId(null);
+                    }}
+                    venues={venues}
+                    shifts={shifts}
+                    event={editingEvent}
+                    onSave={handleUpdateEvent}
+                    isLoading={isLoading}
+                />
+            ) : (
+                <CreateAssignmentModal
+                    show={showModal}
+                    onClose={() => setShowModal(false)}
+                    venues={venues}
+                    shifts={shifts}
+                    defaultVenueId={modalVenueId}
+                    defaultSlot={modalSlot}
+                    onSave={handleAddEvent}
+                    isLoading={isLoading}
+                />
+            )}
         </MerchantLayout>
     );
 }

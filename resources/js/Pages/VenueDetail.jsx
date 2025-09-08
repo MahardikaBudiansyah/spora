@@ -6,54 +6,66 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import BannerSection from "@/components/common/BannerSection";
-import { ChevronDown, Star, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import VenueGalleryImage from "@/Pages/User/Partials/VenueGalleryImage";
 import Button from "@/components/common/Button";
 import DatePicker from "@/components/user/DatePicker";
 import Badge from "@/components/common/Badge";
 import VenueInfo from "@/components/venue/VenueInfo";
 import VenueFacility from "@/components/venue/VenueFacility";
-import VenueLocation from "@/components/venue/VenueLocation";
+import VenueAddress from "@/components/venue/VenueAddress";
 import TimeSlotButton from "@/components/Common/TimeSlotButton";
 import { NumericFormat } from "react-number-format";
 import { toast } from "react-toastify";
+import { parseDate, toISODate } from "@/utils/date"; // ✅ import utils
 
-export default function Venue({ venue }) {
+export default function VenueDetail({ venue }) {
     const { user } = useAuth();
-    const role = user?.role ?? "guest";
     const { auth } = usePage().props;
-
     const { addToCart, cartItems } = useCart();
     const { openModal } = useAuthModal();
     const timetableRef = useRef(null);
-    const [selectedDate, setSelectedDate] = useState(null);
+
+    // ✅ State utama
+    const [selectedDate, setSelectedDate] = useState(parseDate(new Date()));
     const [openFieldId, setOpenFieldId] = useState(null);
     const [timeslots, setTimeslots] = useState([]);
 
+    // Toggle open/close jadwal per field
     const handleToggle = (fieldId) => {
         if (!selectedDate) return;
         setOpenFieldId(openFieldId === fieldId ? null : fieldId);
     };
+
+    // Scroll ke timetable
     function handleScrollToTimetable() {
         timetableRef.current?.scrollIntoView({ behavior: "smooth" });
     }
 
+    // Ambil timeslots tiap kali selectedDate berubah
     useEffect(() => {
         if (!selectedDate) return;
 
+        console.log("Fetching timeslots:", venue.slug, toISODate(selectedDate));
+
         axios
             .get(route("getTimeslotsByVenue", { venue: venue.slug }), {
-                params: { date: selectedDate.toISODate() },
+                params: { date: toISODate(selectedDate) },
             })
             .then((res) => {
+                console.log("API response:", res.data);
                 setTimeslots(res.data.fields);
             })
-            .catch((err) => {
-                console.error(err);
-            });
+            .catch((err) => console.error(err));
     }, [selectedDate]);
 
+    // Tambah slot ke cart
     const handleAddToCart = async (field, slot) => {
+        if (slot.status_label !== "Tersedia") {
+            toast.warning("Slot ini tidak tersedia untuk dipesan.");
+            return;
+        }
+
         if (!auth.user) {
             toast.warning("Anda harus login dulu untuk menambahkan ke cart.");
             openModal("login");
@@ -65,7 +77,7 @@ export default function Venue({ venue }) {
                 venue_id: venue.id,
                 field_id: field.id,
                 time_slot_id: slot.timeslot_id,
-                date: selectedDate.toISODate(),
+                date: toISODate(selectedDate),
                 total_price: slot.price,
             });
             toast.success("Berhasil ditambahkan ke cart");
@@ -76,6 +88,7 @@ export default function Venue({ venue }) {
         }
     };
 
+    // Cek apakah slot sudah ada di cart
     function isSlotInCart(fieldId, timeslotId, date) {
         for (const venueGroup of cartItems) {
             for (const fieldGroup of venueGroup.fields) {
@@ -95,8 +108,12 @@ export default function Venue({ venue }) {
         <UserLayout>
             <Head title={venue.name} />
             <BannerSection height="h-16" />
+
             <div className="px-4 py-8 max-w-screen-lg mx-auto rounded-lg text-gray-800 dark:text-white">
+                {/* Gallery */}
                 <VenueGalleryImage images={venue.images} />
+
+                {/* Info dan Harga */}
                 <div className="py-8 flex flex-col md:flex-row gap-8">
                     <div className="flex flex-col flex-1 gap-2">
                         <VenueInfo
@@ -105,7 +122,7 @@ export default function Venue({ venue }) {
                             description={venue.description}
                             phone_number={venue.phone_number}
                         />
-                        <VenueLocation address={venue.location} />
+                        <VenueAddress address={venue.address} />
                     </div>
                     <div className="w-full md:w-3/12">
                         <div className="p-6 flex flex-col gap-3 bg-white dark:bg-secondary-800 rounded-md">
@@ -120,9 +137,8 @@ export default function Venue({ venue }) {
                                         allowNegative={false}
                                         decimalScale={0}
                                         value={
-                                            venue.min_price
-                                                ? venue.min_price.toLocaleString()
-                                                : "0"
+                                            venue.min_price?.toLocaleString() ||
+                                            "0"
                                         }
                                         className="text-2xl font-bold"
                                     />
@@ -139,31 +155,28 @@ export default function Venue({ venue }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Fasilitas */}
                 <div className="py-8 flex flex-col gap-2">
                     <span className="text-lg font-bold">Fasilitas:</span>
                     <VenueFacility facilities={venue.facilities} />
                 </div>
+
+                {/* Pilih Jadwal */}
                 <div ref={timetableRef} className="py-8 flex flex-col gap-2">
                     <span className="text-lg font-bold">Pilih Jadwal:</span>
-                    <div>
-                        <DatePicker
-                            selected={selectedDate}
-                            onChange={(date) => {
-                                console.log(
-                                    "selectedDate di Venue:",
-                                    date.toISO()
-                                );
-                                setSelectedDate(date);
-                            }}
-                        />
-                    </div>
+                    <DatePicker
+                        selected={selectedDate}
+                        onChange={setSelectedDate}
+                    />
                 </div>
+
+                {/* Field & Timeslots */}
                 <div className="p-4 flex flex-col">
                     {venue.fields.map((field) => {
-                        // cari timeslot field ini dari API
                         const fieldTimeslots =
-                            timeslots.find((f) => f.id === field.id)
-                                ?.timeslots || [];
+                            timeslots.find((f) => f.id === field.id)?.slots ||
+                            [];
 
                         return (
                             <div
@@ -172,7 +185,7 @@ export default function Venue({ venue }) {
                             >
                                 <img
                                     src={field.image}
-                                    alt=""
+                                    alt={field.name}
                                     className="w-[400px] h-[200px] md:h-[260px] object-cover rounded-lg shadow-md"
                                 />
                                 <div className="flex flex-col flex-1 gap-4">
@@ -208,7 +221,7 @@ export default function Venue({ venue }) {
                                                 const isSelected = isSlotInCart(
                                                     field.id,
                                                     slot.timeslot_id,
-                                                    selectedDate.toISODate()
+                                                    toISODate(selectedDate) // ✅ pakai utils
                                                 );
                                                 return (
                                                     <TimeSlotButton
@@ -219,16 +232,12 @@ export default function Venue({ venue }) {
                                                             status: slot.status_label,
                                                             price: slot.price,
                                                         }}
-                                                        selected={isSlotInCart(
-                                                            field.id,
-                                                            slot.timeslot_id,
-                                                            selectedDate.toISODate()
-                                                        )}
-                                                        disabled={isSlotInCart(
-                                                            field.id,
-                                                            slot.timeslot_id,
-                                                            selectedDate.toISODate()
-                                                        )}
+                                                        selected={isSelected}
+                                                        disabled={
+                                                            isSelected ||
+                                                            slot.status_label !==
+                                                                "Tersedia"
+                                                        }
                                                         onClick={() =>
                                                             handleAddToCart(
                                                                 field,

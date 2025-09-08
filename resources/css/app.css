@@ -89,3 +89,95 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 input[type="time"]::-moz-focus-inner {
     border: 0;
 }
+
+.rmdp-container {
+    display: block !important;
+    width: 100% !important;
+}
+
+.rmdp-cyan {
+    --rmdp-main-color: #00bcd4 !important; /* Cyan */
+    --rmdp-main-color-hover: #0097a7 !important;
+    --rmdp-main-color-active: #00838f !important;
+    --rmdp-main-color-focus: #006064 !important;
+    --rmdp-main-color-light: #b2ebf2 !important;
+    --rmdp-main-color-dark: #004d40 !important;
+}
+/* 
+.fc-daygrid-day {
+    cursor: pointer !important;
+} */
+
+.fc-event-main {
+    border: 0;
+    background-color: transparent !important;
+}
+
+.fc-daygrid-event {
+    border: 0;
+    background-color: transparent !important;
+    border-color: none !important;
+}
+
+/* Week/Day style */
+.fc-timegrid-event {
+    border: 0;
+    border-radius: 0;
+    background-color: transparent !important;
+    border-color: none !important;
+}
+
+.fc-timegrid-event-harness-in {
+    border: 0;
+    box-shadow: none !important;
+}
+
+/* Border antar cell (hari-hari bulan) */
+.fc .fc-daygrid-day {
+    border-color: #d1d5db !important; /* gray-300 */
+}
+.dark .fc .fc-daygrid-day {
+    border-color: #374151 !important; /* gray-700 */
+}
+
+/* Border header (Senin, Selasa, dst) */
+.fc .fc-col-header-cell {
+    border-color: #d1d5db !important;
+}
+.dark .fc .fc-col-header-cell {
+    border-color: #374151 !important;
+}
+
+/* Border luar tabel kalender */
+.fc .fc-scrollgrid {
+    border-color: #d1d5db !important;
+}
+.dark .fc .fc-scrollgrid {
+    border-color: #374151 !important;
+}
+
+/* Border luar keseluruhan kalender */
+.fc .fc-scrollgrid {
+    border-color: #d1d5db !important; /* gray-300 */
+}
+.dark .fc .fc-scrollgrid {
+    border-color: #374151 !important; /* gray-700 */
+}
+
+/* Border kanan (kolom terakhir) */
+.fc .fc-scrollgrid td:last-child,
+.fc .fc-scrollgrid th:last-child {
+    border-right-color: #d1d5db !important;
+}
+.dark .fc .fc-scrollgrid td:last-child,
+.dark .fc .fc-scrollgrid th:last-child {
+    border-right-color: #374151 !important;
+}
+
+/* Border bawah (baris terakhir) */
+.fc .fc-scrollgrid tr:last-child td {
+    border-bottom-color: #d1d5db !important;
+}
+.dark .fc .fc-scrollgrid tr:last-child td {
+    border-bottom-color: #374151 !important;
+}

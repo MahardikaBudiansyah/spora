@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
             $table->string('NIK')->nullable();
-            $table->string('address')->nullable();
             $table->string('avatar')->nullable(); // simpan path foto profil
             $table->date('date_of_birth')->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -67,19 +67,17 @@ export default function CreateRoleModal({
                         {showBanner && (
                             <BannerAlert
                                 type="warning"
-                                className="py-3 flex flex-row justify-between items-center"
+                                variant="subtle"
+                                onClose={() => setDismissed(true)}
+                                closable
                             >
                                 <div className="flex flex-row gap-2 items-center">
-                                    <Info className="w-6" />
                                     Tambahkan
                                     <span className="font-bold">role</span>atau
                                     <span className="font-bold">
                                         posisi staf!
                                     </span>
                                 </div>
-                                <button onClick={() => setDismissed(true)}>
-                                    <X className="w-4 h-4 cursor-pointer hover:text-yellow-700 " />
-                                </button>
                             </BannerAlert>
                         )}
                         <div className="space-y-2">

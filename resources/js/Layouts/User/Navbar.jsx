@@ -71,7 +71,7 @@ export default function Navbar() {
                         <NavAction onOpenModal={openModal} />
                     )}
 
-                    <ThemeToggle />
+                    <ThemeToggle tooltipPlacement="right" />
                     <div className="hidden md:block w-px h-6 bg-gray-300 dark:bg-gray-600" />
                     <HamburgerButton
                         isOpen={isOpen}

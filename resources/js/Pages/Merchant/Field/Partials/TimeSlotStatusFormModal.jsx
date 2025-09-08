@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
-import { toISODate, formatCustom } from "@/utils/date";
+import { toISODate, formatWithPattern } from "@/utils/date";
 import Button from "@/components/Common/Button";
 import {
     Card,
@@ -8,13 +8,13 @@ import {
     CardFooter,
     CardHeader,
 } from "@/components/Common/Card";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Table from "@/components/Common/Table";
 import Checkbox from "@/components/Common/Checkbox";
 import Modal from "@/components/Common/Modal";
 import CloseButtonModal from "@/components/common/CloseButtonModal";
 import SelectInput from "@/components/Common/SelectInput";
-import DatePickerInput from "@/components/common/DatePickerInput";
+import DatePickerInput from "@/components/Common/DatePickerInput1";
 import { toast } from "react-toastify";
 
 const columns = [
@@ -49,7 +49,7 @@ export default function TimeSlotStatusFormModal({
     });
 
     const selectedDateFormatted = selectedDate
-        ? formatCustom(selectedDate, "cccc, dd MMMM yyyy")
+        ? formatWithPattern(selectedDate, "cccc, dd MMMM yyyy")
         : "-";
 
     // Reset state saat modal dibuka/tutup
@@ -65,7 +65,7 @@ export default function TimeSlotStatusFormModal({
     // Update form data setiap perubahan selectedDate, statusId, atau selectedSlots
     useEffect(() => {
         setData({
-            date: selectedDate,
+            date: toISODate(selectedDate),
             status_id: statusId,
             timeslot_ids: selectedSlots.map((s) => s.timeslot_id),
         });
@@ -149,7 +149,13 @@ export default function TimeSlotStatusFormModal({
     const disabledStatuses = ["dipesan", "booked"];
 
     return (
-        <Modal show={isOpen} onClose={onClose} maxWidth="xl" className="p-4">
+        <Modal
+            show={isOpen}
+            onClose={onClose}
+            maxWidth="xl"
+            overflow="visible"
+            className="p-4"
+        >
             <Card className="relative border-none shadow-none text-gray-700 dark:text-gray-100 text-xs">
                 <CloseButtonModal onClose={onClose} />
                 <form className="space-y-4" onSubmit={handleSubmit}>

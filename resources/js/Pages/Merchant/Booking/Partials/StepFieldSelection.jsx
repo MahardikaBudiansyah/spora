@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import FieldSelection from "@/Pages/Merchant/Booking/Partials/FieldSelection";
 import BookingSummaryTable from "@/Pages/Merchant/Booking/Partials/BookingSummaryTable";
+import PreviewBooking from "@/Pages/Merchant/Booking/Partials/PreviewBooking";
 import { toISODate } from "@/utils/date";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -95,7 +96,12 @@ export default function StepFieldSelection({
             />
 
             {/* Ganti PreviewBooking dengan BookingSummaryTable */}
-            <BookingSummaryTable bookingSelections={bookingSelections} />
+            {/* <BookingSummaryTable bookingSelections={bookingSelections} /> */}
+            <PreviewBooking
+                bookingSelections={bookingSelections}
+                fields={fields}
+                onBookingChange={onChange}
+            />
         </div>
     );
 }

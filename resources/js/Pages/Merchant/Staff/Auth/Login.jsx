@@ -2,7 +2,7 @@ import { Link, Head, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import AuthMerchantLayout from "@/Layouts/AuthMerchantLayout";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import PhoneInput from "@/components/Common/PhoneInput";
 import PasswordInput from "@/components/common/PasswordInput";
 import { Card, CardHeader, CardBody } from "@/components/common/Card";

@@ -17,7 +17,6 @@ return new class extends Migration
 
             $table->string('nik')->nullable(); 
             $table->string('full_name')->nullable();
-            $table->text('address')->nullable();
             $table->string('ktp_photo')->nullable();
             $table->string('selfie_with_ktp')->nullable();
 

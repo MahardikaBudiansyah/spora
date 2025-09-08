@@ -10,7 +10,7 @@ import Button from "@/components/common/Button";
 import VenueInfo from "@/components/venue/VenueInfo";
 import VenueGalleryImage from "@/components/venue/VenueGalleryImage";
 import VenueFacility from "@/components/venue/VenueFacility";
-import VenueLocation from "@/components/venue/VenueLocation";
+import VenueAddress from "@/components/venue/VenueAddress";
 import VenueFieldList from "@/components/venue/VenueFieldList";
 
 export default function Show() {
@@ -61,7 +61,7 @@ export default function Show() {
                                     description={venue.description}
                                     phone_number={venue.phone_number}
                                 />
-                                <VenueLocation address={venue.location} />
+                                <VenueAddress address={venue.address} />
                                 <div className="flex flex-col gap-2">
                                     <span className="text-lg font-bold">
                                         Fasilitas:

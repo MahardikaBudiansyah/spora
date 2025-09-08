@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Shift;
 use App\Models\Staff;
 use App\Models\Venue;
+use App\Models\Address;
 use App\Traits\HasPassword;
 use App\Models\Subscription;
 use App\Models\MerchantOwner;
@@ -56,6 +57,11 @@ class Merchant extends Authenticatable
                 'unique' => true,
             ]
         ];
+    }
+
+    public function addresses()
+    {
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     public function profile()

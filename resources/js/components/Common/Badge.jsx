@@ -11,6 +11,7 @@ export default function Badge({ children, color = "gray", className = "" }) {
         blue: "bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-100",
         yellow: "bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100",
         indigo: "bg-indigo-100 text-indigo-800 dark:bg-indigo-700 dark:text-indigo-100",
+        cyan: "bg-cyan-100 text-cyan-800 dark:bg-cyan-700 dark:text-cyan-100",
     };
 
     const combined = twMerge(

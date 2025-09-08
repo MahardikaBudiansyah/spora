@@ -1,0 +1,143 @@
+:root {
+    --rmdp-primary-cyan: #00bcd4;
+    --rmdp-secondary-cyan: #0097a7;
+    --rmdp-shadow-cyan: #26c6da;
+    --rmdp-today-cyan: #18ffff;
+    --rmdp-hover-cyan: #4dd0e1;
+    --rmdp-deselect-cyan: #00838f;
+}
+
+.cyan .rmdp-wrapper {
+    border: 1px solid var(--rmdp-secondary-cyan);
+    box-shadow: 0 0 5px var(--rmdp-secondary-cyan);
+}
+
+.cyan .rmdp-panel-body li {
+    background-color: var(--rmdp-primary-cyan);
+    box-shadow: 0 0 2px var(--rmdp-secondary-cyan);
+}
+
+.cyan .rmdp-week-day {
+    color: var(--rmdp-primary-cyan);
+}
+
+.cyan .rmdp-day.rmdp-deactive {
+    color: var(--rmdp-secondary-cyan);
+}
+
+.cyan .rmdp-range {
+    background-color: var(--rmdp-primary-cyan);
+    box-shadow: 0 0 3px var(--rmdp-shadow-cyan);
+}
+
+.cyan .rmdp-arrow {
+    border: solid var(--rmdp-primary-cyan);
+    border-width: 0 2px 2px 0;
+}
+
+.cyan .rmdp-arrow-container:hover {
+    background-color: var(--rmdp-primary-cyan);
+    box-shadow: 0 0 3px var(--rmdp-secondary-cyan);
+}
+
+.cyan .rmdp-panel-body::-webkit-scrollbar-thumb {
+    background: var(--rmdp-primary-cyan);
+}
+
+.cyan .rmdp-day.rmdp-today span {
+    background-color: var(--rmdp-today-cyan);
+}
+
+.cyan .rmdp-rtl .rmdp-panel {
+    border-left: unset;
+    border-right: 1px solid var(--rmdp-secondary-cyan);
+}
+
+.cyan .rmdp-day.rmdp-selected span:not(.highlight) {
+    background-color: var(--rmdp-primary-cyan);
+    box-shadow: 0 0 3px var(--rmdp-shadow-cyan);
+}
+
+.cyan .rmdp-day:not(.rmdp-day-hidden) span:hover {
+    background-color: var(--rmdp-hover-cyan) !important;
+}
+
+.cyan .b-deselect {
+    color: var(--rmdp-deselect-cyan);
+    background-color: white;
+}
+
+.cyan .rmdp-action-button {
+    color: var(--rmdp-primary-cyan);
+}
+
+.cyan .rmdp-button:not(.rmdp-action-button) {
+    background-color: var(--rmdp-primary-cyan);
+}
+
+.cyan .rmdp-button:not(.rmdp-action-button):hover {
+    background-color: var(--rmdp-deselect-cyan);
+}
+
+.cyan .rmdp-toolbar div {
+    background-color: var(--rmdp-primary-cyan);
+    color: #fff; /* teks tetap putih */
+}
+
+.cyan .rmdp-toolbar div:hover {
+    box-shadow: 0 0 5px var(--rmdp-secondary-cyan);
+    background-color: var(--rmdp-hover-cyan);
+}
+
+.cyan .rmdp-panel-body li {
+    position: relative;
+}
+
+.cyan .rmdp-panel-body li .b-deselect {
+    background-color: var(--rmdp-primary-cyan) !important;
+    color: white !important;
+    border: none !important;
+    position: relative; /* pastikan posisi bisa diatur */
+    top: 4px; /* jarak dari atas */
+    left: 0px; /* geser ke kiri sedikit */
+    width: 20px; /* optional, sesuaikan ukuran */
+    height: 20px; /* optional, sesuaikan ukuran */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cyan .rmdp-panel-body li .b-deselect span {
+    transform: rotate(45deg);
+    display: block;
+}
+
+/* Override dark mode text di kalender */
+.cyan.dark .rmdp-day,
+.cyan.dark .rmdp-week,
+.cyan.dark .rmdp-month,
+.cyan.dark .rmdp-year,
+.cyan.dark .rmdp-panel-header,
+.cyan.dark .rmdp-header .rmdp-header-values {
+    color: white !important; /* warna putih */
+}
+
+/* Optional: hover & selected di dark mode */
+.cyan.dark .rmdp-day:not(.rmdp-day-hidden) span:hover {
+    background-color: var(--rmdp-hover-cyan) !important;
+}
+
+.cyan.dark .rmdp-day.rmdp-selected span:not(.highlight) {
+    background-color: var(--rmdp-primary-cyan);
+    box-shadow: 0 0 3px var(--rmdp-shadow-cyan);
+}
+
+.cyan.dark .rmdp-year-picker,
+.cyan.dark .rmdp-month-picker {
+    background-color: #292524;
+}
+
+.cyan.dark .rmdp-border-bottom,
+.cyan.dark .rmdp-border-right {
+    border-color: #57534e;
+}

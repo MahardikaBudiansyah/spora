@@ -16,9 +16,9 @@ class StaffProfile extends Model
     protected $fillable = [
         'staff_id',
         'NIK',
-        'address',
         'avatar',
         'date_of_birth',
+        'gender',
     
     ];
 

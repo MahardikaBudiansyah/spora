@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { router } from "@inertiajs/react";
 import { toast } from "react-toastify";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import PasswordInput from "@/components/Common/PasswordInput";
 import Button from "@/components/Common/Button";

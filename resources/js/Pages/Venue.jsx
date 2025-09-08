@@ -62,7 +62,10 @@ export default function Venue() {
                                         {(venue.rating ?? 0).toFixed(2)}
                                     </span>
                                     <span>|</span>
-                                    <span>{venue.location}</span>
+                                    <span>
+                                        {venue.address?.district ?? "-"},{" "}
+                                        {venue.address?.city ?? "-"}
+                                    </span>
                                 </div>
 
                                 <div className="py-2 flex gap-2 items-center">

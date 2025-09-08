@@ -53,7 +53,7 @@ export default function TimeSlotSelector({
                                 )
                             }
                             placeholder="Rp 0"
-                            className="w-full rounded-md text-sm text-right border-secondary-300 focus:border-primary focus:ring-primary-500 dark:focus:ring-primary-600 dark:bg-secondary-800 dark:border-secondary-700 dark:text-white placeholder:text-secondary-400 dark:placeholder:text-secondary-500 "
+                            className="w-full rounded-md text-sm text-right border-secondary-300 focus:border-primary-500 focus:ring-primary-500 dark:focus:ring-primary-600 dark:bg-secondary-800 dark:border-secondary-700 dark:text-white placeholder:text-secondary-400 dark:placeholder:text-secondary-500 "
                         />
                     </div>
                 ))}

@@ -1,11 +1,12 @@
 import FileInput from "@/components/Common/FileInput";
-import LabelInput from "@/components/Common/Labelnput";
+import LabelInput from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import SelectInput from "@/components/Common/SelectInput";
-import DatePickerInput from "@/components/Common/DatePickerInput";
+import DatePickerInput from "@/components/Common/DatePickerInput1";
 import { Card, CardBody, CardHeader } from "@/components/Common/Card";
 import { NumericFormat } from "react-number-format";
 import PreviewBooking from "@/Pages/Merchant/Booking/Partials/PreviewBooking";
+import TimePickerInput from "@/components/Common/TimePickerInput";
 
 export default function StepPayment({ formData = {}, onChange, fields = [] }) {
     const paymentTypeOptions = [
@@ -225,8 +226,7 @@ function FormDate({ label, value, onChange }) {
                 label=""
                 value={value}
                 onChange={onChange}
-                variant="datetime"
-                mobileMode="full"
+                popoverDirection="up"
             />
         </RowForm>
     );
@@ -235,12 +235,10 @@ function FormDate({ label, value, onChange }) {
 function FormTime({ label, value, onChange }) {
     return (
         <RowForm label={label}>
-            <input
-                type="time"
+            <TimePickerInput
                 step="60"
                 value={value || ""}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-secondary-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 text-sm text-secondary-700 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500 shadow-sm"
             />
         </RowForm>
     );

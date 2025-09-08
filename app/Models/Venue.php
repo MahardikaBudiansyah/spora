@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Cart;
 use App\Models\Field;
 use App\Models\Image;
+use App\Models\Address;
 use App\Models\Booking;
 use App\Models\Facility;
 use App\Models\Merchant;
@@ -25,7 +26,6 @@ class Venue extends Model
     protected $fillable = [
         'name',
         'description',
-        'location',
         'phone_number',
         'slug',
         'merchant_id',
@@ -58,6 +58,11 @@ class Venue extends Model
     public function merchant()
     {
         return $this->belongsTo(Merchant::class, 'merchant_id', 'id');
+    }
+
+    public function addresses() 
+    {
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     public function operatorVenues()

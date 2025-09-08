@@ -7,7 +7,7 @@ import {
     CardBody,
     CardFooter,
 } from "@/components/Common/Card";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import InputError from "@/components/common/ErrorInput";
 import TextArea from "@/components/Common/TextArea";

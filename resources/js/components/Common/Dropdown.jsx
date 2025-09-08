@@ -71,7 +71,6 @@ const Content = ({
             >
                 <div
                     className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
-                    onClick={() => setOpen(false)}
                 >
                     <div
                         className={
@@ -87,10 +86,18 @@ const Content = ({
     );
 };
 
-const DropdownLink = ({ className = "", children, ...props }) => {
+const DropdownLink = ({ className = "", children, onClick, ...props }) => {
+    const { setOpen } = useContext(DropDownContext);
+
+    const handleClick = (e) => {
+        setOpen(false); // tutup dropdown
+        if (onClick) onClick(e); // jalankan callback tambahan
+    };
+
     return (
         <Link
             {...props}
+            onClick={handleClick}
             className={
                 "block w-full px-4 py-2 text-start text-xs leading-5 text-gray-900 dark:text-white hover:bg-primary-400 dark:hover:bg-secondary-600 focus:outline-none focus:bg-primary-400 transition duration-150 ease-in-out " +
                 className

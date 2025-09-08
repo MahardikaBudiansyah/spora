@@ -2,7 +2,7 @@ import { Link, useForm, usePage } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 import { toast } from "react-toastify";
 import InputError from "@/components/common/ErrorInput";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import TextInput from "@/components/common/TextInput";

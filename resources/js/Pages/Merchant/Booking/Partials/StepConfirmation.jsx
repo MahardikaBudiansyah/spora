@@ -1,6 +1,6 @@
 import CustomTable from "@/components/Common/CustomTable";
 import BookingSummaryTable from "@/Pages/Merchant/Booking/Partials/BookingSummaryTable";
-import { formatCustom } from "@/utils/date";
+import { formatWithPattern } from "@/utils/date";
 
 export default function StepConfirmation({ data, venue, fields }) {
     // ✅ Informasi Venue
@@ -77,7 +77,7 @@ export default function StepConfirmation({ data, venue, fields }) {
         data.payment_date && data.payment_time
             ? {
                   label: "Tanggal Pembayaran",
-                  value: `${formatCustom(
+                  value: `${formatWithPattern(
                       data.payment_date,
                       "cccc, dd MMMM yyyy"
                   )}, ${data.payment_time}`,

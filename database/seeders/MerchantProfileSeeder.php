@@ -19,7 +19,6 @@ class MerchantProfileSeeder extends Seeder
                 'merchant_id' => 1,
                 'nik' => '0101010101010101',
                 'full_name' => 'Mahardika Budiansyah',
-                'address' => 'Kamal RT 02 RW 04, Pagersari, Mungkid, Magelang',
                 'ktp_photo' => null,
                 'selfie_with_ktp' => null,
                 'bank_name' => 'Bank Central Asia',

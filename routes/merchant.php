@@ -57,13 +57,11 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
             Route::delete('/delete', [StaffController::class, 'destroy'])->name('delete');
 
             Route::prefix('operators')->name('operator.')->group(function () {
-                Route::post('/storeVenue', [OperatorAssignmentController::class, 'storeVenue'])->name('storeVenue');
                 Route::get('/', [OperatorAssignmentController::class, 'index'])->name('index');
-                Route::get('/create', [OperatorAssignmentController::class, 'create'])->name('create');
+                Route::get('/paginated', [OperatorAssignmentController::class, 'paginated'])->name('paginated');
                 Route::post('/store', [OperatorAssignmentController::class, 'store'])->name('store');
-                Route::get('/{assignment}/edit', [OperatorAssignmentController::class, 'edit'])->name('edit');
-                Route::put('/{assignment}', [OperatorAssignmentController::class, 'update'])->name('update');
-                Route::delete('/{assignment}', [OperatorAssignmentController::class, 'destroy'])->name('destroy');
+                Route::put('/{assignment}/update', [OperatorAssignmentController::class, 'update'])->name('update');
+                Route::delete('/{assignment}/delete', [OperatorAssignmentController::class, 'destroy'])->name('destroy');
             });
         });
     });
@@ -108,6 +106,8 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
                     Route::delete('/delete', [FieldController::class, 'destroy'])->name('destroy');
 
                     Route::get('/calendar', [FieldController::class, 'calendar'])->name('calendar');
+                    Route::get('/getCalendarMonth', [FieldController::class, 'getCalendarMonth'])->name('getCalendarMonth');
+                    Route::get('/getCalendarWeekDays', [FieldController::class, 'getCalendarWeekDays'])->name('getCalendarWeekDays');
                     Route::get('/timeslots', [TimeSlotController::class, 'getTimeslotsByField'])->name('getTimeslotsByField');
                     Route::post('/update-timeslots', [TimeSlotController::class, 'updateTimeslots'])->name('updateTimeslots');
                     Route::post('/update-slot-statuses', [TimeSlotController::class, 'updateTimeslotStatuses'])->name('updateTimeslotStatuses');

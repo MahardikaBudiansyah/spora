@@ -13,8 +13,8 @@ export default function TimeSlotButton({ slot, selected, disabled, onClick }) {
         Tersedia: {
             base: "bg-white dark:bg-secondary-800 border-secondary-200 dark:border-secondary-600",
             selected:
-                "border border-teal-600 bg-teal-200 dark:bg-teal-400 dark:text-secondary-900",
-            hover: "hover:bg-secondary-100 dark:hover:bg-secondary-700",
+                "border border-teal-400 bg-teal-100 dark:bg-teal-400 dark:text-secondary-900",
+            hover: "hover:bg-teal-200 dark:hover:bg-teal-700 hover:border-teal-400 dark:hover:border-teal-800",
         },
         Dipesan: {
             base: "bg-rose-100 dark:bg-rose-300 border-rose-300 dark:border-rose-500 dark:text-secondary-900",
@@ -46,7 +46,7 @@ export default function TimeSlotButton({ slot, selected, disabled, onClick }) {
         role === "partner"
             ? "dark:text-blue-200"
             : role === "guest"
-            ? "dark:text-yellow-200"
+            ? "dark:text-white"
             : "dark:text-white"
     );
 

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { formatCustom } from "@/utils/date";
+import { formatWithPattern } from "@/utils/date";
 import { NumericFormat } from "react-number-format";
-import DatePickerInput from "@/components/common/DatePickerInput";
+import DatePickerInput from "@/components/Common/DatePickerInput";
 import Table from "@/components/Common/Table";
 import Checkbox from "@/components/Common/Checkbox";
 import SelectInput from "@/components/Common/SelectInput";
@@ -37,7 +37,7 @@ export default function FieldSelection({
         if (!selectedFieldId)
             return toast.warning("Silakan pilih lapangan terlebih dahulu.");
 
-        const date = formatCustom(selectedDate, "yyyy-MM-dd");
+        const date = formatWithPattern(selectedDate, "yyyy-MM-dd");
 
         if (!slot || slot.status_label !== "Tersedia") {
             return toast.warning("Slot ini tidak bisa dipilih.");
@@ -106,7 +106,7 @@ export default function FieldSelection({
     const selectedDateFormatted = useMemo(
         () =>
             selectedDate
-                ? formatCustom(selectedDate, "cccc, dd MMMM yyyy")
+                ? formatWithPattern(selectedDate, "cccc, dd MMMM yyyy")
                 : "-",
         [selectedDate]
     );
@@ -125,7 +125,7 @@ export default function FieldSelection({
         return timeslots.map((slot) => {
             const isSelected = bookingSelections.some(
                 (d) =>
-                    d.date === formatCustom(selectedDate, "yyyy-MM-dd") &&
+                    d.date === formatWithPattern(selectedDate, "yyyy-MM-dd") &&
                     d.fields.some(
                         (f) =>
                             f.field_id === selectedFieldId &&
@@ -173,7 +173,7 @@ export default function FieldSelection({
                         placeholder="Pilih Lapangan"
                         isClearable={false}
                         isSearchable={false}
-                        className="py-0 px-3"
+                        className=""
                     />
                 </div>
             </div>
@@ -191,7 +191,8 @@ export default function FieldSelection({
                             label=""
                             value={selectedDate}
                             onChange={setSelectedDate}
-                            placeholder="Pilih tanggal"
+                            calendarPosition="bottom-right"
+                            layout="default"
                         />
                     </div>
                 </div>

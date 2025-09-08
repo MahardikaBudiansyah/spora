@@ -9,6 +9,7 @@ use Database\Seeders\AdminSeeder;
 use Database\Seeders\FieldSeeder;
 use Database\Seeders\StaffSeeder;
 use Database\Seeders\VenueSeeder;
+use Database\Seeders\AddressSeeder;
 use Database\Seeders\FacilitySeeder;
 use Database\Seeders\MerchantSeeder;
 use Database\Seeders\TimeSlotSeeder;
@@ -40,6 +41,7 @@ class DatabaseSeeder extends Seeder
         $this->call(FacilitySeeder::class);
         $this->call(VenueSeeder::class);
         $this->call(VenueImageSeeder::class);
+        $this->call(AddressSeeder::class);
         $this->call(TimeSlotSeeder::class);
         $this->call(FieldTypeSeeder::class);
         $this->call(FieldSeeder::class);

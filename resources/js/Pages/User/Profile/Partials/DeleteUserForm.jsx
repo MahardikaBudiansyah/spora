@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import Button from "@/components/common/Button";
 import InputError from "@/components/common/ErrorInput";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Modal from "@/components/common/Modal";
 import TextInput from "@/components/Common/TextInput";
 import { useForm } from "@inertiajs/react";

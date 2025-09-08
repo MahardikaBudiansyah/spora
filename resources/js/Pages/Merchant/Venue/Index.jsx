@@ -22,7 +22,7 @@ export default function Index() {
     const columns = [
         { key: "number", header: "#", className: "text-center" },
         { key: "name", header: "Nama Venue" },
-        { key: "location", header: "Lokasi" },
+        { key: "address", header: "Alamat" },
         {
             key: "phone_number",
             header: "No Handphone",

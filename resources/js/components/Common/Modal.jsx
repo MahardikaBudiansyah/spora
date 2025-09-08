@@ -9,7 +9,8 @@ export default function Modal({
     closeable = true,
     onClose = () => {},
     className = "",
-    sidebarRight = false, // tambahkan prop ini
+    sidebarRight = false,
+    overflow = "hidden", // tambahkan prop ini
 }) {
     const close = () => {
         if (closeable) {
@@ -68,7 +69,7 @@ export default function Modal({
                 >
                     <Dialog.Panel
                         className={twMerge(
-                            "mb-6 bg-white dark:bg-secondary-900 dark:border dark:border-secondary-600 rounded-xl overflow-hidden shadow-xl transform transition-all sm:w-full sm:mx-auto",
+                            `overflow-${overflow} mb-6 bg-white dark:bg-secondary-900 dark:border dark:border-secondary-600 rounded-xl shadow-xl transform transition-all sm:w-full sm:mx-auto`,
                             maxWidthClass,
                             sidebarRight
                                 ? "rounded-none h-full max-h-[calc(100vh)] fixed inset-y-0 right-0 overflow-y-auto custom-scrollbar"

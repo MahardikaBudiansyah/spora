@@ -75,7 +75,7 @@ export default function TimeSlotModal({ show, onClose }) {
             show={show}
             onClose={onClose}
             maxWidth="4xl"
-            className="py-8 px-10"
+            className="overflow-visible py-8 px-10"
         >
             <Card className="relative border-none shadow-none text-gray-700 dark:text-gray-100 ">
                 <CloseButtonModal onClose={onClose} />

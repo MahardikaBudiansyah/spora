@@ -12,9 +12,8 @@ import Table from "@/components/Common/Table";
 import axios from "axios";
 import { toast } from "react-toastify";
 import TextInput from "@/components/Common/TextInput";
-import TimeInput from "@/components/Common/TimeInput";
+import TimeInput from "@/components/Common/TimePickerInput";
 import BannerAlert from "@/components/Common/BannerAlert";
-import { Info, X } from "lucide-react";
 
 export default function CreateShiftModal({
     show,
@@ -232,16 +231,12 @@ export default function CreateShiftModal({
                         {showBanner && (
                             <BannerAlert
                                 type="error"
-                                className="flex flex-row justify-between items-center"
+                                onClose={() => setShowBanner(false)}
+                                closable
+                                className="items-center"
                             >
-                                <div className="flex items-center gap-2">
-                                    <Info className="w-5" />
-                                    Setelah shift kerja disimpan tidak akan bisa
-                                    diperbarui kembali kecuali dihapus!
-                                </div>
-                                <button onClick={() => setShowBanner(false)}>
-                                    <X className="w-4 h-4 cursor-pointer hover:text-blue-700 " />
-                                </button>
+                                Setelah shift kerja disimpan tidak akan bisa
+                                diperbarui kembali kecuali dihapus!
                             </BannerAlert>
                         )}
                         <div className="max-h-64 overflow-y-auto custom-scrollbar">

@@ -1,7 +1,7 @@
 import { Link, Head, usePage, router } from "@inertiajs/react";
 import { useState } from "react";
 import AuthMerchantLayout from "@/Layouts/AuthMerchantLayout";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import TextInput from "@/components/common/TextInput";
 import PasswordInput from "@/components/common/PasswordInput";
 import Button from "@/components/common/Button";

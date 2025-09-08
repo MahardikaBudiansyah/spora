@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import TextInput from "@/components/Common/TextInput";
 import PasswordInput from "@/components/Common/PasswordInput";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Checkbox from "@/components/Common/Checkbox";
 import Button from "@/components/Common/Button";
 import BannerAlert from "@/components/common/BannerAlert";

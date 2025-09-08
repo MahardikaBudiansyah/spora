@@ -10,8 +10,10 @@ use App\Models\FieldType;
 use App\Models\SlotStatus;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Models\SlotStatusLabel;
 use App\Helpers\UploadImageHelper;
+use Illuminate\Support\Facades\Log;
 use App\Events\TimeslotStatusUpdated;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Merchant\Controller;
@@ -341,6 +343,319 @@ class FieldController extends Controller
             'timeslots' => TimeSlot::orderBy('name')->get(['id', 'name']),
         ]);
     }
+
+
+   public function getCalendarData(Request $request, Venue $venue, Field $field)
+{
+    try {
+        $this->authorizeVenue($venue);
+        $this->authorizeField($field);
+        $this->ensureFieldInVenue($field, $venue);
+
+        // Ambil query params
+        $view  = $request->query('view', 'month');
+        $start = $request->query('start');
+        $end   = $request->query('end');
+
+        // Logging awal biar kelihatan param masuk
+        \Log::info("getCalendarData called", [
+            'view'  => $view,
+            'start' => $start,
+            'end'   => $end,
+        ]);
+
+        // Default ke bulan ini jika tidak ada
+        if (!$start || !$end) {
+            $start = now()->startOfMonth()->toDateString();
+            $end   = now()->endOfMonth()->toDateString();
+        }
+
+        // Mapping FullCalendar view ke backend
+        $map = [
+            'dayGridMonth' => 'month',
+            'timeGridWeek' => 'week',
+            'timeGridDay'  => 'day',
+            'month'        => 'month',
+            'week'         => 'week',
+            'day'          => 'day',
+        ];
+        $view = $map[$view] ?? $view;
+
+        // Pastikan $start dan $end berupa date string
+        $start = Carbon::parse((string) $start)->toDateString();
+        $end   = Carbon::parse((string) $end)->toDateString();
+
+        // Ambil ID status yang penting
+        $labels = SlotStatusLabel::whereIn('label', ['Dipesan','Event','Pemeliharaan'])
+            ->pluck('id', 'label');
+
+        $bookedId      = $labels['Dipesan'] ?? -1;
+        $eventId       = $labels['Event'] ?? -1;
+        $maintenanceId = $labels['Pemeliharaan'] ?? -1;
+
+        // ================= MONTH VIEW =================
+        if ($view === 'month') {
+            $totalSlots = $field->timeslots()->count();
+
+            $summary = $field->slotStatuses()
+                ->whereBetween('date', [$start, $end])
+                ->selectRaw('date, 
+                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
+                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
+                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
+                    [$bookedId, $eventId, $maintenanceId]
+                )
+                ->groupBy('date')
+                ->get()
+                ->map(function ($day) use ($totalSlots) {
+                    return [
+                        'date'        => $day->date,
+                        'booked'      => (int) $day->booked,
+                        'event'       => (int) $day->event,
+                        'maintenance' => (int) $day->maintenance,
+                        'available'   => max(
+                            $totalSlots - ((int)$day->booked + (int)$day->event + (int)$day->maintenance),
+                            0
+                        ),
+                    ];
+                });
+
+            \Log::info("getCalendarData month summary", [
+                'count'  => $summary->count(),
+                'sample' => $summary->take(3),
+            ]);
+
+            return response()->json([
+                'view'    => $view,
+                'summary' => $summary,
+            ]);
+        }
+
+        // ================= WEEK / DAY VIEW =================
+        if ($view === 'week' || $view === 'day') {
+            $field->load([
+                'timeslots',
+                'slotStatuses' => fn ($q) => $q
+                    ->whereBetween('date', [$start, $end])
+                    ->with(['slotStatusLabel', 'timeSlot']),
+            ]);
+
+            $timezone = 'Asia/Jakarta';
+
+            $period = new \DatePeriod(
+                Carbon::parse($start),
+                new \DateInterval('P1D'),
+                Carbon::parse($end)->addDay()
+            );
+
+            $slots = collect();
+
+            foreach ($period as $date) {
+                $carbonDate = Carbon::instance($date); // fix utama ✅
+
+                foreach ($field->timeslots as $timeslot) {
+                    $status = $field->slotStatuses
+                        ->first(fn ($s) => $s->date === $carbonDate->toDateString()
+                            && $s->time_slot_id === $timeslot->id);
+
+                    $timeRange = $timeslot->name ?? '00:00-01:00';
+
+                    if (strpos($timeRange, '-') !== false) {
+                        [$startTime, $endTime] = array_map('trim', explode('-', $timeRange));
+                    } else {
+                        $startTime = trim($timeRange);
+                        $endTime   = Carbon::parse($startTime, $timezone)->addHour()->format('H:i');
+                    }
+
+                    $startDateTime = Carbon::parse($carbonDate->toDateString().' '.$startTime, $timezone);
+                    $endDateTime   = Carbon::parse($carbonDate->toDateString().' '.$endTime, $timezone);
+
+                    if ($endDateTime->lt($startDateTime)) {
+                        $endDateTime->addDay();
+                    }
+
+                    $slots->push([
+                        'date'        => $carbonDate->toDateString(),
+                        'timeslot_id' => $timeslot->id,
+                        'status'      => $status?->slotStatusLabel?->label ?? 'Tersedia',
+                        'start'       => $startDateTime->toIso8601String(),
+                        'end'         => $endDateTime->toIso8601String(),
+                    ]);
+                }
+            }
+
+            \Log::info("getCalendarData slots generated", [
+                'total'  => $slots->count(),
+                'sample' => $slots->take(3),
+            ]);
+
+            return response()->json([
+                'view'    => $view,
+                'summary' => [],
+                'slots'   => $slots->values(),
+            ]);
+        }
+
+        // ================= DEFAULT =================
+        return response()->json([
+            'view'    => $view,
+            'summary' => [],
+            'slots'   => [],
+        ]);
+    } catch (\Throwable $e) {
+        \Log::error("getCalendarData error: ".$e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+        ]);
+        return response()->json([
+            'error'   => true,
+            'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+        ], 500);
+    }
+}
+
+    public function getCalendarMonth(Request $request, Venue $venue, Field $field)
+    {
+        $this->authorizeVenue($venue);
+        $this->authorizeField($field);
+        $this->ensureFieldInVenue($field, $venue);
+
+        $start = Carbon::parse($request->query('start', now()->startOfMonth()->toDateString()))->toDateString();
+        $end   = Carbon::parse($request->query('end', now()->endOfMonth()->toDateString()))->toDateString();
+
+        $labels = SlotStatusLabel::whereIn('label', ['Dipesan','Event','Pemeliharaan'])
+            ->pluck('id', 'label');
+
+        $bookedId      = $labels['Dipesan'] ?? -1;
+        $eventId       = $labels['Event'] ?? -1;
+        $maintenanceId = $labels['Pemeliharaan'] ?? -1;
+
+        $totalSlots = $field->timeslots()->count();
+
+        // Query summary untuk tanggal yang ada datanya
+        $dbSummary = $field->slotStatuses()
+            ->whereBetween('date', [$start, $end])
+            ->selectRaw('date, 
+                SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
+                SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
+                SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
+                [$bookedId, $eventId, $maintenanceId]
+            )
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date'); // keyBy supaya mudah dicari
+
+        // Generate semua tanggal dari start ke end
+        $period = new \DatePeriod(
+            Carbon::parse($start),
+            new \DateInterval('P1D'),
+            Carbon::parse($end)->addDay()
+        );
+
+        $summary = collect();
+
+        foreach ($period as $date) {
+            $d = $date->format('Y-m-d');
+
+            if (isset($dbSummary[$d])) {
+                // ada di DB → gunakan hasil query
+                $day = $dbSummary[$d];
+                $summary->push([
+                    'date'        => $d,
+                    'booked'      => (int) $day->booked,
+                    'event'       => (int) $day->event,
+                    'maintenance' => (int) $day->maintenance,
+                    'available'   => max(
+                        $totalSlots - ((int)$day->booked + (int)$day->event + (int)$day->maintenance),
+                        0
+                    ),
+                ]);
+            } else {
+                // tidak ada di DB → default available
+                $summary->push([
+                    'date'        => $d,
+                    'booked'      => 0,
+                    'event'       => 0,
+                    'maintenance' => 0,
+                    'available'   => $totalSlots,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'view'    => 'month',
+            'summary' => $summary,
+        ]);
+    }
+
+
+    public function getCalendarWeekDays(Request $request, Venue $venue, Field $field)
+    {
+        $this->authorizeVenue($venue);
+        $this->authorizeField($field);
+        $this->ensureFieldInVenue($field, $venue);
+
+        $start = Carbon::parse($request->query('start'))->toDateString();
+        $end   = Carbon::parse($request->query('end'))->toDateString();
+        $timezone = 'Asia/Jakarta';
+
+        $field->load([
+            'timeslots',
+            'slotStatuses' => fn ($q) => $q
+                ->whereBetween('date', [$start, $end])
+                ->with(['slotStatusLabel', 'timeSlot']),
+        ]);
+
+        $period = new \DatePeriod(
+            Carbon::parse($start),
+            new \DateInterval('P1D'),
+            Carbon::parse($end)->addDay()
+        );
+
+        $slots = collect();
+
+        foreach ($period as $date) {
+            $carbonDate = Carbon::instance($date);
+
+            foreach ($field->timeslots as $timeslot) {
+                $status = $field->slotStatuses
+                    ->first(fn ($s) => $s->date === $carbonDate->toDateString()
+                        && $s->time_slot_id === $timeslot->id);
+
+                $timeRange = $timeslot->name ?? '00:00-01:00';
+
+                if (strpos($timeRange, '-') !== false) {
+                    [$startTime, $endTime] = array_map('trim', explode('-', $timeRange));
+                } else {
+                    $startTime = trim($timeRange);
+                    $endTime   = Carbon::parse($startTime, $timezone)->addHour()->format('H:i');
+                }
+
+                $startDateTime = Carbon::parse($carbonDate->toDateString().' '.$startTime, $timezone);
+                $endDateTime   = Carbon::parse($carbonDate->toDateString().' '.$endTime, $timezone);
+
+                if ($endDateTime->lt($startDateTime)) {
+                    $endDateTime->addDay();
+                }
+
+                $slots->push([
+                    'date'        => $carbonDate->toDateString(),
+                    'timeslot_id' => $timeslot->id,
+                    'status'      => $status?->slotStatusLabel?->label ?? 'Tersedia',
+                    'start'       => $startDateTime->toIso8601String(),
+                    'end'         => $endDateTime->toIso8601String(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'view'  => $request->query('view', 'week'),
+            'slots' => $slots->values(),
+        ]);
+    }
+
+
+
+
 
 
     protected function syncTimeslots(Field $field, array $timeslotIds, array $prices)

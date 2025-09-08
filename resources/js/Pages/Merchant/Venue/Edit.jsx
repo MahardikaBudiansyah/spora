@@ -23,10 +23,18 @@ export default function Edit({ venue }) {
             }))
     );
 
+    const [address, setAddress] = useState({
+        province_code: venue.address?.province_code ?? null,
+        city_code: venue.address?.city_code ?? null,
+        district_code: venue.address?.district_code ?? null,
+        village_code: venue.address?.village_code ?? null,
+        postal_code: venue.address?.postal_code ?? "",
+        full_address: venue.address?.full_address ?? "",
+    });
+
     const { data, setData, processing, errors } = useForm({
         name: venue?.name ?? "",
         description: venue?.description ?? "",
-        location: venue?.location ?? "",
         phone_number: venue?.phone_number ?? "",
         facility: venue?.facility ?? [],
         main_image_index: Math.max(
@@ -45,35 +53,42 @@ export default function Edit({ venue }) {
         const formData = new FormData();
         formData.append("name", data.name);
         formData.append("description", data.description);
-        formData.append("location", data.location);
         formData.append("phone_number", data.phone_number);
-        selectedFacilities
-            ?.filter(Boolean)
-            .forEach((f, i) => formData.append(`facility[${i}]`, f));
 
-        // Tambahkan gambar baru saja (bukan yang existing)
+        // facilities
+        selectedFacilities?.forEach((f, i) =>
+            formData.append(`facility[${i}]`, f)
+        );
+
+        // address
+        formData.append("province_code", address.province_code ?? "");
+        formData.append("city_code", address.city_code ?? "");
+        formData.append("district_code", address.district_code ?? "");
+        formData.append("village_code", address.village_code ?? "");
+        formData.append("postal_code", address.postal_code ?? "");
+        formData.append("full_address", address.full_address ?? "");
+
+        // images baru
         images.forEach((img) => {
             if (img && !img.isExisting && img.file) {
                 formData.append("images[]", img.file);
             }
         });
 
-        // Kirim ID gambar existing agar tidak dihapus
+        // existing image ids
         const existingIds = images
             .filter((img) => img.isExisting)
             .map((img) => img.id);
         formData.append("existing_image_ids", JSON.stringify(existingIds));
 
-        // Kirim index gambar utama (featured image)
+        // featured image
         formData.append("main_image_index", data.main_image_index);
 
-        // Ambil gambar utama berdasarkan index
         const mainImage =
             images.length > data.main_image_index
                 ? images[data.main_image_index]
                 : null;
 
-        // Jika gambar utama adalah gambar existing, kirim ID-nya
         if (mainImage?.isExisting && mainImage?.id) {
             formData.append("main_image_id", mainImage.id);
         }
@@ -87,12 +102,8 @@ export default function Edit({ venue }) {
                 forceFormData: true,
                 preserveScroll: true,
                 preserveState: true,
-                headers: {
-                    "X-HTTP-Method-Override": "PUT",
-                },
-                onSuccess: () => {
-                    toast.success("Venue berhasil diperbarui!");
-                },
+                headers: { "X-HTTP-Method-Override": "PUT" },
+                onSuccess: () => toast.success("Venue berhasil diperbarui!"),
                 onError: (errors) => {
                     if (errors?.name) {
                         toast.error(errors.name);
@@ -119,6 +130,8 @@ export default function Edit({ venue }) {
                 setSelectedFacilities={setSelectedFacilities}
                 images={images}
                 setImages={setImages}
+                address={address}
+                setAddress={setAddress}
             />
         </MerchantLayout>
     );

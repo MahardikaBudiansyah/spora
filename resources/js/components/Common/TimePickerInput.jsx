@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge";
 import { Clock } from "lucide-react";
 
-const TimeInput = forwardRef(function TimeInput(
+const TimePickerInput = forwardRef(function TimeInput(
     { className = "", isFocused = false, ...props },
     ref
 ) {
@@ -16,7 +16,7 @@ const TimeInput = forwardRef(function TimeInput(
 
     const baseClass =
         "block w-full rounded-md shadow-sm border border-secondary-300 " +
-        "focus:border-primary-500 focus:ring-2 focus:ring-primary-500 hover:border-primary-500 " +
+        "focus:border-primary-500 focus:ring-2 focus:ring-primary-500 hover:border-primary-500 dark:hover:border-primary-500 " +
         "dark:border-secondary-600 dark:bg-secondary-800 dark:text-white " +
         "placeholder:text-xs placeholder:italic placeholder-secondary-400 dark:placeholder-secondary-500";
 
@@ -45,11 +45,11 @@ const TimeInput = forwardRef(function TimeInput(
                 )}
             />
             <Clock
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 
                    text-secondary-700 dark:text-white pointer-events-none"
             />
         </div>
     );
 });
 
-export default TimeInput;
+export default TimePickerInput;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LabelInput from "@/components/Common/Labelnput";
+import LabelInput from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import BannerAlert from "@/components/Common/BannerAlert";
 import axios from "axios";

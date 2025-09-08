@@ -64,8 +64,8 @@ class StaffController extends Controller
             ->map(fn($shift) => [
                 'id' => $shift->id,
                 'name' => $shift->name,
-                'start_time' => $shift->start_time,
-                'end_time' => $shift->end_time,
+                'start_time' => date('H:i', strtotime($shift->start_time)),
+                'end_time' => date('H:i', strtotime($shift->end_time)),
             ]);
 
         return Inertia::render('Merchant/Staff/Index', [

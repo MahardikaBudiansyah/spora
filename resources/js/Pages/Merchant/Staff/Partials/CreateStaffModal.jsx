@@ -11,7 +11,7 @@ import {
     CardFooter,
     CardHeader,
 } from "@/components/Common/Card";
-import LabelInput from "@/components/Common/Labelnput";
+import LabelInput from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import PhoneInput from "@/components/Common/PhoneInput";
 import SelectInput from "@/components/Common/SelectInput";

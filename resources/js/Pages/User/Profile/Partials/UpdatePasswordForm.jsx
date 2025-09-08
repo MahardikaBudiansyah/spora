@@ -3,7 +3,7 @@ import { useForm } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 import { toast } from "react-toastify";
 import InputError from "@/components/common/ErrorInput";
-import InputLabel from "@/components/common/Labelnput";
+import InputLabel from "@/components/Common/LabelInput";
 import Button from "@/Components/common/Button";
 import PasswordInput from "@/components/common/PasswordInput";
 

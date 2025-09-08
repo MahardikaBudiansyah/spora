@@ -3,133 +3,243 @@ import Modal from "@/components/Common/Modal";
 import Button from "@/components/Common/Button";
 import SelectInput from "@/components/Common/SelectInput";
 import DatePickerInput from "@/components/Common/DatePickerInput";
+import ToggleSwitch from "@/components/Common/ToggleSwitch";
+import LabelInput from "@/components/Common/LabelInput";
+import CloseButtonModal from "@/components/Common/CloseButtonModal";
+import {
+    Card,
+    CardBody,
+    CardFooter,
+    CardHeader,
+} from "@/components/Common/Card";
 import { formatCustom } from "@/utils/date";
 
 export default function AssignmentModal({
     show,
     onClose,
+    staff,
     venues,
+    shifts,
     modalVenueId,
-    setModalVenueId,
     modalSlot,
-    setModalSlot,
-    onSave,
     title,
-    initialIsRange = false, // prop untuk default mode
+    initialIsRange = false,
+    onSave,
+    isLoading = false,
 }) {
     const [isRange, setIsRange] = useState(initialIsRange);
+    const [internalSlot, setInternalSlot] = useState(
+        initialIsRange ? { start: null, end: null } : []
+    );
+    const [internalVenueId, setInternalVenueId] = useState(modalVenueId);
+    const [internalShiftId, setInternalShiftId] = useState(
+        shifts[0]?.id || null
+    );
 
     const venueOptions = venues.map((v) => ({ value: v.id, label: v.name }));
+    const shiftOptions = shifts.map((s) => ({
+        value: s.id,
+        label: s.name + ` (${s.start_time} - ${s.end_time})`,
+    }));
 
-    // Sync jika prop initialIsRange berubah
     useEffect(() => {
-        setIsRange(initialIsRange);
-    }, [initialIsRange]);
+        if (show && modalSlot) {
+            const { start, end } = modalSlot;
 
-    // Reset modalSlot ketika mode range/single berubah
-    useEffect(() => {
-        if (isRange && (!modalSlot || !modalSlot.start || !modalSlot.end)) {
-            setModalSlot({ start: null, end: null });
-        } else if (!isRange && (!modalSlot || !modalSlot.start)) {
-            setModalSlot(modalSlot?.start || null);
+            // pastikan start & end adalah Date
+            const startDate = start?.toJSDate?.() || start;
+            const endDate = end?.toJSDate?.() || end;
+
+            const rangeMode =
+                startDate &&
+                endDate &&
+                startDate.toDateString() !== endDate.toDateString();
+            setIsRange(rangeMode);
+
+            setInternalSlot(
+                rangeMode
+                    ? { start: startDate, end: endDate }
+                    : startDate
+                    ? [startDate]
+                    : []
+            );
+
+            setInternalVenueId(modalVenueId);
         }
-    }, [isRange]);
+    }, [show, modalSlot, modalVenueId]);
 
-    const renderDateInfo = () => {
-        if (!modalSlot) return null;
-        const startDate = isRange
-            ? modalSlot?.start
-            : modalSlot instanceof Date
-            ? modalSlot
-            : modalSlot?.start;
-        const endDate = isRange ? modalSlot?.end : null;
-        if (!startDate) return null;
-
-        return isRange && endDate ? (
-            <div className="mt-1 text-sm text-gray-500">
-                Dari {formatCustom(startDate, "dd/MM/yyyy")} sampai{" "}
-                {formatCustom(endDate, "dd/MM/yyyy")}
-            </div>
-        ) : (
-            <div className="mt-1 text-sm text-gray-500">
-                Tanggal: {formatCustom(startDate, "dd/MM/yyyy")}
-            </div>
-        );
+    const handleModeChange = (checked) => {
+        if (checked) {
+            let start = null,
+                end = null;
+            if (Array.isArray(internalSlot) && internalSlot.length > 0) {
+                start = internalSlot[0];
+                end = internalSlot[internalSlot.length - 1];
+            }
+            setInternalSlot({ start, end });
+        } else {
+            if (internalSlot.start && internalSlot.end) {
+                const arr = [];
+                let current = new Date(internalSlot.start);
+                while (current <= internalSlot.end) {
+                    arr.push(new Date(current));
+                    current.setDate(current.getDate() + 1);
+                }
+                setInternalSlot(arr);
+            } else if (internalSlot.start) {
+                setInternalSlot([internalSlot.start]);
+            } else {
+                setInternalSlot([]);
+            }
+        }
+        setIsRange(checked);
     };
 
-    const isSaveDisabled = isRange
-        ? !modalSlot?.start || !modalSlot?.end || !modalVenueId
-        : !modalSlot || !modalVenueId;
+    const handleDateChange = (newSlot) => {
+        if (isRange) {
+            setInternalSlot({
+                start: newSlot.start ? new Date(newSlot.start) : null,
+                end: newSlot.end ? new Date(newSlot.end) : null,
+            });
+        } else {
+            setInternalSlot(
+                Array.isArray(newSlot) ? newSlot.map((d) => new Date(d)) : []
+            );
+        }
+    };
+
+    const renderDateInfo = () => {
+        if (isRange && internalSlot.start && internalSlot.end) {
+            return (
+                <div className="ml-3 mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                    <span>Dari</span>
+                    <span className="font-bold">
+                        {formatCustom(internalSlot.start, "dd/MM/yyyy")}
+                    </span>
+                    <span>sampai</span>
+                    <span className="font-bold">
+                        {formatCustom(internalSlot.end, "dd/MM/yyyy")}
+                    </span>
+                </div>
+            );
+        } else if (
+            !isRange &&
+            Array.isArray(internalSlot) &&
+            internalSlot.length > 0
+        ) {
+            return (
+                <div className="ml-3 mt-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm text-gray-500">
+                    {internalSlot.map((d, i) => (
+                        <span key={i} className="font-bold">
+                            {formatCustom(d, "dd/MM/yyyy")}
+                        </span>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+
+    const isSaveDisabled =
+        isLoading ||
+        (isRange
+            ? !internalSlot.start || !internalSlot.end || !internalVenueId
+            : internalSlot.length === 0 || !internalVenueId);
 
     return (
         <Modal
             show={show}
             onClose={onClose}
             maxWidth="md"
-            className="overflow-visible"
+            overflow="visible"
+            className="p-4"
         >
-            <div className="p-4">
-                <h2 className="font-bold text-lg mb-4">{title}</h2>
+            <Card className="relative overflow-visible border-none shadow-none text-gray-700 dark:text-gray-100">
+                <CloseButtonModal onClose={onClose} />
+                <CardHeader className="border-none">
+                    <div className="text-lg font-semibold my-2">{title}</div>
+                </CardHeader>
+                <CardBody>
+                    <div className="mb-4 space-y-2">
+                        <div className="mb-2 flex flex-row gap-2 items-center">
+                            <LabelInput className="font-semibold">
+                                Pilih Tanggal:
+                            </LabelInput>
+                            <ToggleSwitch
+                                checked={isRange}
+                                onChange={handleModeChange}
+                                label={isRange ? "Rentang" : "Banyak"}
+                                labelPosition="right"
+                                size="md"
+                            />
+                        </div>
 
-                {/* Toggle Single / Range */}
-                <div className="flex items-center mb-4 gap-3">
-                    <span className="font-semibold">Mode Tanggal:</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={isRange}
-                            onChange={(e) => setIsRange(e.target.checked)}
+                        <DatePickerInput
+                            value={internalSlot}
+                            onChange={handleDateChange}
+                            isRange={isRange}
+                            isMultiple={!isRange}
+                            numberOfMonths={isRange ? 2 : 1}
+                            withDatePanel
+                            layout="default"
+                            calendarPosition="bottom"
                         />
-                        <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer dark:bg-gray-700 peer-checked:bg-primary-500 transition-colors"></div>
-                        <span className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                            {isRange ? "Range" : "Single"}
-                        </span>
-                    </label>
-                </div>
 
-                {/* DatePickerInput */}
-                <div className="mb-4">
-                    <label className="block mb-2 font-semibold">
-                        Pilih Tanggal:
-                    </label>
-                    <DatePickerInput
-                        value={modalSlot}
-                        onChange={setModalSlot}
-                        selectRange={isRange}
-                        mobileMode="icon"
-                    />
-                    {renderDateInfo()}
-                </div>
+                        {renderDateInfo()}
+                    </div>
 
-                {/* Venue */}
-                <div className="mb-4">
-                    <label className="block mb-2 font-semibold">
-                        Pilih Venue:
-                    </label>
-                    <SelectInput
-                        value={modalVenueId}
-                        onChange={setModalVenueId}
-                        options={venueOptions}
-                        placeholder="Pilih venue..."
-                        isClearable={false}
-                    />
-                </div>
+                    <div className="mb-4">
+                        <LabelInput className="block mb-2 font-semibold">
+                            Pilih Venue:
+                        </LabelInput>
+                        <SelectInput
+                            value={internalVenueId}
+                            onChange={setInternalVenueId}
+                            options={venueOptions}
+                            placeholder="Pilih venue..."
+                            isClearable={false}
+                            isSearchable={false}
+                        />
+                    </div>
 
-                {/* Actions */}
-                <div className="mt-4 flex justify-end gap-2">
-                    <Button variant="light" onClick={onClose}>
-                        Batal
-                    </Button>
+                    <div className="mb-4">
+                        <LabelInput className="block mb-2 font-semibold">
+                            Pilih Shift:
+                        </LabelInput>
+                        <SelectInput
+                            value={internalShiftId}
+                            onChange={setInternalShiftId}
+                            options={shiftOptions}
+                            placeholder="Pilih shift..."
+                            isClearable={false}
+                            isSearchable={false}
+                        />
+                    </div>
+                </CardBody>
+
+                <CardFooter className="p-4 border-none flex justify-end gap-2">
                     <Button
                         variant="primary"
-                        onClick={onSave}
+                        onClick={() =>
+                            onSave(
+                                internalSlot,
+                                internalVenueId,
+                                internalShiftId
+                            )
+                        }
                         disabled={isSaveDisabled}
                     >
-                        Simpan
+                        {isLoading ? "Menyimpan..." : "Simpan"}
                     </Button>
-                </div>
-            </div>
+                    <Button
+                        variant="light"
+                        onClick={onClose}
+                        disabled={isLoading}
+                    >
+                        Batal
+                    </Button>
+                </CardFooter>
+            </Card>
         </Modal>
     );
 }

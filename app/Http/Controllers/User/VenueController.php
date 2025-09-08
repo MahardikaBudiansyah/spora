@@ -13,7 +13,7 @@ class VenueController extends Controller
 {
     public function index()
     {
-        $venues = Venue::with(['fields.timeSlots', 'featuredImage'])
+        $venues = Venue::with(['fields.timeSlots', 'featuredImage', 'addresses.village', 'addresses.district', 'addresses.city', 'addresses.province'])
             ->paginate(15)
             ->withQueryString();
 
@@ -38,12 +38,13 @@ class VenueController extends Controller
                 ? asset('storage/' . $venue->featuredImage->image_path)
                 : null;
 
+            $address = $venue->addresses->first();
+
             return [
                 'number' => ($currentPage - 1) * $perPage + $index + 1,
                 'id' => $venue->id,
                 'slug' => $venue->slug,
                 'name' => $venue->name,
-                'location' => $venue->location,
                 'phone_number' => $venue->phone_number,
                 'fields' => $venue->fields->pluck('name')->join(', '),
                 'updated_at' => optional($venue->updated_at)->format('d M Y'),
@@ -51,6 +52,10 @@ class VenueController extends Controller
                 'image' => $venue->featuredImage
                     ? asset('storage/' . $venue->featuredImage->image_path)
                     : asset('/assets/images/field-default.jpg'),
+                'address' => [
+                    'district' => $address?->district?->name, // 👈 langsung ambil district
+                    'city' => $address?->city?->name, // 👈 langsung ambil district
+                ],
             ];
         });
 
@@ -80,6 +85,10 @@ class VenueController extends Controller
             'fields.type',
             'fields.featuredImage',
             'fields.timeSlots',
+            'addresses.province',
+            'addresses.city',
+            'addresses.district',
+            'addresses.village',
         ]);
 
         // Ambil harga minimal dari seluruh field
@@ -99,7 +108,6 @@ class VenueController extends Controller
                 'id' => $venue->id,
                 'name' => $venue->name,
                 'description' => $venue->description,
-                'location' => $venue->location,
                 'phone_number' => $venue->phone_number,
                 'facilities' => $venue->facilities->map(fn($f) => [
                     'id' => $f->id,
@@ -125,6 +133,17 @@ class VenueController extends Controller
                     'order' => $img->order,
                 ]),
                 'slug' => $venue->slug,
+                'address' => $venue->addresses->map(fn($addr) => [
+                    'full_address' => $addr->address,
+                    'province' => $addr->province?->name,
+                    'city' => $addr->city?->name,
+                    'district' => $addr->district?->name,
+                    'village' => $addr->village?->name,
+                    'postal_code' => $addr->postal_code,
+                    'latitude' => $addr->latitude,
+                    'longitude' => $addr->longitude,
+                    'type' => $addr->type,
+                ])->first(),
             ],
         ]);
     }

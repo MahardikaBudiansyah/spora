@@ -1,15 +1,15 @@
-import { router } from "@inertiajs/react";
 import { twMerge } from "tailwind-merge";
 
 export default function Pagination({
     links = [],
     meta = null,
     className = "",
+    onNavigate,
 }) {
     if (!links || links.length <= 3) return null;
 
     const handleNavigate = (url) => {
-        if (url) router.visit(url);
+        if (url && onNavigate) onNavigate(url);
     };
 
     return (

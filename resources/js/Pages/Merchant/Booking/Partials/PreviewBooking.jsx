@@ -1,5 +1,6 @@
-import { formatCustom } from "@/utils/date";
-import { DotIcon } from "lucide-react";
+import IconButton from "@/components/Common/IconButton";
+import { formatWithPattern } from "@/utils/date";
+import { DotIcon, Trash2 } from "lucide-react";
 
 export default function PreviewBooking({
     bookingSelections = [],
@@ -64,34 +65,34 @@ export default function PreviewBooking({
                     <div key={b.date} className="mb-4">
                         {/* Tanggal */}
                         <div className="pt-2 pb-2 font-semibold">
-                            {formatCustom(b.date, "cccc, dd MMMM yyyy")}
+                            {formatWithPattern(b.date, "cccc, d MMMM yyyy")}
                         </div>
 
                         {/* Fields */}
                         {b.fields.map((f) => (
-                            <div key={f.field_id} className="ml-2 mb-3">
+                            <div key={f.field_id} className="mb-3">
                                 <div className="font-medium">
                                     {getFieldName(f.field_id)}
                                 </div>
 
-                                <ul className="list-disc ml-4">
+                                <ul className="list-disc space-y-2 py-2">
                                     {f.slots.map((s) => (
                                         <li
                                             key={s.timeslot_id}
-                                            className="flex justify-between items-center"
+                                            className="px-4 py-3 flex justify-between items-center border-l-4 rounded-md bg-primary-100 dark:bg-primary-400 border-primary-700 dark:border-primary-600 hover:bg-primary-200 dark:hover:bg-primary-500 "
                                         >
-                                            <div className="flex items-center">
-                                                <span>{s.name}</span>
-                                                <DotIcon className="w-5" />
+                                            <div className="flex flex-col gap-1 dark:text-gray-200 dark:text-secondary-800 text-xs">
+                                                <span className="font-bold">
+                                                    {s.name}
+                                                </span>
                                                 Rp{" "}
                                                 {Number(
                                                     s.price || 0
                                                 ).toLocaleString("id-ID")}
                                             </div>
                                             {!readOnly && (
-                                                <button
-                                                    type="button"
-                                                    className="text-red-500 hover:underline ml-2 text-sm"
+                                                <IconButton
+                                                    tooltip="Hapus"
                                                     onClick={() =>
                                                         handleRemoveSlot(
                                                             b.date,
@@ -100,8 +101,8 @@ export default function PreviewBooking({
                                                         )
                                                     }
                                                 >
-                                                    [Hapus]
-                                                </button>
+                                                    <Trash2 className="w-6 h-6 text-primary-700 dark:text-primary-700 hover:text-primary-800 dark:hover:text-primary-800 cursor-pointer" />
+                                                </IconButton>
                                             )}
                                         </li>
                                     ))}
@@ -110,7 +111,7 @@ export default function PreviewBooking({
                         ))}
 
                         {/* Subtotal per Tanggal */}
-                        <div className="pt-2 pb-2 border-y font-bold text-base text-right">
+                        <div className="pt-2 pb-2 border-y border-secondary-300 dark:border-secondary-500 font-bold text-base text-right">
                             Sub Total: Rp {totalPerDate.toLocaleString("id-ID")}
                         </div>
                     </div>

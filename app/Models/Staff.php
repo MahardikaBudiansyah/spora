@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Venue;
+use App\Models\Address;
 use App\Models\Merchant;
 use App\Models\StaffRole;
 use App\Traits\HasPassword;
@@ -10,8 +11,8 @@ use Illuminate\Support\Str;
 use App\Models\StaffProfile;
 use App\Models\MerchantStaffRole;
 use App\Traits\HasUniqueUsername;
-use App\Models\OperatorAssignment;
 
+use App\Models\OperatorAssignment;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -70,6 +71,11 @@ class Staff extends Authenticatable
     public function merchant()
     {
         return $this->belongsTo(Merchant::class, 'merchant_id');
+    }
+
+    public function addresses()
+    {
+        return $this->morphMany(Address::class, 'addressable');
     }
 
     public function merchantStaffRole()
