@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('invoice_no')->unique();
             $table->decimal('total_amount', 12, 2);
             $table->enum('status', ['unpaid', 'partial', 'paid'])->default('unpaid');
-            $table->date('due_date')->nullable();
+            $table->timestamp('due_date')->nullable();
+            $table->string('slug', 100)->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

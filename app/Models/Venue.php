@@ -12,6 +12,9 @@ use App\Models\Merchant;
 use App\Models\VenueImage;
 use App\Models\Subscription;
 use App\Models\OperatorVenue;
+use App\Models\MembershipUser;
+use App\Models\VenuePaymentType;
+use App\Models\MembershipPackage;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,11 +27,21 @@ class Venue extends Model
     protected $table = 'venues';
 
     protected $fillable = [
+        'merchant_id',
         'name',
         'description',
         'phone_number',
+        'status',
+        'is_active',
         'slug',
-        'merchant_id',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'is_active' => true, 
     ];
 
     public function sluggable(): array
@@ -80,6 +93,16 @@ class Venue extends Model
         return $this->hasMany(Subscription::class);
     }
 
+    public function membershipPackages()
+    {
+        return $this->hasMany(MembershipPackage::class);
+    }
+
+    public function membershipUsers()
+    {
+        return $this->hasMany(MembershipUser::class);
+    }
+
     public function fields()
     {
         return $this->hasMany(Field::class, 'venue_id', 'id');
@@ -87,12 +110,17 @@ class Venue extends Model
 
     public function carts()
     {
-        return $this->hasMany(Cart::class, 'venue_id','id');
+        return $this->hasMany(Cart::class);
     }
 
     public function bookings()
     {
         return $this->hasMany(Booking::class, 'venue_id', 'id');
+    }
+
+    public function paymentType()
+    {
+        return $this->hasOne(VenuePaymentType::class);
     }
 
 }

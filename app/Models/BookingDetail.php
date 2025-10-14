@@ -18,7 +18,9 @@ class BookingDetail extends Model
         'booking_id',
         'field_id',
         'time_slot_id',
-        'price',
+        'original_price',
+        'discount_amount',
+        'final_price',
         'booking_date',
     ];
 

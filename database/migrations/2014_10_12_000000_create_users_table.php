@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('photo')->nullable();
             $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
-            $table->string('slug', 100)->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

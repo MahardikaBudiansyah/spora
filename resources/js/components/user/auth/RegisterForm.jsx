@@ -6,6 +6,7 @@ import InputLabel from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
 import PasswordInput from "@/components/Common/PasswordInput";
 import Button from "@/components/Common/Button";
+import { normalizePhone, formatTo08 } from "@/utils/numberPhone";
 
 export default function RegisterForm({ onSuccess }) {
     const [step, setStep] = useState(1);
@@ -24,20 +25,36 @@ export default function RegisterForm({ onSuccess }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        if (name === "identifier") {
+            // deteksi apakah input kemungkinan nomor telepon (bukan email)
+            const isPhone = /^[0-9+]/.test(value);
+
+            // tampilkan dalam format 08… jika terdeteksi nomor HP
+            const displayValue = isPhone ? formatTo08(value) : value;
+
+            setForm((prev) => ({
+                ...prev,
+                identifier: displayValue,
+                name: "", // reset nama kalau ubah identifier
+            }));
+
+            // reset mode recovery saat ubah identifier
+            setIsRecovery(false);
+            setRecoveryName("");
+            return; // penting: keluar agar tidak lanjut ke logika default
+        }
+
+        // handle input lain seperti name/password
         setForm((prev) => ({
             ...prev,
             [name]: value,
-            ...(name === "identifier" ? { name: "" } : {}), // reset name jika ubah identifier
         }));
-
-        if (name === "identifier") {
-            setIsRecovery(false);
-            setRecoveryName("");
-        }
     };
 
     const emailRegex = /\S+@\S+\.\S+/;
-    const phoneRegex = /^[0-9]{9,15}$/;
+    const phoneRegex = /^\+?[0-9]{9,15}$/;
+
     const isIdentifierValid =
         emailRegex.test(form.identifier) || phoneRegex.test(form.identifier);
 
@@ -57,9 +74,13 @@ export default function RegisterForm({ onSuccess }) {
 
         setIsChecking(true);
 
+        const identifierToSend = phoneRegex.test(form.identifier)
+            ? normalizePhone(form.identifier)
+            : form.identifier;
+
         try {
             const response = await axios.post("/register/check-identifier", {
-                identifier: form.identifier,
+                identifier: identifierToSend,
             });
 
             if (response.data.status === "soft_deleted") {
@@ -103,30 +124,40 @@ export default function RegisterForm({ onSuccess }) {
 
         setIsSubmitting(true);
 
-        router.post("/register", form, {
-            onSuccess: () => {
-                toast.success("Pendaftaran berhasil!");
-                onSuccess?.({
-                    identifier: form.identifier,
-                    password: form.password,
-                });
+        const identifierToSend = phoneRegex.test(form.identifier)
+            ? normalizePhone(form.identifier)
+            : form.identifier;
 
-                setForm({
-                    identifier: "",
-                    name: "",
-                    password: "",
-                    password_confirmation: "",
-                });
-                setStep(1);
-                setIsRecovery(false);
-                setRecoveryName("");
-                setIsSubmitting(false);
-            },
-            onError: () => {
-                toast.error("Pendaftaran gagal. Periksa kembali isian Anda.");
-                setIsSubmitting(false);
-            },
-        });
+        router.post(
+            "/register",
+            { ...form, identifier: identifierToSend },
+            {
+                onSuccess: () => {
+                    toast.success("Pendaftaran berhasil!");
+                    onSuccess?.({
+                        identifier: form.identifier,
+                        password: form.password,
+                    });
+
+                    setForm({
+                        identifier: "",
+                        name: "",
+                        password: "",
+                        password_confirmation: "",
+                    });
+                    setStep(1);
+                    setIsRecovery(false);
+                    setRecoveryName("");
+                    setIsSubmitting(false);
+                },
+                onError: () => {
+                    toast.error(
+                        "Pendaftaran gagal. Periksa kembali isian Anda."
+                    );
+                    setIsSubmitting(false);
+                },
+            }
+        );
     };
 
     return (

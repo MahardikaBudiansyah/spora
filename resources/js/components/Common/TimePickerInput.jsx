@@ -45,7 +45,7 @@ const TimePickerInput = forwardRef(function TimeInput(
                 )}
             />
             <Clock
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 
                    text-secondary-700 dark:text-white pointer-events-none"
             />
         </div>

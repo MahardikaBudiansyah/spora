@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Field;
 use App\Models\Venue;
 use Illuminate\Http\Request;
+use App\Models\MembershipPackage;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -38,6 +39,15 @@ class RouteServiceProvider extends ServiceProvider
 
         Route::bind('field', function ($value) {
             return Field::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('package', function ($value, $route) {
+            return MembershipPackage::where('slug', $value)->firstOrFail();
+        });
+
+        Route::bind('package', function ($value, $route) {
+            $venue = $route->parameter('venue');
+            return $venue->membershipPackages()->where('slug', $value)->firstOrFail();
         });
 
         $this->configureRateLimiting();

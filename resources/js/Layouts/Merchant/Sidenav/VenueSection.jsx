@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 import SidenavLink from "@/components/Common/SidenavLink"; // Sesuaikan path ya
-import { ChevronRight, FolderArchive, Folder } from "lucide-react";
+import { ChevronRight, FolderArchive, Folder, Settings } from "lucide-react";
 
 export default function VenueSection({ venue, toggle, isOpen }) {
     const { url } = usePage();
@@ -44,23 +44,54 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                     </li> */}
                     <li>
                         <SidenavLink
-                            href={route("merchant.venues.memberships.index", {
-                                venue: venue.slug,
-                            })}
-                            routeName="merchant.venues.memberships.index"
-                            params={{ venue: venue.slug }}
-                            label="Memberships"
-                            icon={Folder}
-                        />
-                    </li>
-                    <li>
-                        <SidenavLink
                             href={route("merchant.venues.fields.index", {
                                 venue: venue.slug,
                             })}
                             routeName="merchant.venues.fields.index"
                             params={{ venue: venue.slug }}
                             label="Lapangan"
+                            icon={Folder}
+                        />
+                    </li>
+                    <li>
+                        <SidenavLink
+                            href={route(
+                                "merchant.venues.memberships.packages.index",
+                                {
+                                    venue: venue.slug,
+                                }
+                            )}
+                            routeName="merchant.venues.memberships.packages.index"
+                            params={{ venue: venue.slug }}
+                            label="Paket Membership"
+                            icon={Folder}
+                        />
+                    </li>
+                    <li>
+                        <SidenavLink
+                            href={route(
+                                "merchant.venues.memberships.members.index",
+                                {
+                                    venue: venue.slug,
+                                }
+                            )}
+                            routeName="merchant.venues.memberships.members.index"
+                            params={{ venue: venue.slug }}
+                            label="Member Aktif"
+                            icon={Folder}
+                        />
+                    </li>
+                    <li>
+                        <SidenavLink
+                            href={route(
+                                "merchant.venues.memberships.orders.index",
+                                {
+                                    venue: venue.slug,
+                                }
+                            )}
+                            routeName="merchant.venues.memberships.orders.index"
+                            params={{ venue: venue.slug }}
+                            label="Membership"
                             icon={Folder}
                         />
                     </li>
@@ -77,10 +108,24 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                     </li>
                     <li>
                         <SidenavLink
-                            href="dashboard/transaksi"
-                            routeName="merchant.settings"
+                            href={route("merchant.venues.transactions.index", {
+                                venue: venue.slug,
+                            })}
+                            routeName="merchant.venues.transactions.index"
+                            params={{ venue: venue.slug }}
                             label="Transaksi"
                             icon={Folder}
+                        />
+                    </li>
+                    <li>
+                        <SidenavLink
+                            href={route("merchant.venues.settings.index", {
+                                venue: venue.slug,
+                            })}
+                            routeName="merchant.venues.settings.index"
+                            params={{ venue: venue.slug }}
+                            label="Pengaturan"
+                            icon={Settings}
                         />
                     </li>
                 </ul>

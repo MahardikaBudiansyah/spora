@@ -61,7 +61,9 @@ export default function Show() {
                                     description={venue.description}
                                     phone_number={venue.phone_number}
                                 />
-                                <VenueAddress address={venue.address} />
+                                {venue.address?.length > 0 && (
+                                    <VenueAddress address={venue.address} />
+                                )}
                                 <div className="flex flex-col gap-2">
                                     <span className="text-lg font-bold">
                                         Fasilitas:

@@ -1,9 +1,9 @@
 import { useAuthModal } from "@/contexts/AuthModalContext"; // sesuaikan path
 import AuthModal from "@/components/user/auth/AuthModal";
 import Navbar from "@/Layouts/User/Navbar";
-import Footer from "@/Layouts/User/Footer";
+import Footer, { FooterBottom } from "@/Layouts/User/Footer";
 
-export default function UserLayout({ children }) {
+export default function UserLayout({ children, footerType = "full" }) {
     const {
         modalType,
         isModalVisible,
@@ -27,7 +27,9 @@ export default function UserLayout({ children }) {
             <main className="mt-20 bg-light dark:bg-dark text-gray-800 dark:text-white text-sm">
                 {children}
             </main>
-            <Footer />
+
+            {footerType === "full" ? <Footer /> : <FooterBottom />}
+
             {modalType && (
                 <AuthModal
                     type={modalType}

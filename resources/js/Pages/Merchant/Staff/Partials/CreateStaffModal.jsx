@@ -13,6 +13,7 @@ import {
 } from "@/components/Common/Card";
 import LabelInput from "@/components/Common/LabelInput";
 import TextInput from "@/components/Common/TextInput";
+import ErrorInput from "@/components/Common/ErrorInput";
 import PhoneInput from "@/components/Common/PhoneInput";
 import SelectInput from "@/components/Common/SelectInput";
 
@@ -76,6 +77,7 @@ export default function CreateStaffModal({ show, onClose, roles = [] }) {
                                     }
                                     error={errors.name}
                                 />
+                                <ErrorInput message={errors.name} />
                             </div>
                             <div className="flex flex-col md:flex-row gap-2 md:items-center">
                                 <div className="md:w-1/3 flex flex-row md:justify-between gap-2 items-center">
@@ -98,6 +100,7 @@ export default function CreateStaffModal({ show, onClose, roles = [] }) {
                                     isClearable={false}
                                     isSearchable={false}
                                 />
+                                <ErrorInput message={errors.role_id} />
                             </div>
                             <div className="flex flex-col md:flex-row gap-2 md:items-center">
                                 <div className="md:w-1/3 flex flex-row md:justify-between gap-2 items-center">
@@ -118,6 +121,7 @@ export default function CreateStaffModal({ show, onClose, roles = [] }) {
                                     }
                                     error={errors.phone_number}
                                 />
+                                <ErrorInput message={errors.phone_number} />
                             </div>
                             <div className="flex flex-col md:flex-row gap-2 md:items-center">
                                 <div className="md:w-1/3 flex flex-row md:justify-between gap-2 items-center">
@@ -138,6 +142,7 @@ export default function CreateStaffModal({ show, onClose, roles = [] }) {
                                     }
                                     error={errors.email}
                                 />
+                                <ErrorInput message={errors.email} />
                             </div>
                             <div className="flex flex-col md:flex-row gap-2 md:items-center">
                                 <div className="md:w-1/3 flex flex-row md:justify-between gap-2 items-center">
@@ -159,6 +164,7 @@ export default function CreateStaffModal({ show, onClose, roles = [] }) {
                                     }
                                     error={errors.password}
                                 />
+                                <ErrorInput message={errors.password} />
                             </div>
                         </div>
                     </CardBody>

@@ -80,7 +80,7 @@ class Field extends Model
 
     public function carts()
     {
-        return $this->hasMany(Cart::class, 'field_id','id');
+        return $this->hasMany(Cart::class);
     }
 
     public function bookingDetails()

@@ -52,10 +52,10 @@ class VenueController extends Controller
                 'image' => $venue->featuredImage
                     ? asset('storage/' . $venue->featuredImage->image_path)
                     : asset('/assets/images/field-default.jpg'),
-                'address' => [
-                    'district' => $address?->district?->name, // 👈 langsung ambil district
-                    'city' => $address?->city?->name, // 👈 langsung ambil district
-                ],
+                'address' => $address ? [
+                    'district' => $address?->district?->name,
+                    'city' => $address?->city?->name,
+                ] : null,
             ];
         });
 
@@ -71,14 +71,14 @@ class VenueController extends Controller
             ]
         );
 
-        return Inertia::render('Venue', [
+        return Inertia::render('User/Venue/Venue', [
             'venues' => $paginatedVenues,
         ]);
     }
 
     public function show(Request $request, Venue $venue) 
     {
-        // Load relasi yang sifatnya statis
+        // Load relasi statis
         $venue->load([
             'images',
             'facilities',
@@ -89,6 +89,9 @@ class VenueController extends Controller
             'addresses.city',
             'addresses.district',
             'addresses.village',
+            'membershipPackages',
+            'membershipPackages.discounts',
+            'membershipPackages.others',  
         ]);
 
         // Ambil harga minimal dari seluruh field
@@ -102,8 +105,7 @@ class VenueController extends Controller
         }
         $minPrice = $allPrices->count() > 0 ? $allPrices->min() : 0;
 
-        // Return hanya data statis venue
-        return Inertia::render('VenueDetail', [
+        return Inertia::render('User/Venue/VenueDetail', [
             'venue' => [
                 'id' => $venue->id,
                 'name' => $venue->name,
@@ -144,9 +146,40 @@ class VenueController extends Controller
                     'longitude' => $addr->longitude,
                     'type' => $addr->type,
                 ])->first(),
+
+                // ✅ Membership Packages disamakan dengan controller Merchant
+                'membership_packages' => $venue->membershipPackages->map(function ($pkg) {
+                    return [
+                        'id' => $pkg->id,
+                        'slug' => $pkg->slug, 
+                        'name' => $pkg->name,
+                        'duration_months' => $pkg->duration_months,
+                        'price' => $pkg->price,
+                        'description' => $pkg->description,
+                        'membership_benefit_discounts' => $pkg->discounts->map(function ($d) {
+                            return [
+                                'id' => $d->id,
+                                'name' => $d->name,
+                                'discount_type' => $d->discount_type,
+                                'discount_value' => $d->discount_value,
+                                'discount_limit' => $d->discount_limit,
+                                'description' => $d->description,
+                            ];
+                        }),
+                        'membership_benefit_others' => $pkg->others->map(function ($o) {
+                            return [
+                                'id' => $o->id,
+                                'name' => $o->name,
+                                'description' => $o->description,
+                            ];
+                        }),
+                        'is_active' => $pkg->is_active,
+                    ];
+                }),
             ],
         ]);
     }
+
 
 
 }

@@ -14,7 +14,7 @@ class FieldSeeder extends Seeder
      */
     public function run(): void
     {
-       $data = [
+        $data = [
             [   'name' => 'Lapangan 1',
                 'field_type_id' => 1,
                 'description' => 'Lapangan  dengan ukuran internasional',

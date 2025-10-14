@@ -23,7 +23,6 @@ class AdminSeeder extends Seeder
                 'password' => Hash::make('admin1234'),
                 'phone_number' => null,
                 'status' => true,
-                'slug' => 'admin',
             ],
             
         ];

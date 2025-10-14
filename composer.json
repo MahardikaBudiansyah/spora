@@ -13,6 +13,7 @@
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "laravolt/indonesia": "^0.38.0",
+        "midtrans/midtrans-php": "^2.6",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

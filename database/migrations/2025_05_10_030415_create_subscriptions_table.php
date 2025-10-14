@@ -14,18 +14,15 @@ return new class extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('order_no')->unique();
-            $table->unsignedBigInteger('merchant_id');
-            $table->unsignedBigInteger('package_id');
-            $table->unsignedBigInteger('duration_id');
+            $table->foreignId('merchant_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('subscription_package_id')->constrained()->cascadeOnDelete();
+            $table->decimal('total_price', 12, 2);
             $table->date('start_date');
             $table->date('end_date');
-            $table->enum('status', ['active', 'expired', 'cancelled'])->default('active');
+            $table->enum('status', ['pending', 'active', 'expired', 'cancelled'])->default('pending');
             $table->string('slug', 100)->nullable();
+            $table->softDeletes();
             $table->timestamps();
-
-            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
-            $table->foreign('package_id')->references('id')->on('subscription_packages')->onDelete('cascade');
-            $table->foreign('duration_id')->references('id')->on('subscription_durations')->onDelete('cascade');
         });
     }
 

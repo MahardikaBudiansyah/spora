@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('phone_number')->nullable();
             $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
+            $table->boolean('is_active')->default(true);
             $table->string('slug', 100)->nullable();
             $table->softDeletes();
             $table->timestamps();

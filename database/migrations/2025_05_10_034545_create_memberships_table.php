@@ -12,25 +12,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('memberships', function (Blueprint $table) {
-        $table->id();
-        $table->string('order_no')->unique();
-        $table->unsignedBigInteger('user_id');
-        $table->unsignedBigInteger('venue_id');
-        $table->unsignedBigInteger('membership_package_id');
-        $table->unsignedBigInteger('membership_duration_id');
-        $table->decimal('total_price', 10, 2);
-        $table->date('start_date');
-        $table->date('end_date');
-        $table->enum('status', ['active', 'expired', 'cancelled'])->default('active');
-        $table->string('slug', 100)->nullable();
-        $table->timestamps();
+            $table->id();
+            $table->string('order_no')->unique();
 
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        $table->foreign('venue_id')->references('id')->on('venues')->onDelete('cascade');
-        $table->foreign('membership_package_id')->references('id')->on('membership_packages')->onDelete('cascade');
-        $table->foreign('membership_duration_id')->references('id')->on('membership_durations')->onDelete('cascade');
+            // ini sudah foreign key + index otomatis
+            $table->foreignId('membership_user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('membership_package_id')->constrained()->cascadeOnDelete();
 
+            $table->decimal('total_price', 12, 2);
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->integer('remaining_discount_limits')->nullable(); 
+
+            // status sering dipakai filter → bisa ditambah index manual
+            $table->enum('status', ['pending', 'active', 'expired', 'cancelled'])->default('active')->index();
+            $table->boolean('is_queued')->default(false);
+            $table->string('slug', 100)->nullable();
+            $table->softDeletes();
+            $table->timestamps();
         });
+
     }
 
     /**

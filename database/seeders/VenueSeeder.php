@@ -56,7 +56,18 @@ class VenueSeeder extends Seeder
         ];
 
         foreach ($data as $value) {
-            Venue::create($value);
+            $venue = Venue::create($value); 
+
+            $venue->paymentType()->create([
+                'enable_dp'         => false, // default DP tidak aktif
+                'dp_type'           => 'fixed', // opsional, bisa tetap default
+                'dp_value'          => 0,
+                'apply_to_merchant' => false,
+                'full_payment_days_before'=> 1,   // default H-1
+                'max_full_payment_days'   => 3,   // maksimum H-3
+                'is_active'         => true,
+            ]);
         }
+        
     }
 }

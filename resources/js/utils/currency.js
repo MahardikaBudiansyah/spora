@@ -10,6 +10,33 @@ export const formatPriceInput = (value) => {
 };
 
 export const parseRupiahToNumber = (value) => {
-    // Mengubah "Rp 100.000" menjadi 100000 (number)
     return Number(value.replace(/\D/g, ""));
+};
+
+export const formatDiscount = (type, value) => {
+    if (value === null || value === undefined) return "-";
+
+    if (type === "percentage") {
+        // sesuaikan dengan DB
+        const formatted = Number(value);
+        if (isNaN(formatted)) return "-"; // jika bukan angka
+        return formatted % 1 === 0
+            ? formatted.toString() + "%"
+            : formatted.toFixed(2) + "%";
+    }
+
+    if (type === "fixed") return formatRupiah(value);
+
+    return value;
+};
+
+export const translateDiscountType = (type) => {
+    switch (type) {
+        case "percentage":
+            return "Persen";
+        case "fixed":
+            return "Rupiah";
+        default:
+            return type;
+    }
 };

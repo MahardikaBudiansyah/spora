@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
             $table->foreignId('field_id')->constrained()->cascadeOnDelete();
             $table->foreignId('time_slot_id')->nullable()->constrained()->nullOnDelete();
-            $table->decimal('price', 12, 2)->nullable();
+            $table->decimal('original_price', 12, 2)->nullable();
+            $table->decimal('discount_amount', 12, 2)->default(0);
+            $table->decimal('final_price', 12, 2)->nullable();
             $table->date('booking_date');
             $table->timestamps();
         });

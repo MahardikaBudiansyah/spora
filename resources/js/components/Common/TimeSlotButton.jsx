@@ -55,7 +55,7 @@ export default function TimeSlotButton({ slot, selected, disabled, onClick }) {
         statusStyles.base,
         selected && statusStyles.selected,
         !disabled && statusStyles.hover,
-        disabled && "opacity-50 cursor-not-allowed"
+        disabled && "opacity-80 cursor-not-allowed"
     );
 
     return (

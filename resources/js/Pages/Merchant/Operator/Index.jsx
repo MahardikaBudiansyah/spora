@@ -259,7 +259,7 @@ export default function Index() {
         <MerchantLayout>
             <Head title="Penugasan Operator" />
 
-            <Card className="min-h-screen flex flex-col gap-4">
+            <Card className="h-flex flex-col h-full rounded-lg shadow-none dark:border-none">
                 <CardHeader>
                     <div className="flex justify-between items-center p-4">
                         <div className="font-bold text-xl">
@@ -285,7 +285,7 @@ export default function Index() {
                     </div>
                 </CardHeader>
 
-                <CardBody className="flex flex-row gap-4 px-4">
+                <CardBody className="flex flex-row gap-4 p-8">
                     <CalendarPanel
                         events={filteredEvents}
                         onSelectSlot={handleSelectSlot}
@@ -317,7 +317,7 @@ export default function Index() {
                     </div>
                 </CardBody>
 
-                <CardFooter className="p-8 flex justify-end gap-2">
+                <CardFooter className="my-8 p-8 flex justify-end gap-2">
                     <Button
                         variant="light"
                         onClick={() =>

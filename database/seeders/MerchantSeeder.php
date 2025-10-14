@@ -17,7 +17,6 @@ class MerchantSeeder extends Seeder
     {
         $data = [
             [   'name' => 'Jakal Futsal Group',
-                'username' => 'jakal futsal group',
                 'email' => 'jakalfutsal@gmail.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('jakal1234'),
@@ -26,7 +25,6 @@ class MerchantSeeder extends Seeder
                 'slug' => 'jakal-futsal-group',
             ],
             [   'name' => 'Telaga Futsal Group',
-                'username' => 'telaga futsal group',
                 'email' => 'jakalseven@gmail.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('telaga1234'),

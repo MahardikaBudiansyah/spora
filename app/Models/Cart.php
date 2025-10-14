@@ -21,7 +21,7 @@ class Cart extends Model
         'venue_id',
         'field_id',
         'time_slot_id',
-        'total_price',
+        'price',
         'date',
     ];
 
@@ -45,8 +45,4 @@ class Cart extends Model
         return $this->belongsTo(TimeSlot::class);
     }
 
-    public function cartHistories()
-    {
-        return $this->hasMany(CartHistory::class, 'cart_id');
-    }
 }

@@ -3,7 +3,7 @@
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TimeSlotController;
-use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\Merchant\MembershipController;
 use App\Http\Controllers\Merchant\FieldController;
 use App\Http\Controllers\Merchant\VenueController;
 use App\Http\Controllers\Merchant\BookingController;
@@ -22,7 +22,7 @@ Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(functi
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-    // Profile
+// Profile
     Route::prefix('profiles')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'index'])->name('index');
         Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');

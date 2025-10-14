@@ -8,10 +8,10 @@ use App\Models\Merchant;
 use App\Models\StaffRole;
 use App\Traits\HasPassword;
 use Illuminate\Support\Str;
+use App\Models\Notification;
 use App\Models\StaffProfile;
+use App\Traits\HasUniqueField;
 use App\Models\MerchantStaffRole;
-use App\Traits\HasUniqueUsername;
-
 use App\Models\OperatorAssignment;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +23,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Staff extends Authenticatable
 {
-    use HasFactory, Notifiable, Sluggable, SoftDeletes, HasUniqueUsername, HasPassword;
+    use HasFactory, Notifiable, SoftDeletes, HasUniqueField, HasPassword;
 
     protected $table = 'staff';
 
@@ -36,7 +36,7 @@ class Staff extends Authenticatable
         'email',
         'password',
         'status',
-        'slug',
+        'is_active',
     ];
 
     protected $hidden = [
@@ -44,29 +44,27 @@ class Staff extends Authenticatable
         'remember_token',
     ];
 
-    protected $attributes = [
-        'status' => self::STATUS_ACTIVE,
+    protected $uniqueFields = [
+        'username' => 'name',
     ];
-
-    public function sluggable(): array
-    {
-        return [
-            'slug' => [
-                'source' => 'name',
-                'separator' => '-', 
-                'unique' => true,
-            ]
-        ];
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
     const STATUS_RESIGNED = 'resigned';
+
+    protected $attributes = [
+        'status' => self::STATUS_ACTIVE,
+        'is_active' => true, 
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    public function getRouteKeyName()
+    {
+        return 'username';
+    }
 
     public function merchant()
     {
@@ -127,5 +125,10 @@ class Staff extends Authenticatable
     public function operatorAssignments()
     {
         return $this->hasMany(OperatorAssignment::class);
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
     }
 }

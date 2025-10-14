@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('status', ['active', 'inactive', 'resigned'])->default('active');
-            $table->string('slug', 100)->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->softDeletes(); 
             $table->timestamps();

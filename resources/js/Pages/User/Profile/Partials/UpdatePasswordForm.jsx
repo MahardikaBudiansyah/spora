@@ -129,8 +129,9 @@ export default function UpdatePasswordForm({ className = "" }) {
                         variant="primary"
                         disabled={processing}
                     >
-                        Simpan
+                        {processing ? "Menyimpan..." : "Simpan"}
                     </Button>
+
                     <Transition
                         show={recentlySuccessful}
                         enter="transition ease-in-out"

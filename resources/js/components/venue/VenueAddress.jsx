@@ -1,18 +1,7 @@
 import { twMerge } from "tailwind-merge";
 
 export default function VenueAddress({ address }) {
-    if (!address) return null; // jaga-jaga kalau data kosong
-
-    const fullAddress = [
-        address.full_address,
-        address.village,
-        address.district,
-        address.city,
-        address.province,
-        address.postal_code,
-    ]
-        .filter(Boolean) // buang yang null/undefined
-        .join(", ");
+    if (!address) return null;
 
     return (
         <div

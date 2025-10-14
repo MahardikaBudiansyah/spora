@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests\User\Auth;
 
-use Illuminate\Auth\Events\Lockout;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use App\Helpers\NumberPhoneHelper;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -41,12 +42,18 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $loginType = filter_var($this->input('identifier'), FILTER_VALIDATE_EMAIL)
+        $identifier = $this->input('identifier');
+        $loginType = filter_var($identifier, FILTER_VALIDATE_EMAIL)
             ? 'email'
             : 'phone_number';
 
+        // kalau pakai nomor HP, normalisasi dulu
+        if ($loginType === 'phone_number') {
+            $identifier = NumberPhoneHelper::normalize($identifier);
+        }
+
         if (!Auth::attempt([
-            $loginType => $this->input('identifier'),
+            $loginType => $identifier,
             'password' => $this->input('password'),
         ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
@@ -58,6 +65,7 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
     }
+
 
     /**
      * Ensure the login request is not rate limited.

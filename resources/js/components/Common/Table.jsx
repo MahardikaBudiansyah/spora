@@ -1,18 +1,6 @@
+import React from "react";
 import { twMerge } from "tailwind-merge";
 import Spinner from "@/components/common/Spinner";
-
-/**
- * Reusable Table component with per-cell and per-row customization.
- *
- * Props:
- * - columns: [ { key, header, render?, className?, headerClassName?, getTdClassName? } ]
- * - data: array of row data
- * - wrapperClassName, tableClassName, emptyState, isLoading
- * - renderCell?: override full cell render
- * - getTrProps?: (row, rowIndex) => { className?, ... }
- * - getTdProps?: (col, row) => { className?, ... }
- * - rowKey?: (row) => unique key for row (default = rowIndex)
- */
 
 export default function Table({
     columns = [],
@@ -25,7 +13,10 @@ export default function Table({
     renderCell,
     getTrProps = () => ({}),
     getTdProps = () => ({}),
-    rowKey, // <--- baru
+    rowKey,
+    renderExpandRow,
+    expandedRowKeys = [],
+    footer = null, // ✅ Tambahan untuk footer
 }) {
     const defaultWrapperClass =
         "overflow-x-auto overflow-y-auto bg-white border border-secondary-200 rounded-lg shadow dark:bg-secondary-900 dark:border-secondary-700";
@@ -42,8 +33,9 @@ export default function Table({
                         {columns.map((col) => (
                             <th
                                 key={col.key}
+                                scope="col"
                                 className={twMerge(
-                                    "px-4 py-3 font-bold text-center",
+                                    "px-4 py-3 font-bold text-center uppercase",
                                     col.headerClassName
                                 )}
                             >
@@ -73,65 +65,97 @@ export default function Table({
                         </tr>
                     ) : (
                         data.map((row, rowIndex) => {
-                            const key = rowKey ? rowKey(row) : rowIndex;
+                            const key = rowKey
+                                ? rowKey(row)
+                                : row.id ?? rowIndex;
+
                             const { className: trClassName, ...trProps } =
                                 getTrProps(row, rowIndex) || {};
-                            return (
-                                <tr
-                                    key={key} // <--- gunakan key unik
-                                    className={twMerge(
-                                        "hover:bg-secondary-50 dark:hover:bg-secondary-600",
-                                        trClassName
-                                    )}
-                                    {...trProps}
-                                >
-                                    {columns.map((col) => {
-                                        const cellValue = row[col.key];
-                                        const cellClass =
-                                            typeof col.getTdClassName ===
-                                            "function"
-                                                ? col.getTdClassName(
-                                                      cellValue,
-                                                      row
-                                                  )
-                                                : "";
-                                        const {
-                                            className: tdClassName,
-                                            ...tdProps
-                                        } = getTdProps(col, row) || {};
 
-                                        return (
-                                            <td
-                                                key={col.key}
-                                                className={twMerge(
-                                                    "px-4 py-3 content-start",
-                                                    col.className,
-                                                    cellClass,
-                                                    tdClassName
-                                                )}
-                                                {...tdProps}
-                                            >
-                                                {renderCell
-                                                    ? renderCell(col, row)
-                                                    : typeof col.render ===
-                                                      "function"
-                                                    ? col.render(
+                            return (
+                                <React.Fragment key={key}>
+                                    {/* Row utama */}
+                                    <tr
+                                        className={twMerge(
+                                            "hover:bg-secondary-50 dark:hover:bg-secondary-600",
+                                            trClassName
+                                        )}
+                                        {...trProps}
+                                    >
+                                        {columns.map((col) => {
+                                            const cellValue = row[col.key];
+                                            const cellClass =
+                                                typeof col.getTdClassName ===
+                                                "function"
+                                                    ? col.getTdClassName(
                                                           cellValue,
-                                                          row,
-                                                          rowIndex
+                                                          row
                                                       )
-                                                    : typeof cellValue ===
-                                                      "object"
-                                                    ? JSON.stringify(cellValue)
-                                                    : cellValue}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
+                                                    : "";
+                                            const {
+                                                className: tdClassName,
+                                                ...tdProps
+                                            } = getTdProps(col, row) || {};
+
+                                            return (
+                                                <td
+                                                    key={col.key}
+                                                    className={twMerge(
+                                                        "px-4 py-3 content-start",
+                                                        col.className,
+                                                        cellClass,
+                                                        tdClassName
+                                                    )}
+                                                    {...tdProps}
+                                                >
+                                                    {renderCell
+                                                        ? renderCell(col, row)
+                                                        : typeof col.render ===
+                                                          "function"
+                                                        ? col.render(
+                                                              cellValue,
+                                                              row,
+                                                              rowIndex
+                                                          )
+                                                        : typeof cellValue ===
+                                                          "object"
+                                                        ? JSON.stringify(
+                                                              cellValue
+                                                          )
+                                                        : cellValue}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+
+                                    {/* Row expand */}
+                                    {renderExpandRow &&
+                                        expandedRowKeys.includes(key) && (
+                                            <tr className="bg-gray-50 dark:bg-secondary-800">
+                                                <td
+                                                    colSpan={columns.length}
+                                                    className="p-0"
+                                                >
+                                                    {renderExpandRow(
+                                                        row,
+                                                        rowIndex,
+                                                        true
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )}
+                                </React.Fragment>
                             );
                         })
                     )}
                 </tbody>
+
+                {/* ✅ FOOTER TABLE (opsional) */}
+                {footer && (
+                    <tfoot className="bg-secondary-50 dark:bg-secondary-800 font-semibold text-sm">
+                        {footer}
+                    </tfoot>
+                )}
             </table>
         </div>
     );
