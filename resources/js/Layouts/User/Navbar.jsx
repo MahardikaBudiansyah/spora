@@ -15,7 +15,7 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const { openModal } = useAuthModal();
-    const { cartCount } = useCart();
+    const { cartCount, fetchCarts } = useCart();
     const { user, authenticated, logout } = useAuth();
     const menuId = useId();
 
@@ -49,14 +49,16 @@ export default function Navbar() {
                     <div className="relative">
                         <ShoppingCart
                             className="mr-4 text-primary-600 w-5 h-5 cursor-pointer"
-                            onClick={() => {
+                            onClick={async () => {
                                 if (authenticated) {
+                                    await fetchCarts(); // refresh dulu biar pasti update
                                     setIsCartOpen(true);
                                 } else {
                                     openModal("login", true);
                                 }
                             }}
                         />
+
                         {authenticated && cartCount > 0 && (
                             <span className="absolute -top-[9px] right-1.5 bg-red-500 text-white text-[10px] leading-4 font-bold px-1 h-[18px] min-w-[20px] flex items-center justify-center rounded-full">
                                 {cartCount > 99 ? "99+" : cartCount}
@@ -96,8 +98,8 @@ export default function Navbar() {
                         />
                         <NavMenuItem
                             label="Sewa Lapangan"
-                            href={route("venues")}
-                            isActive={route().current("venues")}
+                            href={route("venues.index")}
+                            isActive={route().current("venues.index")}
                         />
                         <NavMenuItem
                             label="Tentang Kami"

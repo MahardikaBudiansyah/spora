@@ -4,8 +4,8 @@ namespace App\Http\Controllers\User;
 
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
@@ -27,14 +27,17 @@ class ProfileController extends Controller
     }
 
     public function update(ProfileUpdateRequest $request): RedirectResponse
-    {        
+    {
         $user = $request->user();
 
-        $user->fill($request->validated());
+        $validated = $request->validated();
 
-        // Update slug otomatis berdasarkan username terbaru
-        $user->slug = Str::slug($user->username);
+        // Normalisasi di backend untuk jaga-jaga
+        if (!empty($validated['phone_number'])) {
+            $validated['phone_number'] = NumberPhoneHelper::normalize($validated['phone_number']);
+        }
 
+        $user->fill($validated);
         $user->save();
 
         return Redirect::route('user.profile.edit')->with('status', 'Profil berhasil diperbarui.');

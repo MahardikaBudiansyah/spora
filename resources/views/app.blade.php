@@ -15,17 +15,6 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-
-    {{-- <!-- FullCalendar CSS CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.7/main.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.7/main.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.7/main.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="/css/fullcalendar/core/index.global.min.js" />
-    <link rel="stylesheet" href="/css/fullcalendar/daygrid/index.global.min.js" />
-    <link rel="stylesheet" href="/css/fullcalendar/timegrid/index.global.min.js" /> --}}
-
-
     <!-- Scripts -->
     @routes
     @viteReactRefresh
@@ -35,6 +24,8 @@
 
 <body class="font-sans antialiased">
     @inertia
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}">
+    </script>
 </body>
 
 </html>

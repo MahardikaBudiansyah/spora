@@ -17,12 +17,15 @@ use Database\Seeders\FieldTypeSeeder;
 use Database\Seeders\StaffRoleSeeder;
 use Database\Seeders\FieldImageSeeder;
 use Database\Seeders\VenueImageSeeder;
+use Database\Seeders\FieldTimeSlotSeeder;
 use Database\Seeders\MerchantOwnerSeeder;
 use Database\Seeders\MerchantProfileSeeder;
 use Database\Seeders\SlotStatusLabelSeeder;
-use Database\Seeders\MembershipDurationSeeder;
+use Database\Seeders\MembershipPackageSeeder;
+use Database\Seeders\MerchantStaffRoleSeeder;
 use Database\Seeders\SubscriptionPackageSeeder;
-use Database\Seeders\SubscriptionDurationSeeder;
+use Database\Seeders\MembershipBenefitOtherSeeder;
+use Database\Seeders\MembershipBenefitDiscountSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -31,25 +34,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(AdminSeeder::class);
-        $this->call(UserSeeder::class);
-        $this->call(MerchantSeeder::class);
-        $this->call(MerchantProfileSeeder::class);
-        $this->call(MerchantOwnerSeeder::class);
-        $this->call(StaffRoleSeeder::class);
-        // $this->call(StaffSeeder::class);
-        $this->call(FacilitySeeder::class);
-        $this->call(VenueSeeder::class);
-        $this->call(VenueImageSeeder::class);
-        $this->call(AddressSeeder::class);
-        $this->call(TimeSlotSeeder::class);
-        $this->call(FieldTypeSeeder::class);
-        $this->call(FieldSeeder::class);
-        $this->call(FieldImageSeeder::class);
-        $this->call(SubscriptionDurationSeeder::class);
-        $this->call(SubscriptionPackageSeeder::class);
-        $this->call(MembershipDurationSeeder::class);
-        $this->call(SlotStatusLabelSeeder::class);
+        $this->call([
+            // User & Admin
+            AdminSeeder::class,
+            UserSeeder::class,
+
+            // Merchant & Staff
+            MerchantSeeder::class,
+            MerchantProfileSeeder::class,
+            MerchantOwnerSeeder::class,
+            StaffRoleSeeder::class,          // seed global staff roles
+            MerchantStaffRoleSeeder::class,  // assign role ke merchant
+            StaffSeeder::class,              // baru seed staff
+
+            // Venue & Related
+            VenueSeeder::class,
+            VenueImageSeeder::class,
+            AddressSeeder::class,
+            FacilitySeeder::class,
+
+            // Fields & Slots
+            FieldTypeSeeder::class,
+            FieldSeeder::class,
+            FieldImageSeeder::class,
+            TimeSlotSeeder::class,
+            FieldTimeSlotSeeder::class,
+            SlotStatusLabelSeeder::class,
+
+            // Subscription
+            SubscriptionPackageSeeder::class,
+
+            // Membership
+            MembershipPackageSeeder::class,
+            MembershipBenefitDiscountSeeder::class,
+            MembershipBenefitOtherSeeder::class,
+            // MembershipSeeder::class,
+        ]);
+
 
     }
 }

@@ -13,19 +13,15 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('venue_id');
-            $table->unsignedBigInteger('field_id');
-            $table->unsignedBigInteger('time_slot_id');
-            $table->decimal('total_price', 10, 2);
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('venue_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('field_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('time_slot_id')->constrained()->cascadeOnDelete();
+            $table->decimal('price', 10, 2);
             $table->date('date');
             $table->timestamps();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('venue_id')->references('id')->on('venues')->onDelete('cascade');
-            $table->foreign('field_id')->references('id')->on('fields')->onDelete('cascade');
-            $table->foreign('time_slot_id')->references('id')->on('time_slots')->onDelete('cascade');
         });
+
     }
 
     /**

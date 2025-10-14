@@ -13,6 +13,9 @@ import Button from "@/components/Common/Button";
 import Pagination from "@/components/common/Pagination";
 import DeleteModal from "@/components/common/DeleteModal";
 
+import { formatTo08 } from "@/utils/numberPhone";
+import { formatFullDate } from "@/utils/date";
+
 export default function Index() {
     const { venues = [] } = usePage().props;
 
@@ -22,16 +25,47 @@ export default function Index() {
     const columns = [
         { key: "number", header: "#", className: "text-center" },
         { key: "name", header: "Nama Venue" },
-        { key: "address", header: "Alamat" },
+        {
+            key: "address",
+            header: "Alamat",
+            render: (val, row) =>
+                row.address ? (
+                    <div className="text-left">{row.address}</div>
+                ) : (
+                    <div className="text-center">-</div>
+                ),
+        },
         {
             key: "phone_number",
             header: "No Handphone",
+            render: (val, row) => formatTo08(row.phone_number) || "-",
             className: "text-center",
         },
-        { key: "field", header: "Lapangan" },
+        {
+            key: "field",
+            header: "Lapangan",
+            render: (val, row) =>
+                row.field && row.field.length > 0 ? (
+                    <ul className="flex flex-col gap-1">
+                        {row.field.map((name, idx) => (
+                            <li
+                                key={idx}
+                                className="px-2 py-0.5 bg-secondary-200 dark:bg-secondary-800 rounded-md text-xs"
+                            >
+                                {name}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <span className="text-secondary-500 italic">
+                        Belum ada lapangan
+                    </span>
+                ),
+        },
         {
             key: "updated_at",
             header: "Tanggal Pembaruan",
+            render: (val, row) => formatFullDate(row.updated_at) || "-",
             className: "text-center",
         },
         {
@@ -62,7 +96,7 @@ export default function Index() {
                         Lapangan
                     </Button>
                     <Button
-                        variant="tertiary"
+                        variant="pink"
                         size="xs"
                         onClick={() => handleBooking(row)}
                     >
@@ -132,63 +166,59 @@ export default function Index() {
 
     return (
         <MerchantLayout>
-            <div>
-                <Head title="Venues" />
-                <Card className="flex flex-col h-full min-h-screen rounded-lg shadow-none dark:border-none">
-                    <CardHeader className="border-none">
-                        <div className="flex flex-row justify-between items-center p-4">
-                            <div className="font-bold">Semua Venue</div>
-                            <Button
-                                variant="primary"
-                                size="xs"
-                                onClick={handleCreate}
-                            >
-                                + New Venue
-                            </Button>
+            <Head title="Venues" />
+            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
+                <CardHeader className="">
+                    <div className="flex flex-row justify-between items-center p-4">
+                        <div className="font-bold uppercase text-lg">
+                            Semua Venue
                         </div>
-                    </CardHeader>
-                    <CardBody className="px-0">
-                        <div>
-                            <Table
-                                columns={columns}
-                                data={venues.data}
-                                wrapperClassName="border-none rounded-none shadow-none"
-                                tableClassName="text-xs"
-                                emptyState={
-                                    <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                        Tidak ada data.{" "}
-                                        <Link
-                                            href={route(
-                                                "merchant.venues.create"
-                                            )}
-                                            className="text-gray-900 hover:underline dark:text-primary-400 font-semibold"
-                                        >
-                                            Tambahkan venue sekarang!
-                                        </Link>
-                                    </div>
-                                }
-                            />
-                            <Pagination
-                                links={venues.links}
-                                meta={venues}
-                                className="p-6 my-2"
-                            />
-                        </div>
-                    </CardBody>
+                        <Button
+                            variant="primary"
+                            size="xs"
+                            onClick={handleCreate}
+                        >
+                            + New Venue
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardBody className="px-0 pb-8">
+                    <Table
+                        columns={columns}
+                        data={venues.data}
+                        wrapperClassName="border-none rounded-none shadow-none"
+                        tableClassName="text-xs"
+                        emptyState={
+                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                                Tidak ada data.{" "}
+                                <Link
+                                    href={route("merchant.venues.create")}
+                                    className="text-gray-900 hover:underline dark:text-primary-400 font-semibold"
+                                >
+                                    Tambahkan venue sekarang!
+                                </Link>
+                            </div>
+                        }
+                    />
+                    <Pagination
+                        links={venues.links}
+                        meta={venues}
+                        className="p-6 my-2"
+                    />
+                </CardBody>
 
-                    {showModal && selectedVenue && (
-                        <DeleteModal
-                            show={showModal}
-                            onClose={() => setShowModal(false)}
-                            onDelete={deleteVenue}
-                            title="Hapus Venue"
-                            description={`Yakin ingin menghapus venue "${selectedVenue.name}"?`}
-                        />
-                    )}
+                {showModal && selectedVenue && (
+                    <DeleteModal
+                        show={showModal}
+                        onClose={() => setShowModal(false)}
+                        onDelete={deleteVenue}
+                        title="Hapus Venue"
+                        description={`Yakin ingin menghapus venue "${selectedVenue.name}"?`}
+                    />
+                )}
 
-                    <CardFooter className="my-2 border-none shadow-none flex p-8"></CardFooter>
-                </Card>
-            </div>
+                <CardFooter className="my-8 p-8 flex justify-end gap-2"></CardFooter>
+            </Card>
         </MerchantLayout>
     );
 }

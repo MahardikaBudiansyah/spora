@@ -6,6 +6,8 @@ import InputLabel from "@/components/Common/LabelInput";
 import Badge from "@/components/common/Badge";
 import Button from "@/components/common/Button";
 import TextInput from "@/components/common/TextInput";
+import PhoneInput from "@/components/Common/PhoneInput";
+import { formatTo08, normalizePhone } from "@/utils/numberPhone";
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -25,6 +27,10 @@ export default function UpdateProfileInformation({
     const submit = (e) => {
         e.preventDefault();
         patch(route("user.profile.update"), {
+            data: {
+                ...data,
+                phone_number: normalizePhone(data.phone_number),
+            },
             preserveScroll: true,
             onSuccess: () => {
                 toast.success("Informasi profil berhasil diperbarui!");
@@ -77,15 +83,17 @@ export default function UpdateProfileInformation({
                         htmlFor="phone_number"
                         value="Nomor Handphone"
                     />
-                    <TextInput
+                    <PhoneInput
                         id="phone_number"
                         className="mt-1 block w-full"
-                        value={data.phone_number ?? ""}
+                        value={formatTo08(data.phone_number) ?? ""}
                         onChange={(e) =>
                             setData("phone_number", e.target.value)
                         }
                         disabled={user.phone_number !== null} // Disable jika nomor sudah ada
                         autoComplete="tel"
+                        placeholder="08XXXXXXXXXX"
+                        isFocused={true} // opsional, jika ingin auto fokus
                     />
                     <InputError
                         className="mt-2"
@@ -94,7 +102,9 @@ export default function UpdateProfileInformation({
                     {user.phone_number === null ? (
                         <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
                             Anda belum menambahkan nomor handphone. Disarankan
-                            untuk menambahkannya agar dapat memulihkan akun.
+                            untuk menambahkannya agar dapat menambahkan slot
+                            atau jam pada keranjang dan memulai booking serta
+                            memulihkan akun.
                         </p>
                     ) : (
                         <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">

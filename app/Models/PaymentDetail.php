@@ -15,14 +15,21 @@ class PaymentDetail extends Model
     protected $fillable = [
         'payment_id',
         'payment_provider',
+        'payment_channel',
         'reference_no',
         'payer_name',
         'payment_date',
         'proof_of_payment',
+        'raw_response',
+    ];
+
+    protected $casts = [
+        'raw_response' => 'array',
+        'payment_date' => 'datetime',
     ];
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(Payment::class, 'payment_id', 'id');
     }
 }

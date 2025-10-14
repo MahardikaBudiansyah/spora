@@ -2,64 +2,85 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Membership;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menangani sukses pembayaran untuk booking dan membership
      */
-    public function index()
+    public function success(string $type, $orderId)
     {
-        //
+        $user = Auth::user();
+        $profileIncomplete = empty($user->name) || empty($user->phone_number);
+
+        // Ambil transaksi sesuai type
+        $transaction = match ($type) {
+            'booking' => $this->getBookingTransaction($orderId, $user),
+            'membership' => $this->getMembershipTransaction($orderId, $user),
+            default => abort(404, 'Type tidak valid'),
+        };
+
+        return Inertia::render('User/Payment/Success', [
+            'message' => 'Pembayaran berhasil!',
+            'user' => $user,
+            'transaction' => $transaction,
+            'type' => $type,
+            'profileIncomplete' => $profileIncomplete,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    private function getBookingTransaction($gatewayOrderId, $user)
     {
-        //
+        return Booking::with([
+            'venue', 
+            'venue.featuredImage', 
+            'customers',
+            'details.field', 
+            'details.timeSlot',
+            'invoice', 
+            'invoice.payments', 
+            'invoice.payments.detail'
+        ])
+        ->whereHas('invoice.payments', function($q) use ($gatewayOrderId) {
+            $q->where('gateway_order_id', $gatewayOrderId);
+        })
+        ->whereHas('customers', function ($query) use ($user) {
+            $query->where('user_id', $user->id)
+                ->orWhere('phone_number', $user->phone_number);
+        })
+        ->firstOrFail();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    private function getMembershipTransaction($gatewayOrderId, $user)
     {
-        //
+        return Membership::with([
+            'membershipPackage',
+            'membershipPackage.discounts',
+            'membershipPackage.others',
+            'invoice',
+            'invoice.payments',
+            'invoice.payments.detail'
+        ])
+        ->whereHas('invoice.payments', function($q) use ($gatewayOrderId) {
+            $q->where('gateway_order_id', $gatewayOrderId);
+        })
+        ->where('membership_user_id', $user->id)
+        ->firstOrFail();
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payment $payment)
-    {
-        //
-    }
 
     /**
-     * Show the form for editing the specified resource.
+     * Halaman gagal pembayaran
      */
-    public function edit(Payment $payment)
+    public function failed()
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payment $payment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payment $payment)
-    {
-        //
+        return Inertia::render('User/Payment/Failed', [
+            'message' => 'Pembayaran gagal atau dibatalkan.',
+        ]);
     }
 }

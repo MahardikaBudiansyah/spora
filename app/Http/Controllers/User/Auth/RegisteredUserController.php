@@ -6,7 +6,6 @@ use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
-use App\Traits\HasUniqueUsername;
 use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +17,6 @@ use App\Http\Requests\User\Auth\RegisterRequest;
 
 class RegisteredUserController extends Controller
 {
-    use HasUniqueUsername;
-
     /**
      * Show user registration page.
      */

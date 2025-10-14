@@ -14,10 +14,21 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained('invoices')->cascadeOnDelete();
+
+            // cash / transfer / gateway
             $table->enum('payment_method', ['cash', 'transfer', 'gateway'])->nullable();
+
+            // dp / full
             $table->enum('payment_type', ['down_payment', 'full_payment'])->nullable();
+
+            // order id di Midtrans
+            $table->string('gateway_order_id')->nullable();
+
             $table->decimal('amount', 12, 2);
-            $table->enum('payment_status', ['pending', 'success', 'failed', 'refunded'])->default('pending');
+
+            // pakai status internal yang konsisten
+            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+
             $table->timestamps();
         });
     }

@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import Checkbox from "@/components/Common/Checkbox";
 import GuestLayout from "@/Layouts/GuestLayout";
 import InputError from "@/components/common/ErrorInput";
-import InputLabel from "@/components/Common/LabelInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/components/Common/TextInput";
 import { Head, Link, useForm } from "@inertiajs/react";
+import LabelInput from "@/components/Common/LabelInput";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -38,7 +38,7 @@ export default function Login({ status, canResetPassword }) {
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <LabelInput htmlFor="email" value="Email" />
 
                     <TextInput
                         id="email"
@@ -55,7 +55,7 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <LabelInput htmlFor="password" value="Password" />
 
                     <TextInput
                         id="password"

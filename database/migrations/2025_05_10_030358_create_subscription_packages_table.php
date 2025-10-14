@@ -13,8 +13,13 @@ return new class extends Migration
     {
         Schema::create('subscription_packages', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Basic, Pro, Premium
-            $table->decimal('price', 10, 2);
+            $table->string('name'); 
+            $table->integer('duration_months')->default(1);
+            $table->decimal('price', 12, 2);
+            $table->text('description')->nullable(); 
+            $table->boolean('is_active')->default(true);
+            $table->string('slug', 100)->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

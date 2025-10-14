@@ -31,7 +31,7 @@ class TimeSlot extends Model
 
     public function carts()
     {
-        return $this->hasMany(Cart::class, 'time_slot_id', 'id');
+        return $this->hasMany(Cart::class);
     }
 
     public function bookingDetails()

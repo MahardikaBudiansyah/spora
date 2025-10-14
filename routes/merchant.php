@@ -4,15 +4,22 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TimeSlotController;
-use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Merchant\FieldController;
 use App\Http\Controllers\Merchant\VenueController;
+use App\Http\Controllers\MerchantSettingController;
 use App\Http\Controllers\Merchant\BookingController;
 use App\Http\Controllers\Merchant\ProfileController;
 use App\Http\Controllers\OperatorAssignmentController;
+use App\Http\Controllers\Merchant\MembershipController;
+use App\Http\Controllers\Merchant\MembershipUserController;
+use App\Http\Controllers\Merchant\MembershipPackageController;
+use App\Http\Controllers\Merchant\MerchantMembershipController;
 use App\Http\Controllers\Merchant\Auth\RegisteredUserController;
 use App\Http\Controllers\Merchant\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Merchant\MerchantMembershipPackageController;
 
 Route::middleware('guest:merchant')->prefix('merchant')->name('merchant.')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -50,8 +57,9 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
         Route::get('/', [StaffController::class, 'index'])->name('index');
         Route::post('/store', [StaffController::class, 'store'])->name('store');
 
-        Route::prefix('{staff:slug}')->group(function () {
-            Route::patch('/status', [StaffController::class, 'updateStatus'])->name('updateStatus');
+        Route::prefix('{staff}')->group(function () {
+            Route::get('/show', [StaffController::class, 'show'])->name('show');
+            Route::patch('/updateStatus', [StaffController::class, 'updateStatus'])->name('updateStatus');
             Route::get('/edit', [StaffController::class, 'edit'])->name('edit');
             Route::put('/update', [StaffController::class, 'update'])->name('update');
             Route::delete('/delete', [StaffController::class, 'destroy'])->name('delete');
@@ -66,6 +74,28 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
         });
     });
 
+    Route::prefix('memberships')->name('memberships.')->group(function () {
+        Route::get('/', [MerchantMembershipController::class, 'index'])->name('index');
+        Route::get('/create', [MerchantMembershipController::class, 'create'])->name('create');
+        Route::post('/store', [MerchantMembershipController::class, 'store'])->name('store');
+        Route::get('/show', [MerchantMembershipController::class, 'show'])->name('show');
+        
+        Route::prefix('packages')->name('packages.')->group(function () {
+            Route::get('/', [MerchantMembershipPackageController::class, 'index'])->name('index');
+            Route::post('/store', [MerchantMembershipPackageController::class, 'store'])->name('store');
+            Route::put('/{membershipPackages:slug}/update', [MerchantMembershipPackageController::class, 'update'])->name('update');
+            Route::delete('/{membershipPackages:slug}/delete', [MerchantMembershipPackageController::class, 'destroy'])->name('destroy');
+            Route::patch('/{membershipPackages:slug}/is_active', [MerchantMembershipPackageController::class, 'toggleActive'])->name('is_active');
+            
+        });
+    });
+    
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [MerchantSettingController::class, 'index'])->name('index');
+        Route::post('/update', [MerchantSettingController::class, 'update'])->name('update');
+        
+    });
+
     // Venues (manual, tanpa resource)
     Route::prefix('venues')->name('venues.')->group(function () {
         Route::get('/', [VenueController::class, 'index'])->name('index');
@@ -78,22 +108,7 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
             Route::put('/update', [VenueController::class, 'update'])->name('update');
             Route::delete('/delete', [VenueController::class, 'destroy'])->name('destroy');
 
-            // Memberships
-            Route::prefix('memberships')->name('memberships.')->group(function () {
-                Route::get('/', [MembershipController::class, 'index'])->name('index');
-                Route::get('/show', [MembershipController::class, 'show'])->name('show');
-            });
-
-            // Bookings
-            Route::prefix('bookings')->name('bookings.')->group(function () {
-                Route::get('/', [BookingController::class, 'index'])->name('index');
-                Route::get('/create', [BookingController::class, 'create'])->name('create');
-                Route::get('/search-customer', [BookingController::class, 'searchCustomer'])->name('searchCustomer');
-                Route::post('/store', [BookingController::class, 'store'])->name('store');
-                Route::get('/timeslots', [TimeSlotController::class, 'getTimeslotsByVenue'])->name('getTimeslotsByVenue');
-            });
-
-            // Fields
+             // Fields
             Route::prefix('fields')->name('fields.')->group(function () {
                 Route::get('/', [FieldController::class, 'index'])->name('index');
                 Route::get('/create', [FieldController::class, 'create'])->name('create');
@@ -113,6 +128,55 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
                     Route::post('/update-slot-statuses', [TimeSlotController::class, 'updateTimeslotStatuses'])->name('updateTimeslotStatuses');
                 });
             });
+
+            // Memberships
+            Route::prefix('memberships')->name('memberships.')->group(function () {
+                Route::prefix('packages')->name('packages.')->group(function () {
+                    Route::get('/', [MembershipPackageController::class, 'index'])->name('index');
+                    Route::post('/', [MembershipPackageController::class, 'store'])->name('store');
+                    Route::patch('{package:slug}/is_active', [MembershipPackageController::class, 'toggleActive'])->name('toggle');
+                    Route::put('{package:slug}/update', [MembershipPackageController::class, 'update'])->name('update');
+                    Route::delete('{package:slug}/delete', [MembershipPackageController::class, 'destroy'])->name('destroy');
+                });
+                
+                Route::prefix('members')->name('members.')->group(function () {
+                    Route::get('/', [MembershipUserController::class, 'index'])->name('index');
+                    Route::post('/', [MembershipUserController::class, 'store'])->name('store');
+                    Route::patch('{membershipUsers:slug}/is_active', [MembershipUserController::class, 'toggleActive'])->name('toggle');
+                    Route::put('{membershipUsers:slug}/update', [MembershipUserController::class, 'update'])->name('update');
+                    Route::delete('{membershipUsers:slug}/delete', [MembershipUserController::class, 'destroy'])->name('destroy');
+                });
+
+                Route::prefix('orders')->name('orders.')->group(function () {
+                    Route::get('/', [MembershipController::class, 'index'])->name('index');
+                    Route::get('/create', [MembershipController::class, 'create'])->name('create');
+                    Route::post('/store', [MembershipController::class, 'store'])->name('store');
+                    Route::get('/show', [MembershipController::class, 'show'])->name('show');
+                });
+            });
+
+            // Bookings
+            Route::prefix('bookings')->name('bookings.')->group(function () {
+                Route::get('/', [BookingController::class, 'index'])->name('index');
+                Route::get('/create', [BookingController::class, 'create'])->name('create');
+                Route::get('/search-customer', [BookingController::class, 'searchCustomer'])->name('searchCustomer');
+                Route::post('/store', [BookingController::class, 'store'])->name('store');
+                Route::get('/timeslots', [TimeSlotController::class, 'getTimeslotsByVenue'])->name('getTimeslotsByVenue');
+            });
+
+            Route::prefix('transactions')->name('transactions.')->group(function () {
+                Route::get('/', [TransactionController::class, 'index'])->name('index');       
+                Route::post('/store', [TransactionController::class, 'store'])->name('store');
+            });
+
+           
+
+            Route::prefix('settings')->name('settings.')->group(function () {
+                Route::get('/', [SettingController::class, 'index'])->name('index');
+
+            });
         });
+
+
     });
 });

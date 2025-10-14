@@ -2,6 +2,7 @@ import { usePage } from "@inertiajs/react";
 import { Link } from "@inertiajs/react";
 import { ChevronRight } from "lucide-react";
 import { route } from "ziggy-js";
+import { toTitleCase } from "@/utils/stringFormatter";
 
 export default function Breadcrumb() {
     const { url } = usePage();
@@ -11,6 +12,41 @@ export default function Breadcrumb() {
     const breadcrumbMap = {
         "merchant.dashboard": [
             { label: "Dashboard", href: route("merchant.dashboard") },
+        ],
+        "merchant.staff.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            { label: "Staff", href: route("merchant.staff.index") },
+        ],
+        "merchant.staff.operator.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            { label: "Staff", href: route("merchant.staff.index") },
+            {
+                label: params.staff
+                    ? toTitleCase(params.staff.replace(/-/g, " "))
+                    : "Staff",
+                href: params.staff
+                    ? route("merchant.staff.show", { staff: params.staff })
+                    : "#",
+            },
+            {
+                label: "Operator",
+                href: params.operator
+                    ? route("merchant.staff.operator.index", {
+                          operator: params.operator,
+                      })
+                    : "#",
+            },
+        ],
+        "merchant.memberships.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            { label: "Membership", href: route("merchant.memberships.index") },
+        ],
+        "merchant.memberships.packages.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Paket Membership",
+                href: route("merchant.memberships.packages.index"),
+            },
         ],
         "merchant.venues.index": [
             { label: "Dashboard", href: route("merchant.dashboard") },
@@ -27,7 +63,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -40,7 +78,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -53,7 +93,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -71,7 +113,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -92,7 +136,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -106,7 +152,9 @@ export default function Breadcrumb() {
                     : "#",
             },
             {
-                label: params.field?.replace(/-/g, " ").toUpperCase(),
+                label: params.field
+                    ? toTitleCase(params.field.replace(/-/g, " "))
+                    : "Lapangan",
                 href:
                     params.venue && params.field
                         ? route("merchant.venues.fields.show", {
@@ -123,7 +171,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -137,7 +187,9 @@ export default function Breadcrumb() {
                     : "#",
             },
             {
-                label: params.field?.replace(/-/g, " ").toUpperCase(),
+                label: params.field
+                    ? toTitleCase(params.field.replace(/-/g, " "))
+                    : "Lapangan",
                 href:
                     params.venue && params.field
                         ? route("merchant.venues.fields.show", {
@@ -155,7 +207,9 @@ export default function Breadcrumb() {
             { label: "Dashboard", href: route("merchant.dashboard") },
             { label: "Venue", href: route("merchant.venues.index") },
             {
-                label: params.venue?.replace(/-/g, " ").toUpperCase(),
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
                 href: params.venue
                     ? route("merchant.venues.show", { venue: params.venue })
                     : "#",
@@ -169,7 +223,9 @@ export default function Breadcrumb() {
                     : "#",
             },
             {
-                label: params.field?.replace(/-/g, " ").toUpperCase(),
+                label: params.field
+                    ? toTitleCase(params.field.replace(/-/g, " "))
+                    : "Lapangan",
                 href:
                     params.venue && params.field
                         ? route("merchant.venues.fields.show", {
@@ -187,6 +243,66 @@ export default function Breadcrumb() {
                               field: params.field,
                           })
                         : "#",
+            },
+        ],
+        // "merchant.venues.memberships.index": [
+        //     { label: "Dashboard", href: route("merchant.dashboard") },
+        //     { label: "Venue", href: route("merchant.venues.index") },
+        //     {
+        //         label: params.venue
+        //             ? toTitleCase(params.venue.replace(/-/g, " "))
+        //             : "Venue",
+        //         href: params.venue
+        //             ? route("merchant.venues.show", { venue: params.venue })
+        //             : "#",
+        //     },
+        //     {
+        //         label: "Membership",
+        //         href: params.venue
+        //             ? route("merchant.venues.memberships.index", {
+        //                   venue: params.venue,
+        //               })
+        //             : "#",
+        //     },
+        // ],
+        "merchant.venues.bookings.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            { label: "Venue", href: route("merchant.venues.index") },
+            {
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
+                href: params.venue
+                    ? route("merchant.venues.show", { venue: params.venue })
+                    : "#",
+            },
+            {
+                label: "Booking",
+                href: params.venue
+                    ? route("merchant.venues.bookings.index", {
+                          venue: params.venue,
+                      })
+                    : "#",
+            },
+        ],
+        "merchant.venues.transactions.index": [
+            { label: "Dashboard", href: route("merchant.dashboard") },
+            { label: "Venue", href: route("merchant.venues.index") },
+            {
+                label: params.venue
+                    ? toTitleCase(params.venue.replace(/-/g, " "))
+                    : "Venue",
+                href: params.venue
+                    ? route("merchant.venues.show", { venue: params.venue })
+                    : "#",
+            },
+            {
+                label: "Transaksi",
+                href: params.venue
+                    ? route("merchant.venues.transactions.index", {
+                          venue: params.venue,
+                      })
+                    : "#",
             },
         ],
         "merchant.profile.index": [

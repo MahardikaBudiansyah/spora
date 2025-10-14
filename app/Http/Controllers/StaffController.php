@@ -32,6 +32,7 @@ class StaffController extends Controller
                 'number' => ($currentPage - 1) * $perPage + $index + 1,
                 'id' => $staffItem->id,
                 'name' => $staffItem->name,
+                'username' => $staffItem->username,
                 'roles' => [
                     'id' => $staffItem->merchantStaffRole->staff_role_id ?? null,
                     'name' => $staffItem->merchantStaffRole->staffRole->name ?? null,
@@ -39,7 +40,6 @@ class StaffController extends Controller
                 'phone_number' => $staffItem->phone_number,
                 'email' => $staffItem->email,
                 'status' => $staffItem->status,
-                'slug' => $staffItem->slug,
                 'created_at' => $staffItem->created_at->format('d M Y'),
                 'updated_at' => $staffItem->updated_at->format('d M Y'),
             ];
@@ -93,7 +93,6 @@ class StaffController extends Controller
             'status'                 => Staff::STATUS_ACTIVE,
             'merchant_id'            => auth('merchant')->id(),
             'merchant_staff_role_id' => $validated['role_id'],
-            // username auto-generate di model boot() => ga perlu diisi disini
         ]);
 
         return redirect()->route('merchant.staff.index')->with('success', 'Staff berhasil ditambahkan');

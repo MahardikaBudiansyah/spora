@@ -26,7 +26,7 @@ export default function Index() {
     } = usePage().props;
     const { isOpen, open, close } = useModal();
     const [staffState, setStaffState] = useState(staffProps);
-    const [shiftsState, setShiftsState] = useState(shiftsProps);
+    const [shiftsState] = useState(shiftsProps);
     const isRoleModalOpen = isOpen("RoleModal");
     const isShiftModalOpen = isOpen("ShiftModal");
     const isStaffModalOpen = isOpen("StaffModal");
@@ -60,9 +60,12 @@ export default function Index() {
         const newStatus = row.status === "active" ? "inactive" : "active";
 
         axios
-            .patch(route("merchant.staff.updateStatus", { staff: row.slug }), {
-                status: newStatus,
-            })
+            .patch(
+                route("merchant.staff.updateStatus", { staff: row.username }),
+                {
+                    status: newStatus,
+                }
+            )
             .then((response) => {
                 toast.success(`Status berhasil diubah menjadi ${newStatus}`);
 
@@ -174,17 +177,19 @@ export default function Index() {
     };
 
     const handleAssignment = (row) => {
-        router.get(route("merchant.staff.operator.index", { staff: row.slug }));
+        router.get(
+            route("merchant.staff.operator.index", { staff: row.username })
+        );
     };
 
     return (
         <MerchantLayout>
             <Head title="Staff" />
-            <Card className="flex flex-col h-full min-h-screen rounded-lg shadow-none dark:border-none">
+            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
                 <CardHeader>
                     <div className="flex flex-row justify-between items-center p-4">
-                        <div className="font-bold">Staff</div>
-                        <div className="flex flex-row gap-2">
+                        <div className="font-bold uppercase text-lg">Staff</div>
+                        <div className="flex flex-row gap-4">
                             <Button
                                 variant="primary"
                                 size="xs"
@@ -215,26 +220,25 @@ export default function Index() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardBody className="px-0">
-                    <div>
-                        <Table
-                            columns={columns}
-                            data={staffState.data}
-                            wrapperClassName="border-none rounded-none shadow-none"
-                            tableClassName="text-xs items-center"
-                            emptyState={
-                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                    Tidak ada data Staff.
-                                </div>
-                            }
-                        />
-                        <Pagination
-                            links={staffState.links}
-                            meta={staffState}
-                            className="p-6 my-2"
-                        />
-                    </div>
+                <CardBody className="px-0 pb-8">
+                    <Table
+                        columns={columns}
+                        data={staffState.data}
+                        wrapperClassName="border-none rounded-none shadow-none"
+                        tableClassName="text-xs items-center"
+                        emptyState={
+                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                                Tidak ada data Staff.
+                            </div>
+                        }
+                    />
+                    <Pagination
+                        links={staffState.links}
+                        meta={staffState}
+                        className="p-6 my-2"
+                    />
                 </CardBody>
+                <CardFooter className="my-8 p-8 flex justify-end gap-2"></CardFooter>
             </Card>
 
             <CreateRoleModal

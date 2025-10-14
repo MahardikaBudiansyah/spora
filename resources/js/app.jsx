@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { MembershipProvider } from "@/contexts/MembershipContext";
 import AppToast from "@/components/common/AppToast";
 
 const appName = import.meta.env.VITE_APP_NAME || "Ingkenefutsal Web Magelang";
@@ -30,10 +31,12 @@ createInertiaApp({
                 <AuthModalProvider>
                     <AuthProvider initialUser={props.auth?.user}>
                         <CartProvider>
-                            <>
-                                <App {...props} />
-                                <AppToast />
-                            </>
+                            <MembershipProvider>
+                                <>
+                                    <App {...props} />
+                                    <AppToast />
+                                </>
+                            </MembershipProvider>
                         </CartProvider>
                     </AuthProvider>
                 </AuthModalProvider>

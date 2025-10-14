@@ -8,8 +8,10 @@ use App\Models\Address;
 use App\Models\TimeSlot;
 use App\Models\Membership;
 use App\Traits\HasPassword;
+use App\Models\Notification;
+use App\Models\MembershipUser;
+use App\Traits\HasUniqueField;
 use App\Models\BookingCustomer;
-use App\Traits\HasUniqueUsername;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Cviebrock\EloquentSluggable\Sluggable;
@@ -19,7 +21,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, Sluggable, SoftDeletes, HasUniqueUsername, HasPassword;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUniqueField, HasPassword;
 
     /**
      * The attributes that are mass assignable.
@@ -30,23 +32,18 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'email_verified_at',
         'password',
         'phone_number',
+        'phone_verified_at',
         'photo',
         'status',
-        'slug',
+        'is_active',
     ];
 
-    public function sluggable(): array
-    {
-        return [
-            'slug' => [
-                'source' => 'name',
-                'separator' => '-', 
-                'unique' => true,
-            ]
-        ];
-    }
+    protected $uniqueFields = [
+        'username' => 'name',
+    ];
 
     protected $hidden = [
         'password',
@@ -55,6 +52,12 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+        'is_active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'is_active' => true, 
     ];
 
     public function addresses()
@@ -62,9 +65,22 @@ class User extends Authenticatable
         return $this->morphMany(Address::class, 'addressable');
     }
 
-    public function membership()
+    public function membershipUsers()
     {
-        return $this->belongsTo(Membership::class);
+        return $this->hasMany(MembershipUser::class);
+    }
+      // untuk akses cepat semua membership aktif
+    public function activeMemberships()
+    {
+        return $this->hasManyThrough(
+            Membership::class,
+            MembershipUser::class,
+            'user_id',             // Foreign key di membership_users → users.id
+            'membership_user_id',  // Foreign key di memberships → membership_users.id
+            'id',                  // Local key di users
+            'id'                   // Local key di membership_users
+        )->where('status', 'active');
+
     }
 
     public function timeSlots()
@@ -84,4 +100,8 @@ class User extends Authenticatable
         return $this->hasMany(BookingCustomer::class, 'user_id', 'id');
     }
 
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable');
+    }
 }

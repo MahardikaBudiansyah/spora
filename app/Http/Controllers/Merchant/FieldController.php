@@ -20,20 +20,6 @@ use App\Http\Controllers\Merchant\Controller;
 
 class FieldController extends Controller
 {
-    protected function authorizeVenue(?Venue $venue)
-    {
-        if (!$venue || $venue->merchant_id !== auth('merchant')->id()) {
-            abort(403, 'Anda tidak memiliki akses ke venue ini.');
-        }
-    }
-
-    protected function authorizeField(Field $field)
-    {
-        if ($field->venue->merchant_id !== auth('merchant')->id()) {
-            abort(403, 'Anda tidak memiliki akses ke lapangan ini.');
-        }
-    }
-
     protected function ensureFieldInVenue(Field $field, Venue $venue)
     {
         if ($field->venue_id !== $venue->id) {
@@ -43,7 +29,7 @@ class FieldController extends Controller
 
     public function index(Request $request, Venue $venue)
     {
-        $this->authorizeVenue($venue);
+        $this->authorize('view', $venue);
         
         $fields = Field::with(['venue', 'type'])
             ->where('venue_id', $venue->id)
@@ -63,11 +49,11 @@ class FieldController extends Controller
                 'fieldType' => $field->type->name,
                 'description' => $field->description,
                 'venueName' => $field->venue->name ?? '-',
-                'updated_at' => $field->updated_at->format('d M Y'),
+                'updated_at' => $field->updated_at,
             ];
         });
 
-        return Inertia::render('Merchant/Field/Index', [
+        return Inertia::render('Merchant/Venue/Field/Index', [
             'fields' => $fields,
             'venue' => [
                 'id' => $venue->id,
@@ -81,12 +67,12 @@ class FieldController extends Controller
 
     public function create(Request $request, Venue $venue)
     {
-        $this->authorizeVenue($venue);
+        $this->authorize('create', $venue);
 
         $timeslots = TimeSlot::orderBy('id')->get(['id', 'name']);
         $fieldTypes = FieldType::all();
 
-        return Inertia::render('Merchant/Field/Create', [
+        return Inertia::render('Merchant/Venue/Field/Create', [
             'venue' => [
                 'id' => $venue->id,
                 'name' => $venue->name,
@@ -100,7 +86,8 @@ class FieldController extends Controller
 
     public function store(Request $request, Venue $venue)
     {
-        $this->authorizeVenue($venue);
+        $this->authorize('create', $venue);
+        $this->authorize('create', Field::class);
 
         $validated = $request->validate([
             'name' => 'required|string|max:100',
@@ -153,12 +140,12 @@ class FieldController extends Controller
 
     public function show(Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
+        $this->authorize('view', $venue);
+        $this->authorize('view', $field);
 
         $field->load(['timeslots', 'type']);
 
-        return Inertia::render('Merchant/Field/Show', [
+        return Inertia::render('Merchant/Venue/Field/Show', [
             'venue' => $venue,
             'field' =>  [ 
                 'id' => $field->id,
@@ -180,9 +167,8 @@ class FieldController extends Controller
 
     public function edit(Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-
+        $this->authorize('update', $venue);
+        $this->authorize('update', $field);
         $this->ensureFieldInVenue($field, $venue);
 
         $field->load([
@@ -191,7 +177,7 @@ class FieldController extends Controller
             'images' => fn ($q) => $q->orderBy('order')
         ]);
 
-        return Inertia::render('Merchant/Field/Edit', [
+        return Inertia::render('Merchant/Venue/Field/Edit', [
             'venue' => $venue,
             'field' => [
                 'id' => $field->id,
@@ -240,9 +226,7 @@ class FieldController extends Controller
 
     public function update(Request $request, Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-
+        $this->authorize('update', $venue);
         $this->ensureFieldInVenue($field, $venue);
 
         $validated = $request->validate([
@@ -283,9 +267,8 @@ class FieldController extends Controller
 
     public function destroy(Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue); 
-        $this->authorizeField($field); 
-
+        $this->authorize('delete', $venue);
+        $this->authorize('delete', $field);
         $this->ensureFieldInVenue($field, $venue);
 
         $field->load('images');
@@ -307,8 +290,8 @@ class FieldController extends Controller
 
     public function calendar(Request $request, Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
+        $this->authorize('view', $venue);
+        $this->authorize('view', $field);
         $this->ensureFieldInVenue($field, $venue);
 
         $field->load([
@@ -317,7 +300,7 @@ class FieldController extends Controller
             'timeslots', 
         ]);
 
-        return Inertia::render('Merchant/Field/Partials/FieldCalendar', [
+        return Inertia::render('Merchant/Venue/Field/Partials/FieldCalendar', [
             'venue' => [
                 'id' => $venue->id,
                 'name' => $venue->name,
@@ -345,178 +328,178 @@ class FieldController extends Controller
     }
 
 
-   public function getCalendarData(Request $request, Venue $venue, Field $field)
-{
-    try {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-        $this->ensureFieldInVenue($field, $venue);
+    public function getCalendarData(Request $request, Venue $venue, Field $field)
+    {
+        try {
+            $this->authorize('view', $venue);
+            $this->authorize('view', $field);
+            $this->ensureFieldInVenue($field, $venue);
 
-        // Ambil query params
-        $view  = $request->query('view', 'month');
-        $start = $request->query('start');
-        $end   = $request->query('end');
+            // Ambil query params
+            $view  = $request->query('view', 'month');
+            $start = $request->query('start');
+            $end   = $request->query('end');
 
-        // Logging awal biar kelihatan param masuk
-        \Log::info("getCalendarData called", [
-            'view'  => $view,
-            'start' => $start,
-            'end'   => $end,
-        ]);
-
-        // Default ke bulan ini jika tidak ada
-        if (!$start || !$end) {
-            $start = now()->startOfMonth()->toDateString();
-            $end   = now()->endOfMonth()->toDateString();
-        }
-
-        // Mapping FullCalendar view ke backend
-        $map = [
-            'dayGridMonth' => 'month',
-            'timeGridWeek' => 'week',
-            'timeGridDay'  => 'day',
-            'month'        => 'month',
-            'week'         => 'week',
-            'day'          => 'day',
-        ];
-        $view = $map[$view] ?? $view;
-
-        // Pastikan $start dan $end berupa date string
-        $start = Carbon::parse((string) $start)->toDateString();
-        $end   = Carbon::parse((string) $end)->toDateString();
-
-        // Ambil ID status yang penting
-        $labels = SlotStatusLabel::whereIn('label', ['Dipesan','Event','Pemeliharaan'])
-            ->pluck('id', 'label');
-
-        $bookedId      = $labels['Dipesan'] ?? -1;
-        $eventId       = $labels['Event'] ?? -1;
-        $maintenanceId = $labels['Pemeliharaan'] ?? -1;
-
-        // ================= MONTH VIEW =================
-        if ($view === 'month') {
-            $totalSlots = $field->timeslots()->count();
-
-            $summary = $field->slotStatuses()
-                ->whereBetween('date', [$start, $end])
-                ->selectRaw('date, 
-                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
-                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
-                    SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
-                    [$bookedId, $eventId, $maintenanceId]
-                )
-                ->groupBy('date')
-                ->get()
-                ->map(function ($day) use ($totalSlots) {
-                    return [
-                        'date'        => $day->date,
-                        'booked'      => (int) $day->booked,
-                        'event'       => (int) $day->event,
-                        'maintenance' => (int) $day->maintenance,
-                        'available'   => max(
-                            $totalSlots - ((int)$day->booked + (int)$day->event + (int)$day->maintenance),
-                            0
-                        ),
-                    ];
-                });
-
-            \Log::info("getCalendarData month summary", [
-                'count'  => $summary->count(),
-                'sample' => $summary->take(3),
+            // Logging awal biar kelihatan param masuk
+            \Log::info("getCalendarData called", [
+                'view'  => $view,
+                'start' => $start,
+                'end'   => $end,
             ]);
 
-            return response()->json([
-                'view'    => $view,
-                'summary' => $summary,
-            ]);
-        }
-
-        // ================= WEEK / DAY VIEW =================
-        if ($view === 'week' || $view === 'day') {
-            $field->load([
-                'timeslots',
-                'slotStatuses' => fn ($q) => $q
-                    ->whereBetween('date', [$start, $end])
-                    ->with(['slotStatusLabel', 'timeSlot']),
-            ]);
-
-            $timezone = 'Asia/Jakarta';
-
-            $period = new \DatePeriod(
-                Carbon::parse($start),
-                new \DateInterval('P1D'),
-                Carbon::parse($end)->addDay()
-            );
-
-            $slots = collect();
-
-            foreach ($period as $date) {
-                $carbonDate = Carbon::instance($date); // fix utama ✅
-
-                foreach ($field->timeslots as $timeslot) {
-                    $status = $field->slotStatuses
-                        ->first(fn ($s) => $s->date === $carbonDate->toDateString()
-                            && $s->time_slot_id === $timeslot->id);
-
-                    $timeRange = $timeslot->name ?? '00:00-01:00';
-
-                    if (strpos($timeRange, '-') !== false) {
-                        [$startTime, $endTime] = array_map('trim', explode('-', $timeRange));
-                    } else {
-                        $startTime = trim($timeRange);
-                        $endTime   = Carbon::parse($startTime, $timezone)->addHour()->format('H:i');
-                    }
-
-                    $startDateTime = Carbon::parse($carbonDate->toDateString().' '.$startTime, $timezone);
-                    $endDateTime   = Carbon::parse($carbonDate->toDateString().' '.$endTime, $timezone);
-
-                    if ($endDateTime->lt($startDateTime)) {
-                        $endDateTime->addDay();
-                    }
-
-                    $slots->push([
-                        'date'        => $carbonDate->toDateString(),
-                        'timeslot_id' => $timeslot->id,
-                        'status'      => $status?->slotStatusLabel?->label ?? 'Tersedia',
-                        'start'       => $startDateTime->toIso8601String(),
-                        'end'         => $endDateTime->toIso8601String(),
-                    ]);
-                }
+            // Default ke bulan ini jika tidak ada
+            if (!$start || !$end) {
+                $start = now()->startOfMonth()->toDateString();
+                $end   = now()->endOfMonth()->toDateString();
             }
 
-            \Log::info("getCalendarData slots generated", [
-                'total'  => $slots->count(),
-                'sample' => $slots->take(3),
-            ]);
+            // Mapping FullCalendar view ke backend
+            $map = [
+                'dayGridMonth' => 'month',
+                'timeGridWeek' => 'week',
+                'timeGridDay'  => 'day',
+                'month'        => 'month',
+                'week'         => 'week',
+                'day'          => 'day',
+            ];
+            $view = $map[$view] ?? $view;
 
+            // Pastikan $start dan $end berupa date string
+            $start = Carbon::parse((string) $start)->toDateString();
+            $end   = Carbon::parse((string) $end)->toDateString();
+
+            // Ambil ID status yang penting
+            $labels = SlotStatusLabel::whereIn('label', ['Dipesan','Event','Pemeliharaan'])
+                ->pluck('id', 'label');
+
+            $bookedId      = $labels['Dipesan'] ?? -1;
+            $eventId       = $labels['Event'] ?? -1;
+            $maintenanceId = $labels['Pemeliharaan'] ?? -1;
+
+            // ================= MONTH VIEW =================
+            if ($view === 'month') {
+                $totalSlots = $field->timeslots()->count();
+
+                $summary = $field->slotStatuses()
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('date, 
+                        SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
+                        SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
+                        SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
+                        [$bookedId, $eventId, $maintenanceId]
+                    )
+                    ->groupBy('date')
+                    ->get()
+                    ->map(function ($day) use ($totalSlots) {
+                        return [
+                            'date'        => $day->date,
+                            'booked'      => (int) $day->booked,
+                            'event'       => (int) $day->event,
+                            'maintenance' => (int) $day->maintenance,
+                            'available'   => max(
+                                $totalSlots - ((int)$day->booked + (int)$day->event + (int)$day->maintenance),
+                                0
+                            ),
+                        ];
+                    });
+
+                \Log::info("getCalendarData month summary", [
+                    'count'  => $summary->count(),
+                    'sample' => $summary->take(3),
+                ]);
+
+                return response()->json([
+                    'view'    => $view,
+                    'summary' => $summary,
+                ]);
+            }
+
+            // ================= WEEK / DAY VIEW =================
+            if ($view === 'week' || $view === 'day') {
+                $field->load([
+                    'timeslots',
+                    'slotStatuses' => fn ($q) => $q
+                        ->whereBetween('date', [$start, $end])
+                        ->with(['slotStatusLabel', 'timeSlot']),
+                ]);
+
+                $timezone = 'Asia/Jakarta';
+
+                $period = new \DatePeriod(
+                    Carbon::parse($start),
+                    new \DateInterval('P1D'),
+                    Carbon::parse($end)->addDay()
+                );
+
+                $slots = collect();
+
+                foreach ($period as $date) {
+                    $carbonDate = Carbon::instance($date); // fix utama ✅
+
+                    foreach ($field->timeslots as $timeslot) {
+                        $status = $field->slotStatuses
+                            ->first(fn ($s) => $s->date === $carbonDate->toDateString()
+                                && $s->time_slot_id === $timeslot->id);
+
+                        $timeRange = $timeslot->name ?? '00:00-01:00';
+
+                        if (strpos($timeRange, '-') !== false) {
+                            [$startTime, $endTime] = array_map('trim', explode('-', $timeRange));
+                        } else {
+                            $startTime = trim($timeRange);
+                            $endTime   = Carbon::parse($startTime, $timezone)->addHour()->format('H:i');
+                        }
+
+                        $startDateTime = Carbon::parse($carbonDate->toDateString().' '.$startTime, $timezone);
+                        $endDateTime   = Carbon::parse($carbonDate->toDateString().' '.$endTime, $timezone);
+
+                        if ($endDateTime->lt($startDateTime)) {
+                            $endDateTime->addDay();
+                        }
+
+                        $slots->push([
+                            'date'        => $carbonDate->toDateString(),
+                            'timeslot_id' => $timeslot->id,
+                            'status'      => $status?->slotStatusLabel?->label ?? 'Tersedia',
+                            'start'       => $startDateTime->toIso8601String(),
+                            'end'         => $endDateTime->toIso8601String(),
+                        ]);
+                    }
+                }
+
+                \Log::info("getCalendarData slots generated", [
+                    'total'  => $slots->count(),
+                    'sample' => $slots->take(3),
+                ]);
+
+                return response()->json([
+                    'view'    => $view,
+                    'summary' => [],
+                    'slots'   => $slots->values(),
+                ]);
+            }
+
+            // ================= DEFAULT =================
             return response()->json([
                 'view'    => $view,
                 'summary' => [],
-                'slots'   => $slots->values(),
+                'slots'   => [],
             ]);
+        } catch (\Throwable $e) {
+            \Log::error("getCalendarData error: ".$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'error'   => true,
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
+            ], 500);
         }
-
-        // ================= DEFAULT =================
-        return response()->json([
-            'view'    => $view,
-            'summary' => [],
-            'slots'   => [],
-        ]);
-    } catch (\Throwable $e) {
-        \Log::error("getCalendarData error: ".$e->getMessage(), [
-            'trace' => $e->getTraceAsString(),
-        ]);
-        return response()->json([
-            'error'   => true,
-            'message' => 'Terjadi kesalahan: '.$e->getMessage(),
-        ], 500);
     }
-}
 
     public function getCalendarMonth(Request $request, Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
+        $this->authorize('view', $venue);
+        $this->authorize('view', $field);
         $this->ensureFieldInVenue($field, $venue);
 
         $start = Carbon::parse($request->query('start', now()->startOfMonth()->toDateString()))->toDateString();
@@ -590,8 +573,8 @@ class FieldController extends Controller
 
     public function getCalendarWeekDays(Request $request, Venue $venue, Field $field)
     {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
+        $this->authorize('view', $venue);
+        $this->authorize('view', $field);
         $this->ensureFieldInVenue($field, $venue);
 
         $start = Carbon::parse($request->query('start'))->toDateString();
@@ -652,11 +635,6 @@ class FieldController extends Controller
             'slots' => $slots->values(),
         ]);
     }
-
-
-
-
-
 
     protected function syncTimeslots(Field $field, array $timeslotIds, array $prices)
     {

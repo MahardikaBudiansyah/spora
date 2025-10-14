@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'ensure.profile.complete' => \App\Http\Middleware\EnsureUserProfileIsComplete::class,
         'auth.staff' => \App\Http\Middleware\AuthenticateStaff::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
+        'ensure.booking.cart.selected' => \App\Http\Middleware\EnsureBookingCartHasSelectedSlots::class,
     ];
 }

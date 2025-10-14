@@ -22,8 +22,6 @@ class VenueController extends Controller
         
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Venue::class);
-
         $venues = Venue::with(['fields', 'addresses.district', 'addresses.city'])
             ->where('merchant_id', auth('merchant')->id())
             ->oldest()
@@ -45,9 +43,9 @@ class VenueController extends Controller
                 'slug' => $venue->slug,
                 'name' => $venue->name,
                 'phone_number' => $venue->phone_number,
-                'field' => $venue->fields->pluck('name')->join(', '),
+                'field' => $venue->fields->pluck('name')->toArray(),
                 'address' => $fullAddress,
-                'updated_at' => $venue->updated_at->format('d M Y'),
+                'updated_at' => $venue->updated_at,
             ];
         });
 
@@ -140,6 +138,19 @@ class VenueController extends Controller
 
             $venue->images()->createMany($uploadedImages);
         }
+
+        // Setelah membuat $venue
+        $venue->paymentType()->create([
+            'enable_dp'                 => false, // default DP tidak aktif
+            'dp_type'                   => 'fixed', // default tipe DP
+            'dp_value'                  => 0,       // default nilai DP
+            'apply_to_merchant'         => false,
+            'apply_to_merchant'         => false,
+            'full_payment_days_before'  => 1,   // default H-1
+            'max_full_payment_days'     => 3,   // maksimum H-3
+            'is_active'                 => true,
+        ]);
+
 
         return redirect()
         ->route('merchant.venues.index')
@@ -318,7 +329,6 @@ class VenueController extends Controller
             ]
         );
 
-        // ✅ sync images
         UploadImageHelper::syncImages($venue, $request, [
             'slug_name' => $validated['name'],
             'folder' => "uploads/venues"

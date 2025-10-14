@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone_number')->nullable();
             $table->boolean('status')->default(false);
-            $table->string('slug', 100)->nullable();
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

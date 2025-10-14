@@ -18,7 +18,7 @@ class StoreCartRequest extends FormRequest
             'field_id' => ['required', 'exists:fields,id'],
             'time_slot_id' => ['required', 'exists:time_slots,id'],
             'date' => ['required', 'date'],
-            'total_price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0'],
         ];
     }
 }

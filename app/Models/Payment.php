@@ -17,6 +17,7 @@ class Payment extends Model
         'invoice_id',
         'payment_method',
         'payment_type',
+        'gateway_order_id',
         'amount',
         'payment_status',
     ];
@@ -28,6 +29,6 @@ class Payment extends Model
 
     public function detail()
     {
-        return $this->hasOne(PaymentDetail::class);
+        return $this->hasOne(PaymentDetail::class, 'payment_id', 'id');
     }
 }

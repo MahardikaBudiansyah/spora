@@ -7,7 +7,6 @@ use Inertia\Response;
 use App\Models\Merchant;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
-use App\Traits\HasUniqueUsername;
 use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -19,9 +18,6 @@ use App\Http\Requests\Merchant\Auth\RegisterMerchantRequest;
 
 class RegisteredUserController extends Controller
 {
-
-    use HasUniqueUsername;
-
     /**
      * Show partner registration page.
      */

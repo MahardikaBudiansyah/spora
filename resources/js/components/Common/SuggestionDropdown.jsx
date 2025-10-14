@@ -13,12 +13,12 @@ export default function SuggestionDropdown({
     minLength = 2,
     loading = false,
     maxResults = 5,
+    onlyNumber = false, // ✅ props tambahan
 }) {
     const [open, setOpen] = useState(false);
-    const [expanded, setExpanded] = useState(false); // ✅ state untuk show more
+    const [expanded, setExpanded] = useState(false);
     const containerRef = useRef(null);
 
-    // ✅ klik di luar menutup dropdown
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (
@@ -26,7 +26,7 @@ export default function SuggestionDropdown({
                 !containerRef.current.contains(e.target)
             ) {
                 setOpen(false);
-                setExpanded(false); // tutup juga kalau klik luar
+                setExpanded(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -36,7 +36,7 @@ export default function SuggestionDropdown({
 
     const handleSelect = (item) => {
         onSelect(item);
-        setOpen(false); // ✅ langsung nutup setelah pilih
+        setOpen(false);
         setExpanded(false);
     };
 
@@ -52,6 +52,15 @@ export default function SuggestionDropdown({
         "dark:border-secondary-600 dark:bg-secondary-800 dark:text-white " +
         "placeholder:text-xs placeholder:italic placeholder-secondary-400 dark:placeholder-secondary-500";
 
+    // ✅ handler untuk filter angka kalau onlyNumber = true
+    const handleChange = (e) => {
+        let val = e.target.value;
+        if (onlyNumber) {
+            val = val.replace(/[^0-9]/g, ""); // hapus semua selain angka
+        }
+        onChange({ target: { value: val } });
+    };
+
     return (
         <div className="relative w-full" ref={containerRef}>
             <input
@@ -60,9 +69,10 @@ export default function SuggestionDropdown({
                     baseClass
                 )}
                 value={value}
-                onChange={onChange}
+                onChange={handleChange}
                 onFocus={() => setOpen(true)}
                 placeholder={placeholder}
+                inputMode={onlyNumber ? "numeric" : "text"} // untuk mobile keyboard
             />
 
             {/* Dropdown */}
@@ -100,7 +110,7 @@ export default function SuggestionDropdown({
                         {showMore && (
                             <li
                                 className="px-3 py-2 text-secondary-600  dark:text-secondary-300 text-sm cursor-pointer hover:bg-primary-400 hover:text-secondary-800 dark:hover:text-secondary-800"
-                                onClick={() => setExpanded(true)} // ✅ aktifkan expand
+                                onClick={() => setExpanded(true)}
                             >
                                 Lihat semua ({suggestions.length})
                             </li>

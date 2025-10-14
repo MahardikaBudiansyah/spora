@@ -13,12 +13,19 @@ class EnsureUserProfileIsComplete
     {
         $user = Auth::user();
 
-        if (!$user->email || !$user->phone_number || !$user->name) {
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Pastikan profil minimal lengkap
+        if (empty($user->email) || empty($user->phone_number) || empty($user->name)) {
             $currentRouteName = $request->route()->getName();
 
+            // Jangan sampai redirect loop
             if (!in_array($currentRouteName, ['user.profile.edit', 'user.profile.update'])) {
-                return redirect()->route('user.profile.edit')
-                    ->with('message', 'Lengkapi profil terlebih dahulu.');
+                return redirect()
+                    ->route('user.profile.edit')
+                    ->with('warning', 'Lengkapi profil terlebih dahulu sebelum melanjutkan booking.');
             }
         }
 

@@ -2,28 +2,45 @@
 
 namespace App\Models;
 
-use App\Models\Merchant;
 use App\Models\Invoice;
+use App\Models\Merchant;
 use App\Models\SubscriptionPackage;
-use App\Models\SubscriptionDuration;
+use App\Models\SubscriptionMerchant;
 use Illuminate\Database\Eloquent\Model;
+use Cviebrock\EloquentSluggable\Sluggable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Subscription extends Model
 {
-    use HasFactory;
+    use HasFactory, Sluggable, SoftDeletes;
 
     protected $table = 'subscriptions';
 
     protected $fillable = [
         'order_no',
         'merchant_id',
-        'package_id',
-        'duration_id',
+        'subscription_package_id',
+        'total_price',
         'start_date',
         'end_date',
         'status',
+        'slug',
     ];
+
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'order_no'
+            ]
+        ];
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 
     public function merchant()
     {
@@ -32,17 +49,17 @@ class Subscription extends Model
 
     public function subscriptionPackage()
     {
-        return $this->belongsTo(SubscriptionPackage::class, 'package_id');
+        return $this->belongsTo(SubscriptionPackage::class, 'subscription_package_id');
     }
 
-    public function subscriptionDuration()
+    public function subscriptionMerchant()
     {
-        return $this->belongsTo(SubscriptionDuration::class, 'duration_id');
+        return $this->hasOne(SubscriptionMerchant::class);
     }
 
-    public function invoices()
+    public function invoice()
     {
-        return $this->morphMany(Invoice::class, 'order');
+        return $this->morphOne(Invoice::class, 'order');
     }
 
     public function getOrderLabelAttribute() {
