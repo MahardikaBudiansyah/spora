@@ -9,15 +9,19 @@ import {
 import Button from "@/components/common/Button";
 import DatePickerInput from "@/components/Common/DatePickerInput";
 
-function DatePicker({ selected, onChange }) {
+function DatePicker({ selected, onChange, maxDays = 30 }) {
     const [startDate, setStartDate] = useState(
         calculateStartDate(selected ?? parseDate(new Date()))
     );
+
     const daysToShow = 7;
 
     function calculateStartDate(date) {
-        return date.startOf("week"); // default Senin
+        return date.startOf("week");
     }
+
+    const today = parseDate(new Date()).startOf("day");
+    const maxDate = today.plus({ days: maxDays }); // ★ Batas user booking
 
     const getDaysToShow = (start) => {
         const nextDays = [];
@@ -28,35 +32,56 @@ function DatePicker({ selected, onChange }) {
     };
 
     const days = getDaysToShow(startDate);
-    const today = parseDate(new Date()).startOf("day");
+
     const isPrevWeekDisabled = startDate <= today.startOf("week");
+    const isNextWeekDisabled =
+        startDate.plus({ days: daysToShow }) > maxDate.startOf("week");
 
     const handleDateClick = (day) => {
-        if (day < today) return;
-
+        if (day < today || day > maxDate) return;
         if (onChange) onChange(day);
         setStartDate(calculateStartDate(day));
     };
+
+    function getFirstActiveDate(days, today, maxDate) {
+        return days.find((d) => d >= today && d <= maxDate) || null;
+    }
 
     const goToPreviousWeek = () => {
         const prevStart = startDate.minus({ days: daysToShow });
         if (prevStart < today.startOf("week")) return;
 
+        const newDays = getDaysToShow(prevStart);
+        const firstActive = getFirstActiveDate(newDays, today, maxDate);
+
         setStartDate(prevStart);
-        if (onChange) onChange(selected.minus({ days: daysToShow }));
+
+        if (firstActive) {
+            onChange(firstActive);
+        } else {
+            onChange(null); // minggu ini tidak punya tanggal valid
+        }
     };
 
     const goToNextWeek = () => {
-        setStartDate(startDate.plus({ days: daysToShow }));
-        if (onChange) onChange(selected.plus({ days: daysToShow }));
+        const nextStart = startDate.plus({ days: daysToShow });
+        if (nextStart > maxDate.startOf("week")) return;
+
+        const newDays = getDaysToShow(nextStart);
+        const firstActive = getFirstActiveDate(newDays, today, maxDate);
+
+        setStartDate(nextStart);
+
+        if (firstActive) {
+            onChange(firstActive);
+        } else {
+            onChange(null);
+        }
     };
 
     const handleInputChange = (date) => {
-        if (!date) return;
-        const dt = parseDate(date); // pakai utils
-        const todayDt = parseDate(new Date()).startOf("day");
-
-        if (dt && dt.isValid && dt >= todayDt) {
+        const dt = parseDate(date);
+        if (dt && dt.isValid && dt >= today && dt <= maxDate) {
             if (onChange) onChange(dt);
             setStartDate(calculateStartDate(dt));
         }
@@ -70,7 +95,7 @@ function DatePicker({ selected, onChange }) {
 
     return (
         <div className="max-w-full flex flex-row justify-between md:justify-center gap-8 md:gap-16 items-center bg-white dark:bg-secondary-800 px-6 py-4 rounded-md">
-            <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex flex-row w-3/4 md:w-full gap-2 overflow-x-auto scrollbar-hide">
                 <Button
                     onClick={goToPreviousWeek}
                     variant="primary"
@@ -81,7 +106,8 @@ function DatePicker({ selected, onChange }) {
                 </Button>
 
                 {days.map((day) => {
-                    const isDisabled = day < today;
+                    const isTooFar = day > maxDate;
+                    const isDisabled = day < today || isTooFar;
                     const isSelected =
                         selected && toISODate(selected) === toISODate(day);
 
@@ -89,20 +115,19 @@ function DatePicker({ selected, onChange }) {
                         <div
                             key={day.toMillis()}
                             className={`
-                                flex flex-col items-center text-center w-16 h-14 px-4 py-2 rounded-md
-                                ${
-                                    isSelected
-                                        ? "bg-primary-700 dark:bg-primary-800 text-white"
-                                        : isDisabled
-                                        ? "text-secondary-400 dark:text-secondary-600 cursor-not-allowed"
-                                        : "hover:bg-primary-100 dark:hover:bg-primary-700 cursor-pointer"
-                                }
-                            `}
+        flex flex-col items-center text-center w-16 h-14 px-4 py-2 rounded-md
+        ${
+            isSelected
+                ? "bg-primary-700 dark:bg-primary-800 text-white"
+                : isDisabled
+                ? "text-secondary-400 dark:text-secondary-600 cursor-not-allowed opacity-50"
+                : "hover:bg-primary-100 dark:hover:bg-primary-700 cursor-pointer"
+        }
+    `}
                             onClick={() => !isDisabled && handleDateClick(day)}
-                            aria-disabled={isDisabled}
                         >
                             <div className="text-xs font-semibold">
-                                {formatDayShort(day)} {/* pakai utils */}
+                                {formatDayShort(day)}
                             </div>
                         </div>
                     );
@@ -112,6 +137,7 @@ function DatePicker({ selected, onChange }) {
                     onClick={goToNextWeek}
                     variant="primary"
                     className="p-1 rounded-md focus:ring-0"
+                    disabled={isNextWeekDisabled}
                 >
                     <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -126,6 +152,8 @@ function DatePicker({ selected, onChange }) {
                             : ""
                     }
                     onChange={handleInputChange}
+                    minDate={today}
+                    maxDate={maxDate}
                 />
             </div>
         </div>

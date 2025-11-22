@@ -9,8 +9,9 @@ use Illuminate\Notifications\Notifiable;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Admin extends Model
+class Admin extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes, HasUniqueField;
 
@@ -19,8 +20,8 @@ class Admin extends Model
     protected $fillable = [
         'name',
         'username',
+        'phone_number',
         'email',
-        'email_verified_at',
         'password',
         'status',
     ];
@@ -37,8 +38,11 @@ class Admin extends Model
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'password' => 'hashed',
+    ];
+
+    protected $attributes = [
+        'status' => true, 
     ];
 
     public function notifications()

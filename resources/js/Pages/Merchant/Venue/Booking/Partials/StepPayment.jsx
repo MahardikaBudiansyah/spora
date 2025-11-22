@@ -6,7 +6,7 @@ import DatePickerInput from "@/components/Common/DatePickerInput";
 import NumericInput from "@/components/Common/NumericInput";
 import { Card, CardBody, CardHeader } from "@/components/Common/Card";
 import { NumericFormat } from "react-number-format";
-import PreviewBooking from "@/Pages/Merchant/Booking/Partials/PreviewBooking";
+import PreviewBooking from "@/Pages/Merchant/Venue/Booking/Partials/PreviewBooking";
 import TimePickerInput from "@/components/Common/TimePickerInput";
 import { formatWithPattern } from "@/utils/date";
 

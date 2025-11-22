@@ -8,8 +8,8 @@ import Button from "@/components/Common/Button";
 import BannerAlert from "@/components/common/BannerAlert";
 import { toast } from "react-toastify";
 
-export default function LoginForm({ onSuccess, defaultValues, role = "user" }) {
-    const { login, loading, error } = useAuth();
+export default function LoginForm({ onSuccess, defaultValues }) {
+    const { login, authLoading, error } = useAuth();
     const [rememberMe, setRememberMe] = useState(false);
     const [form, setForm] = useState(
         defaultValues || { identifier: "", password: "" }
@@ -18,47 +18,40 @@ export default function LoginForm({ onSuccess, defaultValues, role = "user" }) {
     const [countdown, setCountdown] = useState(0);
 
     const extractSeconds = (message) => {
-        const match = message.match(/(\d+)\s*detik/i);
+        const match = message?.match?.(/(\d+)\s*detik/i);
         return match ? parseInt(match[1], 10) : 60;
     };
 
-    // Fokus otomatis saat tidak rate-limited
     useEffect(() => {
         if (!isRateLimited) {
             document.getElementById("identifier")?.focus();
         }
     }, [isRateLimited]);
 
-    // Set default form dari props
     useEffect(() => {
-        if (defaultValues) {
-            setForm(defaultValues);
-        }
+        if (defaultValues) setForm(defaultValues);
     }, [defaultValues]);
 
-    // Handle error dan rate-limit dari server
     useEffect(() => {
-        if (error) {
-            toast.error(error);
+        if (error && error.includes && error.includes("detik")) {
+            const seconds = extractSeconds(error);
+            setIsRateLimited(true);
+            setCountdown(seconds);
 
-            if (error.includes("detik")) {
-                const seconds = extractSeconds(error);
-                setIsRateLimited(true);
-                setCountdown(seconds);
+            toast.warning(error);
 
-                const timer = setInterval(() => {
-                    setCountdown((prev) => {
-                        if (prev <= 1) {
-                            clearInterval(timer);
-                            setIsRateLimited(false);
-                            return 0;
-                        }
-                        return prev - 1;
-                    });
-                }, 1000);
+            const timer = setInterval(() => {
+                setCountdown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setIsRateLimited(false);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
 
-                return () => clearInterval(timer);
-            }
+            return () => clearInterval(timer);
         }
     }, [error]);
 
@@ -81,21 +74,13 @@ export default function LoginForm({ onSuccess, defaultValues, role = "user" }) {
             return;
         }
 
-        const { success, message } = await login(
-            {
-                identifier: form.identifier,
-                password: form.password,
-                remember: rememberMe,
-            },
-            role
-        );
+        const { success } = await login({
+            identifier: form.identifier,
+            password: form.password,
+            remember: rememberMe,
+        });
 
-        if (success) {
-            toast.success(message);
-            onSuccess();
-        } else {
-            toast.error(message);
-        }
+        if (success) onSuccess();
     };
 
     return (
@@ -159,12 +144,12 @@ export default function LoginForm({ onSuccess, defaultValues, role = "user" }) {
             <Button
                 type="submit"
                 className="w-full py-3"
-                disabled={!isFormValid || loading || isRateLimited}
+                disabled={!isFormValid || authLoading || isRateLimited}
                 variant="primary"
             >
                 {isRateLimited
                     ? `Tunggu ${countdown}s`
-                    : loading
+                    : authLoading
                     ? "Memproses..."
                     : "Masuk"}
             </Button>

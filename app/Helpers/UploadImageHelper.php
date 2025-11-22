@@ -103,4 +103,14 @@ class UploadImageHelper
             $image->save();
         }
     }
+
+    public static function handleUserProfile(UploadedFile $file, int $userId): string
+    {
+        $ext = $file->getClientOriginalExtension();
+        $filename = "{$userId}-profile-" . time() . ".{$ext}";
+        $path = $file->storeAs('uploads/users', $filename, 'public');
+
+        return $path; // HARUS string
+    }
+
 }

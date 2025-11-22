@@ -13,7 +13,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'username' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 'alpha_dash',
@@ -38,6 +38,7 @@ class ProfileUpdateRequest extends FormRequest
                     }
                 },
             ],
+            'photo' => ['nullable', 'image', 'max:2048'], 
         ];
     }
 }

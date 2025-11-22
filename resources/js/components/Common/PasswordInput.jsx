@@ -12,11 +12,12 @@ const PasswordInput = forwardRef(
             onChange,
             className = "",
             required = false,
+            showInitially = false,
             ...props
         },
         ref // ✅ ini datang dari forwardRef
     ) => {
-        const [showPassword, setShowPassword] = useState(false);
+        const [showPassword, setShowPassword] = useState(showInitially);
         const togglePassword = () => setShowPassword(!showPassword);
 
         return (

@@ -14,7 +14,7 @@ export function FooterBottom() {
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                         © 2025{" "}
                         <a href={route("home")} className="hover:underline">
-                            Ingkenefutsal™
+                            Spora™
                         </a>
                         . All Rights Reserved.
                     </span>
@@ -29,17 +29,17 @@ export function FooterBottom() {
 export default function Footer() {
     const footerSections = [
         {
-            title: "Merchant",
+            title: "Mitra",
             links: [
                 { label: "Daftar", href: route("merchant.register") },
                 { label: "Login", href: route("merchant.login") },
             ],
         },
         {
-            title: "Ingkenefutsal Web",
+            title: "Spora",
             links: [
-                { label: "Tentang Kami", href: "#" },
-                { label: "Panduan", href: "#" },
+                { label: "Tentang Kami", href: route("about") },
+                { label: "Panduan", href: route("contact") },
             ],
         },
         {

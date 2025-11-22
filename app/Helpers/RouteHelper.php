@@ -1,21 +1,29 @@
 <?php
-// app/Helpers/RouteHelper.php
 
 namespace App\Helpers;
 
 class RouteHelper
 {
-    public static function getDashboardRouteByRole($guard = null)
+    public static function getDashboardRouteByRole()
     {
-        switch ($guard ?? auth()->getDefaultDriver()) {
-            case 'merchant':
-                return route('merchant.dashboard');
-            case 'staff':
-                return route('staff.dashboard');
-            case 'admin':
-                return route('admin.dashboard');
-            default:
-                return route('user.dashboard');
+        if (auth('admin')->check()) {
+            return route('admin.dashboard');
         }
+
+        if (auth('merchant')->check()) {
+            return route('merchant.dashboard');
+        }
+
+        if (auth('staff')->check()) {
+            return route('staff.dashboard');
+        }
+
+        // default: user
+        if (auth('web')->check()) {
+            return route('home');
+        }
+
+        // fallback kalau tidak login
+        return route('home');
     }
 }

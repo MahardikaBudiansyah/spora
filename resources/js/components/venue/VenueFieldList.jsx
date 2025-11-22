@@ -1,9 +1,10 @@
-import { usePage } from "@inertiajs/react";
 import { useRef, useState } from "react";
+import { usePage, router } from "@inertiajs/react";
 import Button from "@/components/Common/Button";
 
-export default function VenueFieldList({ fields = [] }) {
+export default function VenueFieldList({ fields = [], venue = null }) {
     const { auth } = usePage().props;
+    console.log("siapa yang login:", auth);
 
     const isMerchant = auth?.merchant;
     const isAdmin = auth?.admin;
@@ -32,9 +33,56 @@ export default function VenueFieldList({ fields = [] }) {
         scrollRef.current.scrollLeft = scrollLeft - walk;
     };
 
-    const handleInfo = (field) => console.log("Info:", field);
-    const handleEdit = (field) => console.log("Edit:", field);
-    const handleCalendar = (field) => console.log("Kalender:", field);
+    const handleInfo = (field) => {
+        if (isAdmin) {
+            console.log("fields:", fields);
+            console.log("venue:", venue);
+            router.get(
+                route("admin.venues.fields.show", {
+                    venue: venue.slug,
+                    field: field.slug,
+                })
+            );
+        } else if (isMerchant) {
+            console.log("fields:", fields);
+            console.log("venue:", venue);
+            router.get(
+                route("merchant.venues.fields.show", {
+                    venue: venue.slug,
+                    field: field.slug,
+                })
+            );
+        }
+    };
+
+    const handleEdit = (field) => {
+        if (isMerchant) {
+            router.get(
+                route("merchant.venues.fields.edit", {
+                    venue: venue.slug,
+                    field: field.slug,
+                })
+            );
+        }
+    };
+
+    const handleCalendar = (field) => {
+        if (isAdmin) {
+            router.get(
+                route("admin.venues.fields.calendar", {
+                    venue: venue.slug,
+                    field: field.slug,
+                })
+            );
+        } else if (isMerchant) {
+            router.get(
+                route("merchant.venues.fields.calendar", {
+                    venue: venue.slug,
+                    field: field.slug,
+                })
+            );
+        }
+    };
 
     if (!fields || fields.length === 0) {
         return (
@@ -98,15 +146,16 @@ export default function VenueFieldList({ fields = [] }) {
                                     >
                                         Edit
                                     </Button>
-                                    <Button
-                                        variant="warning"
-                                        size="xs"
-                                        onClick={() => handleCalendar(field)}
-                                    >
-                                        Kalender
-                                    </Button>
                                 </>
                             )}
+
+                            <Button
+                                variant="warning"
+                                size="xs"
+                                onClick={() => handleCalendar(field)}
+                            >
+                                Kalender
+                            </Button>
                         </div>
                     </div>
                 ))}

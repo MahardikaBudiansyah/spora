@@ -24,13 +24,9 @@ export default function AuthModal({
         if (show) {
             setAuthMode(type);
             setDismissed(false);
-            if (type === "login" && loginDefaults) {
-                setPrefill(loginDefaults);
-            } else {
-                setPrefill(null);
-            }
+            setPrefill(type === "login" ? loginDefaults : null);
         }
-    }, [type, show, loginDefaults]);
+    }, [show, type, loginDefaults]);
 
     const handleSwitch = (newType) => {
         setAuthMode(newType);

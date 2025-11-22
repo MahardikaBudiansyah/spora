@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Booking;
+use App\Models\Membership;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -37,13 +39,45 @@ class Invoice extends Model
 
     public function order()
     {
-        return $this->morphTo();
+        return $this->morphTo()->morphWith([
+            Booking::class => ['venue', 'customer'],
+            Membership::class => ['membershipPackage.venue', 'membershipUser.user']
+        ]);
     }
 
     public function payments()
     {
         return $this->hasMany(Payment::class);
     }
+
+    protected $appends = ['customer_name', 'order_type_label'];
+
+    public function getCustomerNameAttribute()
+    {
+        if (!$this->order) return '-';
+
+        // Jika Booking
+        if ($this->order_type === Booking::class) {
+            return $this->order->customer->name 
+                ?? $this->order->customers->first()->name 
+                ?? '-';
+        }
+
+        // Jika Membership
+        if ($this->order_type === Membership::class) {
+            return $this->order->user->name
+                ?? $this->order->membershipUser->user->name
+                ?? '-';
+        }
+
+        return '-';
+    }
+
+    public function getOrderTypeLabelAttribute()
+    {
+        return class_basename($this->order_type);
+    }
+
 
 
 }

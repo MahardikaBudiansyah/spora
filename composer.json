@@ -14,7 +14,9 @@
         "laravel/tinker": "^2.8",
         "laravolt/indonesia": "^0.38.0",
         "midtrans/midtrans-php": "^2.6",
-        "tightenco/ziggy": "^2.0"
+        "tightenco/ziggy": "^2.0",
+        "beyondcode/laravel-websockets": "2.x-dev"
+        
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -74,6 +76,6 @@
             "pestphp/pest-plugin": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

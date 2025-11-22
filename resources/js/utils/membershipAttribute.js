@@ -38,7 +38,7 @@ export const getMembershipStatus = (status, isQueued = false) => {
         case "cancelled":
             return { label: "Dibatalkan", color: "red" };
         default:
-            return { label: "Tidak Diketahui", color: "gray" };
+            return { label: "Non Membership", color: "red" };
     }
 };
 

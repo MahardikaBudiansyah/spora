@@ -198,6 +198,10 @@ export default function VenueDetail({ venue }) {
                             timeslots.find((f) => f.id === field.id)?.slots ||
                             [];
 
+                        const availableSlots = fieldTimeslots.filter(
+                            (slot) => slot.status_label === "Tersedia"
+                        );
+
                         return (
                             <div
                                 key={field.id}
@@ -226,7 +230,7 @@ export default function VenueDetail({ venue }) {
                                             }
                                             disabled={!selectedDate}
                                         >
-                                            {fieldTimeslots.length} Jadwal
+                                            {availableSlots.length} Jadwal
                                             Tersedia
                                             {openFields.includes(field.id) ? (
                                                 <ChevronUp className="ml-2 h-5 w-5" />

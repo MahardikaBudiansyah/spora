@@ -40,7 +40,7 @@ export default function Create() {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const [formData, setFormData] = useState({
-        bookingSelections: [], // hasil dari StepFieldSelection
+        bookingSelections: [],
         customer_id: null,
         customer_name: "",
         customer_email: "",

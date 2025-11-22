@@ -96,7 +96,7 @@ export default function BannerAlert({
                 {showIcon && icon}
                 <div className="flex flex-col">
                     {title && (
-                        <span className="pb-1 font-semibold flex items-center gap-1">
+                        <span className="pb-1 font-semibold flex items-center gap-2">
                             {title}
                         </span>
                     )}

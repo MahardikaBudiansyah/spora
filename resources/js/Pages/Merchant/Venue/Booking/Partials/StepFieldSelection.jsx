@@ -1,8 +1,7 @@
 // StepFieldSelection.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
-import FieldSelection from "@/Pages/Merchant/Booking/Partials/FieldSelection";
-import BookingSummaryTable from "@/Pages/Merchant/Booking/Partials/BookingSummaryTable";
-import PreviewBooking from "@/Pages/Merchant/Booking/Partials/PreviewBooking";
+import FieldSelection from "@/Pages/Merchant/Venue/Booking/Partials/FieldSelection";
+import PreviewBooking from "@/Pages/Merchant/Venue/Booking/Partials/PreviewBooking";
 import { toISODate } from "@/utils/date";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -91,7 +90,7 @@ export default function StepFieldSelection({
                 bookingSelections={bookingSelections}
                 onBookingChange={handleBookingChange}
                 loading={loading}
-                onReload={fetchTimeslots} // 👈 tombol "refresh"
+                onReload={fetchTimeslots}
             />
 
             {/* Ganti PreviewBooking dengan BookingSummaryTable */}

@@ -12,12 +12,16 @@ import { toast } from "react-toastify";
 import { router } from "@inertiajs/react";
 
 const CartContext = createContext();
-const LOCAL_STORAGE_KEY = "cart_selected_slots";
 
 export function CartProvider({ children }) {
-    const { user, loading: authLoading } = useAuth();
+    const { user, authenticated, loading: authLoading } = useAuth();
     const [carts, setCarts] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // LocalStorage key per user
+    const LOCAL_STORAGE_KEY = user
+        ? `cart_selected_slots_${user.id}`
+        : "cart_selected_slots_guest";
 
     const [selectedSlots, setSelectedSlots] = useState(() => {
         if (typeof window !== "undefined") {
@@ -41,21 +45,21 @@ export function CartProvider({ children }) {
                 JSON.stringify(selectedSlots)
             );
         }
-    }, [selectedSlots]);
+    }, [selectedSlots, LOCAL_STORAGE_KEY]);
 
     // Reset saat logout
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (!authLoading && !authenticated) {
             setCarts([]);
             setSelectedSlots([]);
             setSelectedVenueId(null);
             localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
-    }, [user, authLoading]);
+    }, [authenticated, authLoading, LOCAL_STORAGE_KEY]);
 
     // Fetch carts dari API
     const fetchCarts = async () => {
-        if (!user) {
+        if (!authenticated || !user) {
             setCarts([]);
             return;
         }
@@ -64,7 +68,7 @@ export function CartProvider({ children }) {
             const res = await axios.get(route("user.cart.index"));
             setCarts(res.data.data);
 
-            // Pertahankan checkbox yang sudah ada di localStorage
+            // Pertahankan checkbox yang masih ada di cart
             const cartSlotIds = res.data.data.flatMap((venue) =>
                 venue.dates.flatMap((date) =>
                     date.fields.flatMap((field) =>
@@ -73,13 +77,9 @@ export function CartProvider({ children }) {
                 )
             );
 
-            setSelectedSlots((prev) => {
-                // Hanya pertahankan slot yang masih ada di cart
-                const filteredPrev = prev.filter((id) =>
-                    cartSlotIds.includes(id)
-                );
-                return filteredPrev;
-            });
+            setSelectedSlots((prev) =>
+                prev.filter((id) => cartSlotIds.includes(id))
+            );
         } catch (error) {
             console.error("Failed to fetch carts:", error);
             setCarts([]);
@@ -88,10 +88,23 @@ export function CartProvider({ children }) {
         }
     };
 
-    // Auto fetch saat login
+    // Auto fetch saat login / user berubah
     useEffect(() => {
-        if (!authLoading && user) fetchCarts();
-    }, [user, authLoading]);
+        if (!authLoading && authenticated) fetchCarts();
+    }, [authenticated, authLoading]);
+
+    // Sinkronisasi cross-tab untuk selectedSlots
+    useEffect(() => {
+        const syncCart = (event) => {
+            if (event.key === LOCAL_STORAGE_KEY) {
+                setSelectedSlots(
+                    event.newValue ? JSON.parse(event.newValue) : []
+                );
+            }
+        };
+        window.addEventListener("storage", syncCart);
+        return () => window.removeEventListener("storage", syncCart);
+    }, [LOCAL_STORAGE_KEY]);
 
     // Hitung total slot di carts
     const cartCount = useMemo(() => {
@@ -105,30 +118,28 @@ export function CartProvider({ children }) {
 
     // Toggle slot select/deselect
     const toggleSlot = (slotId, venueId) => {
-        // Jika slot sudah dipilih → hapus langsung
         if (selectedSlots.includes(slotId)) {
             const newSlots = selectedSlots.filter((id) => id !== slotId);
             setSelectedSlots(newSlots);
-
-            // reset venue jika tidak ada slot tersisa
             if (newSlots.length === 0) setSelectedVenueId(null);
-
             return;
         }
 
-        // jika slot baru, tapi venue berbeda
         if (selectedVenueId && venueId !== selectedVenueId) {
             toast.info("Hanya bisa memilih slot dari satu venue saja.");
             return;
         }
 
-        // tambah slot baru
         setSelectedSlots([...selectedSlots, slotId]);
         setSelectedVenueId(venueId);
     };
 
-    // Tambah item ke carts (tidak otomatis dicentang)
+    // Tambah item ke carts
     const addToCart = async (item) => {
+        if (!authenticated) {
+            toast.warn("Silakan login terlebih dahulu.");
+            return;
+        }
         try {
             await axios.post(route("user.cart.store"), item);
             await fetchCarts();
@@ -141,12 +152,12 @@ export function CartProvider({ children }) {
 
     // Hapus item dari carts
     const removeFromCart = async (cartId) => {
+        if (!authenticated) return;
         try {
             await axios.delete(route("user.cart.destroy", cartId));
 
-            setCarts((prev) => {
-                // 1. Hapus slot dari setiap field
-                const updatedCarts = prev
+            setCarts((prev) =>
+                prev
                     .map((venue) => ({
                         ...venue,
                         dates: venue.dates
@@ -159,30 +170,24 @@ export function CartProvider({ children }) {
                                             (s) => s.cart_id !== cartId
                                         ),
                                     }))
-                                    // 2. Hapus field jika tidak ada slot
                                     .filter(
                                         (field) => field.timeslots.length > 0
                                     ),
                             }))
-                            // 3. Hapus date jika semua field kosong
                             .filter((date) => date.fields.length > 0),
                     }))
-                    // 4. Hapus venue jika semua date kosong
-                    .filter((venue) => venue.dates.length > 0);
+                    .filter((venue) => venue.dates.length > 0)
+            );
 
-                return updatedCarts;
-            });
-
-            // Hapus dari selectedSlots
             setSelectedSlots((prev) => {
                 const filtered = prev.filter((id) => id !== cartId);
                 if (filtered.length === 0) setSelectedVenueId(null);
                 return filtered;
             });
 
-            toast.success("Slot dajm dihapus dari carts");
+            toast.success("Slot jam dihapus dari cart");
         } catch (error) {
-            toast.error("Gagal menghapus slot dajm");
+            toast.error("Gagal menghapus slot jam");
             throw error;
         }
     };
@@ -208,11 +213,9 @@ export function CartProvider({ children }) {
             return;
         }
 
-        // Update context
         setSelectedVenueId(venueId);
         setSelectedSlots(venueSlots);
 
-        // URL clean → tidak perlu param panjang
         router.get(route("user.booking.create"));
     };
 

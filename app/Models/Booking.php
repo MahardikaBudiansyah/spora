@@ -92,6 +92,11 @@ class Booking extends Model
         return $this->hasMany(BookingDetail::class);
     }
 
+    public function customer()
+    {
+        return $this->hasOne(BookingCustomer::class);
+    }
+
     public function customers()
     {
         return $this->hasMany(BookingCustomer::class);

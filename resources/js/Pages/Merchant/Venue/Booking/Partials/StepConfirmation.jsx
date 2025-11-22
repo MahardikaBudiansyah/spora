@@ -1,5 +1,5 @@
 import CustomTable from "@/components/Common/CustomTable";
-import BookingSummaryTable from "@/Pages/Merchant/Booking/Partials/BookingSummaryTable";
+import BookingSummaryTable from "@/Pages/Merchant/Venue/Booking/Partials/BookingSummaryTable";
 import { formatWithPattern } from "@/utils/date";
 
 export default function StepConfirmation({ data, operators, venue, fields }) {
@@ -114,7 +114,6 @@ export default function StepConfirmation({ data, operators, venue, fields }) {
             : { label: "Tanggal Pembayaran", value: "-" },
     ];
 
-    // ✅ Konversi bookingSelections → data untuk BookingSummaryTable
     const bookingSummaryData = data.bookingSelections.map((b) => ({
         date: b.date,
         fields: b.fields.map((f) => ({

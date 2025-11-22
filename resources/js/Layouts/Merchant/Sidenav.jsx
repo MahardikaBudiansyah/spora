@@ -7,7 +7,7 @@ import AccountSection from "@/Layouts/Merchant/Sidenav/AccountSection";
 import DashboardSection from "@/Layouts/Merchant/Sidenav/DashboardSection";
 import VenueSection from "@/Layouts/Merchant/Sidenav/VenueSection";
 import SidenavLink from "@/components/Common/SidenavLink";
-import { Book, Settings2 } from "lucide-react";
+import { Archive, Bell, Book, Settings2 } from "lucide-react";
 
 export default function Sidenav({ className = "" }) {
     const { auth } = usePage().props;
@@ -64,16 +64,18 @@ export default function Sidenav({ className = "" }) {
                 ref={sidebarRef}
                 className="m-2 h-full rounded-lg shadow-none overflow-y-auto custom-scrollbar"
             >
-                <CardHeader className="pt-4 flex flex-row gap-2 items-center border-none">
-                    <AppLogo
-                        variant="logo"
-                        className="w-10"
-                        alt="ingkenefutsal"
-                    />
-                    <div className="flex flex-col font-medium text-sm">
-                        <span className="mt-1">IngkeneFutsal Web</span>
-                        <span>Magelang</span>
-                    </div>
+                <CardHeader className="pt-4 flex flex-row gap-2 justify-center items-center border-none">
+                    <a href={route("home")} className="flex items-center ">
+                        <AppLogo
+                            variant="newlogo"
+                            className="w-40"
+                            alt="Spora"
+                        />
+                    </a>
+                    {/* <div className="flex flex-col font-medium text-sm">
+                        <span className="mt-1">Spora</span>
+                        <span>Platform Web</span>
+                    </div> */}
                 </CardHeader>
 
                 <CardBody>
@@ -96,24 +98,35 @@ export default function Sidenav({ className = "" }) {
                         />
                     </nav>
 
-                    {/* === Staff Section (merchant only) === */}
-                    {role === "merchant" && (
-                        <nav className="my-4">
-                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
-                                Staff
-                            </div>
-                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
-                                <li>
-                                    <SidenavLink
-                                        href={route("merchant.staff.index")}
-                                        routeName="merchant.staff.index"
-                                        label="Semua Staff"
-                                        icon={Book}
-                                    />
-                                </li>
-                            </ul>
-                        </nav>
-                    )}
+                    {/* === Venue Section === */}
+                    <nav className="my-4">
+                        <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                            Venue
+                        </div>
+                        <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                            <li>
+                                <SidenavLink
+                                    href={route("merchant.venues.index")}
+                                    routeName="merchant.venues.index"
+                                    label="Semua Venue"
+                                    icon={Book}
+                                />
+                            </li>
+                        </ul>
+
+                        {venues.map((venue) => (
+                            <VenueSection
+                                key={venue.id}
+                                venue={venue}
+                                toggle={menuToggles.toggle}
+                                isOpen={menuToggles.isOpen(
+                                    `venue-${venue.slug}`
+                                )}
+                                toggleField={menuToggles.toggle}
+                                fieldOpenMap={menuToggles.isOpen}
+                            />
+                        ))}
+                    </nav>
 
                     {/* === Membership Section (merchant only) === */}
                     {role === "merchant" && (
@@ -146,35 +159,55 @@ export default function Sidenav({ className = "" }) {
                         </nav>
                     )}
 
-                    {/* === Venue Section === */}
-                    <nav className="my-4">
-                        <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
-                            Venue
-                        </div>
-                        <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
-                            <li>
-                                <SidenavLink
-                                    href={route("merchant.venues.index")}
-                                    routeName="merchant.venues.index"
-                                    label="Semua Venue"
-                                    icon={Book}
-                                />
-                            </li>
-                        </ul>
+                    {/* === Staff Section (merchant only) === */}
+                    {role === "merchant" && (
+                        <nav className="my-4">
+                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                                Staff
+                            </div>
+                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                                <li>
+                                    <SidenavLink
+                                        href={route("merchant.staff.index")}
+                                        routeName="merchant.staff.index"
+                                        label="Semua Staff"
+                                        icon={Book}
+                                    />
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
 
-                        {venues.map((venue) => (
-                            <VenueSection
-                                key={venue.id}
-                                venue={venue}
-                                toggle={menuToggles.toggle}
-                                isOpen={menuToggles.isOpen(
-                                    `venue-${venue.slug}`
-                                )}
-                                toggleField={menuToggles.toggle}
-                                fieldOpenMap={menuToggles.isOpen}
-                            />
-                        ))}
-                    </nav>
+                    {/* === Notification (merchant only) === */}
+                    {role === "merchant" && (
+                        <nav className="my-4">
+                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                                Pemberitahuan
+                            </div>
+                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                                <li>
+                                    <SidenavLink
+                                        href={route(
+                                            "merchant.notifications.index"
+                                        )}
+                                        routeName="merchant.notifications.index"
+                                        label="Notifikasi Aktif"
+                                        icon={Bell}
+                                    />
+                                </li>
+                                <li>
+                                    <SidenavLink
+                                        href={route(
+                                            "merchant.notifications.archive"
+                                        )}
+                                        routeName="merchant.notifications.archive"
+                                        label="Arsip"
+                                        icon={Archive}
+                                    />
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
 
                     {/* === Aplikasi Section (merchant only) === */}
                     {role === "merchant" && (

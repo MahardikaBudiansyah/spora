@@ -47,7 +47,10 @@ export default function Cart({ isOpen, onClose }) {
                     {loading && <p>Loading...</p>}
 
                     {!loading && carts.length === 0 && (
-                        <BannerAlert type="warning" className="text-center">
+                        <BannerAlert
+                            type="warning"
+                            className="text-center text-xs"
+                        >
                             Tidak ada slot jadwal yang dipilih.
                         </BannerAlert>
                     )}

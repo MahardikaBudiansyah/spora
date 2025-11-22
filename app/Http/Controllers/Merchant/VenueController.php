@@ -71,12 +71,6 @@ class VenueController extends Controller
 
         return Inertia::render('Merchant/Venue/Create', [
             'facilities' => $facilities,
-            'address' => [
-                'province_id' => null,
-                'city_id' => null,
-                'district_id' => null,
-                'village_id' => null,
-            ],
         ]);
     }
 
@@ -189,6 +183,7 @@ class VenueController extends Controller
                 'fields' => $venue->fields->map(fn($f) => [
                     'id' => $f->id,
                     'name' => $f->name,
+                    'slug' => $f->slug,
                     'type' => $f->type->name ?? '-',
                     'price' => $f->timeslots->min('pivot.price') ?? 0,
                     'image' => $f->featuredImage 

@@ -55,14 +55,14 @@ export default function Tabs({
         <div
             className={twMerge(
                 "w-full flex",
-                orientation === "vertical" && "flex-row"
+                orientation === "vertical" ? "flex-row" : "flex-col"
             )}
         >
             {/* Nav */}
             <div
                 className={twMerge(
                     orientation === "horizontal"
-                        ? "flex gap-2 border-b border-secondary-200 dark:border-secondary-700"
+                        ? "flex flex-row gap-2 border-b border-secondary-200 dark:border-secondary-700"
                         : "flex flex-col gap-2 border-secondary-200 dark:border-secondary-700 w-64"
                 )}
             >

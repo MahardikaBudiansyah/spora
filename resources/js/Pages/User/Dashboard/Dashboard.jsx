@@ -2,15 +2,31 @@ import { useEffect } from "react";
 import UserLayout from "@/Layouts/UserLayout";
 import { Head } from "@inertiajs/react";
 import BannerSection from "@/components/common/BannerSection";
-import { Card, CardHeader, CardBody } from "@/components/common/Card";
+import {
+    Card,
+    CardHeader,
+    CardBody,
+    CardFooter,
+} from "@/components/common/Card";
 import BannerAlert from "@/components/common/BannerAlert";
 import Tabs from "@/components/Common/Tabs";
 
 // Import konten tab
+import Membership from "@/Pages/User/Dashboard/Partials/Membership";
 import BookingHistory from "@/Pages/User/Dashboard/Partials/BookingHistory";
 import MembershipHistory from "@/Pages/User/Dashboard/Partials/MembershipHistory";
-import { CalendarCheck, IdCard, CreditCard } from "lucide-react";
-import { Children } from "react";
+import Notification from "@/Pages/User/Dashboard/Partials/Notification";
+import Archieve from "@/Pages/User/Dashboard/Partials/Archieve";
+import {
+    CalendarCheck,
+    IdCard,
+    CreditCard,
+    Bell,
+    BellRing,
+    Archive,
+} from "lucide-react";
+import ModernTabs from "@/components/Common/ModernTabs";
+import Button from "@/components/Common/Button";
 
 export default function Dashboard({
     auth,
@@ -43,11 +59,7 @@ export default function Dashboard({
                     Daftar Membership
                 </span>
             ),
-            content: (
-                <div className="text-gray-500">
-                    Fitur daftar membership akan hadir di sini.
-                </div>
-            ),
+            content: <Membership />,
         },
         {
             id: "order",
@@ -57,40 +69,134 @@ export default function Dashboard({
                     Order (Pesanan)
                 </span>
             ),
-            children: [
-                {
-                    id: "bookings",
-                    label: (
-                        <span className="flex items-center">
-                            <CalendarCheck className="w-4 h-4 mr-2" />
-                            Booking Lapangan
-                        </span>
-                    ),
-                    content: (
-                        <BookingHistory
-                            bookings={bookings.data}
-                            pagination={bookings.links}
-                            meta={bookings.meta}
-                        />
-                    ),
-                },
-                {
-                    id: "memberships",
-                    label: (
-                        <span className="flex items-center">
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            Order Membership
-                        </span>
-                    ),
-                    content: (
-                        <MembershipHistory
-                            memberships={memberships.data}
-                            pagination={memberships.links}
-                            meta={memberships.meta}
-                        />
-                    ),
-                },
-            ],
+            content: (
+                <div className="flex flex-row gap-4 items-center">
+                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
+                        <div>
+                            <BellRing className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="font-bold text-md">
+                                Riwayat Booking
+                            </div>
+                            <span className="text-xs text-secondary-600">
+                                Riwayat pesanan Booking
+                            </span>
+                        </div>
+                    </div>
+                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
+                        <div>
+                            <BellRing className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="font-bold text-md">
+                                Riwayat Membership
+                            </div>
+                            <span className="text-xs text-secondary-600">
+                                Riwayat pesanan Membership
+                            </span>
+                        </div>
+                    </div>
+                    {/* <Button variant="primary">Notifikasi Aktif</Button>
+                    <Button variant="primary">Arsip</Button> */}
+                </div>
+            ),
+            // children: [
+            //     {
+            //         id: "bookings",
+            //         label: (
+            //             <span className="flex items-center">
+            //                 <CalendarCheck className="w-4 h-4 mr-2" />
+            //                 Booking Lapangan
+            //             </span>
+            //         ),
+            //         content: (
+            //             <BookingHistory
+            //                 bookings={bookings.data}
+            //                 pagination={bookings.links}
+            //                 meta={bookings.meta}
+            //             />
+            //         ),
+            //     },
+            //     {
+            //         id: "memberships",
+            //         label: (
+            //             <span className="flex items-center">
+            //                 <CreditCard className="w-4 h-4 mr-2" />
+            //                 Order Membership
+            //             </span>
+            //         ),
+            //         content: (
+            //             <MembershipHistory
+            //                 memberships={memberships.data}
+            //                 pagination={memberships.links}
+            //                 meta={memberships.meta}
+            //             />
+            //         ),
+            //     },
+            // ],
+        },
+        {
+            id: "order",
+            label: (
+                <span className="flex items-center">
+                    <Bell className="w-4 h-4 mr-2" />
+                    Pemberitahuan
+                </span>
+            ),
+            content: (
+                <div className="flex flex-row gap-4 items-center">
+                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
+                        <div>
+                            <BellRing className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="font-bold text-md">
+                                Notifikasi Aktif
+                            </div>
+                            <span className="text-xs text-secondary-600">
+                                Daftar Notifikasi Aktif
+                            </span>
+                        </div>
+                    </div>
+                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
+                        <div>
+                            <BellRing className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <div className="font-bold text-md">Arsip</div>
+                            <span className="text-xs text-secondary-600">
+                                Daftar Arsip Notifikasi
+                            </span>
+                        </div>
+                    </div>
+                    {/* <Button variant="primary">Notifikasi Aktif</Button>
+                    <Button variant="primary">Arsip</Button> */}
+                </div>
+            ),
+
+            // children: [
+            //     {
+            //         id: "notifications",
+            //         label: (
+            //             <span className="flex items-center">
+            //                 <BellRing className="w-4 h-4 mr-2" />
+            //                 Notifikasi Aktif
+            //             </span>
+            //         ),
+            //         content: <Notification />,
+            //     },
+            //     {
+            //         id: "archieves",
+            //         label: (
+            //             <span className="flex items-center">
+            //                 <Archive className="w-4 h-4 mr-2" />
+            //                 Arsip
+            //             </span>
+            //         ),
+            //         content: <Archieve />,
+            //     },
+            // ],
         },
     ];
 
@@ -123,10 +229,18 @@ export default function Dashboard({
                         <Tabs
                             tabs={tabs}
                             defaultActive={0}
-                            orientation="vertical"
+                            orientation="horizontal"
                             className="text-sm"
                         />
                     </CardBody>
+                    <CardFooter>
+                        {/* <ModernTabs
+                            tabs={tabs}
+                            defaultActive={0}
+                            orientation="horizontal"
+                            className="text-sm"
+                        /> */}
+                    </CardFooter>
                 </Card>
             </div>
         </UserLayout>

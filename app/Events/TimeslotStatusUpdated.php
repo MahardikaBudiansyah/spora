@@ -4,13 +4,12 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TimeslotStatusUpdated
+class TimeslotStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,9 +18,7 @@ class TimeslotStatusUpdated
     public $date;
     public $statusId;
     public $venueId;
-    /**
-     * Create a new event instance.
-     */
+
     public function __construct($fieldId, $timeslotIds, $date, $statusId, $venueId = null)
     {
         $this->fieldId = $fieldId;
@@ -31,19 +28,11 @@ class TimeslotStatusUpdated
         $this->venueId = $venueId;
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    
     public function broadcastOn()
     {
-        if ($this->venueId) {
-            return new PrivateChannel('venue.' . $this->venueId);
-        }
-
-        return new PrivateChannel('field.' . $this->fieldId);
+        return $this->venueId
+            ? new PrivateChannel('venue.' . $this->venueId)
+            : new PrivateChannel('field.' . $this->fieldId);
     }
 
     public function broadcastWith()
@@ -56,4 +45,8 @@ class TimeslotStatusUpdated
         ];
     }
 
+    public function broadcastAs()
+    {
+        return 'TimeslotStatusUpdated';
+    }
 }

@@ -20,8 +20,6 @@ return new class extends Migration
 
             // Alamat lengkap
             $table->text('address')->nullable(); // Jalan, RT/RW, nomor rumah, dsb
-            $table->string('type')->nullable();       // Home, Office, Branch, dll
-            $table->string('branch_name')->nullable(); // Untuk cabang merchant/office
 
             // Foreign key ke Laravolt/Indonesia (gunakan code, bukan id)
             $table->char('province_code', 2)->nullable();

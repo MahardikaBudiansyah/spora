@@ -10,6 +10,7 @@ use Database\Seeders\FieldSeeder;
 use Database\Seeders\StaffSeeder;
 use Database\Seeders\VenueSeeder;
 use Database\Seeders\AddressSeeder;
+use Database\Seeders\CategorySeeder;
 use Database\Seeders\FacilitySeeder;
 use Database\Seeders\MerchantSeeder;
 use Database\Seeders\TimeSlotSeeder;
@@ -43,15 +44,16 @@ class DatabaseSeeder extends Seeder
             MerchantSeeder::class,
             MerchantProfileSeeder::class,
             MerchantOwnerSeeder::class,
-            StaffRoleSeeder::class,          // seed global staff roles
-            MerchantStaffRoleSeeder::class,  // assign role ke merchant
-            StaffSeeder::class,              // baru seed staff
+            StaffRoleSeeder::class,          
+            MerchantStaffRoleSeeder::class,  
+            StaffSeeder::class,       
 
             // Venue & Related
             VenueSeeder::class,
             VenueImageSeeder::class,
             AddressSeeder::class,
             FacilitySeeder::class,
+            CategorySeeder::class,
 
             // Fields & Slots
             FieldTypeSeeder::class,

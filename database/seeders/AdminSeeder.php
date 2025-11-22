@@ -16,8 +16,18 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         $data = [
+            [   'name' => 'Superadmin',
+                'username' => 'superadmin',
+                'role' => 'superadmin',
+                'email' => 'superadmin@gmail.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('superadmin1234'),
+                'phone_number' => null,
+                'status' => true,
+            ],
             [   'name' => 'Admin',
                 'username' => 'admin',
+                'role' => 'admin',
                 'email' => 'admin@gmail.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('admin1234'),

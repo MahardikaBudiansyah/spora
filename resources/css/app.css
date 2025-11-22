@@ -96,13 +96,23 @@ input[type="time"]::-moz-focus-inner {
 }
 
 .rmdp-cyan {
-    --rmdp-main-color: #00bcd4 !important; /* Cyan */
+    --rmdp-main-color: #00bcd4 !important;
     --rmdp-main-color-hover: #0097a7 !important;
     --rmdp-main-color-active: #00838f !important;
     --rmdp-main-color-focus: #006064 !important;
     --rmdp-main-color-light: #b2ebf2 !important;
     --rmdp-main-color-dark: #004d40 !important;
 }
+
+/* Kalau masih muncul shadow di dalamnya */
+.rmdp-shadow {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.dark .rmdp-shadow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
 /* 
 .fc-daygrid-day {
     cursor: pointer !important;

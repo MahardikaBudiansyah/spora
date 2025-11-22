@@ -30,13 +30,15 @@ export default function DatePickerInput({
     withToolbar = false,
     layout = "default",
     zIndex,
+    minDate,
+    maxDate,
     ...rest
 }) {
     const { isDark } = useTheme();
     const isMobile = useMediaQuery("(max-width: 640px)");
 
     const baseCalendarClasses = twMerge(
-        "rounded-lg border border-secondary-200 shadow-lg",
+        "rounded-lg border border-secondary-200 shadow-none",
         "dark:bg-secondary-800 dark:border-secondary-700"
     );
 
@@ -127,21 +129,38 @@ export default function DatePickerInput({
                         readOnly
                         disabled={disabled}
                         value={value}
-                        onClick={openCalendar}
+                        onClick={!disabled ? openCalendar : undefined}
                         placeholder="Pilih tanggal..."
                         className={twMerge(
-                            "w-full border-none outline-none ring-0 focus:outline-none focus:ring-0 bg-transparent",
+                            "w-full border-none outline-none ring-0 bg-transparent",
                             "placeholder:text-xs placeholder-secondary-400 dark:placeholder-secondary-500",
-                            "cursor-pointer"
+                            disabled ? "cursor-not-allowed" : "cursor-pointer"
                         )}
                     />
                     <Calendar
-                        onClick={openCalendar}
-                        className="w-5 h-5 mx-4 text-secondary-500 dark:text-secondary-400 cursor-pointer"
+                        onClick={!disabled ? openCalendar : undefined}
+                        className={twMerge(
+                            "w-5 h-5 mx-4 text-secondary-500 dark:text-secondary-400",
+                            disabled
+                                ? "cursor-not-allowed opacity-50"
+                                : "cursor-pointer"
+                        )}
                     />
                 </div>
             )}
             {...rest}
+            minDate={minDate}
+            maxDate={maxDate}
+            mapDays={({ date }) => {
+                const isOutOfRange = date < minDate || date > maxDate;
+
+                if (isOutOfRange) {
+                    return {
+                        disabled: true,
+                        className: "rmdp-disabled",
+                    };
+                }
+            }}
         />
     );
 }

@@ -16,9 +16,12 @@ export default function Avatar({
         lg: "w-10 h-10 text-base",
         xl: "w-14 h-14 text-lg",
         xxl: "w-20 h-20 text-lg",
+        profile: "w-40 h-40 text-lg",
     };
 
     const avatarSize = sizeClasses[size] || sizeClasses["md"];
+
+    // Selalu pakai rounded-full jika rounded true
     const baseClass = `flex items-center justify-center bg-primary-500 dark:bg-secondary-700 text-white font-medium overflow-hidden ${
         rounded ? "rounded-full" : "rounded"
     } ${avatarSize} ${className}`;
@@ -27,14 +30,14 @@ export default function Avatar({
 
     if (isValidSrc && !imgError) {
         return (
-            <img
-                src={src}
-                alt={alt}
-                className={`${avatarSize} ${
-                    rounded ? "rounded-full" : "rounded"
-                } object-cover ${className}`}
-                onError={() => setImgError(true)}
-            />
+            <div className={baseClass}>
+                <img
+                    src={src}
+                    alt={alt}
+                    className="w-full h-full object-cover"
+                    onError={() => setImgError(true)}
+                />
+            </div>
         );
     }
 

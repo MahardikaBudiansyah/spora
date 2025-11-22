@@ -2,11 +2,11 @@ import AppLogo from "@/components/Common/AppLogo";
 
 export default function FooterLogo() {
     return (
-        <div className="flex justify-start items-center">
+        <div className="flex justify-center items-center">
             <AppLogo
-                variant="original" // Sesuaikan variant dengan yang diinginkan
-                className="h-48 md:h-32 w-auto"
-                alt="Ingkene Futsal Logo"
+                variant="newlogo" // Sesuaikan variant dengan yang diinginkan
+                className="h-32 md:h-24 w-auto"
+                alt="Spora"
             />
         </div>
     );

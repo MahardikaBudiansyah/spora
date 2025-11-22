@@ -11,7 +11,7 @@ export default function Contact() {
                 <BannerSection height="h-64">
                     <h1 className="text-white uppercase font-normal text-4xl">
                         Pertanyaan Tentang{" "}
-                        <span className="font-extrabold">IngkeneFutsal</span>
+                        <span className="font-extrabold">Spora</span>
                     </h1>
                 </BannerSection>
             </div>

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\User;
 
+use Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\Request;
 use App\Helpers\NumberPhoneHelper;
+use App\Helpers\UploadImageHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
@@ -21,27 +23,36 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
             'auth' => [
-            'user' => $request->user()->fresh() 
-        ],
+                'user' => $request->user()->fresh() 
+            ],
         ]);
     }
-
+        
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
 
-        $validated = $request->validated();
+        // validated tanpa 'photo'
+        $validated = $request->safe()->except(['photo']);
 
-        // Normalisasi di backend untuk jaga-jaga
         if (!empty($validated['phone_number'])) {
             $validated['phone_number'] = NumberPhoneHelper::normalize($validated['phone_number']);
+        }
+
+        // Upload foto jika ada
+        if ($request->hasFile('photo')) {
+            $path = UploadImageHelper::handleUserProfile($request->file('photo'), $user->id);
+            $user->photo = $path;
         }
 
         $user->fill($validated);
         $user->save();
 
-        return Redirect::route('user.profile.edit')->with('status', 'Profil berhasil diperbarui.');
+        return Redirect::route('user.profile.edit')
+            ->with('status', 'Profil berhasil diperbarui.');
     }
+
+
 
     /**
      * Delete the user's account.

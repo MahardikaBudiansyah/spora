@@ -112,7 +112,10 @@ export default function Show() {
                                     </Button>
                                 </div>
                             </div>
-                            <VenueFieldList fields={venue.fields} />
+                            <VenueFieldList
+                                fields={venue.fields}
+                                venue={venue}
+                            />
                         </div>
                     </div>
                 </CardBody>

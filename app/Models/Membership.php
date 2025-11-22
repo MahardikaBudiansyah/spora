@@ -63,7 +63,7 @@ class Membership extends Model
     }
 
     public function membershipPackage() {
-        return $this->belongsTo(MembershipPackage::class, 'membership_package_id');
+        return $this->belongsTo(MembershipPackage::class);
     }
 
     public function scopeActiveForUserVenue($query, $userId, $venueId)

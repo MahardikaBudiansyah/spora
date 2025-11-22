@@ -8,7 +8,7 @@ const Dropdown = ({ children }) => {
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => {
-        setOpen((previousState) => !previousState);
+        setOpen((prev) => !prev);
     };
 
     return (
@@ -19,70 +19,53 @@ const Dropdown = ({ children }) => {
 };
 
 const Trigger = ({ children }) => {
-    const { open, setOpen, toggleOpen } = useContext(DropDownContext);
+    const { toggleOpen } = useContext(DropDownContext);
 
-    return (
-        <>
-            <div onClick={toggleOpen}>{children}</div>
-
-            {open && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setOpen(false)}
-                ></div>
-            )}
-        </>
-    );
+    return <div onClick={toggleOpen}>{children}</div>;
 };
 
 const Content = ({
     align = "right",
     width = "48",
-    contentClasses = "py-1 bg-white dark:bg-secondary-800 border dark:border-secondary-700",
+    contentClasses = "pt-1 pb-3 bg-white dark:bg-secondary-900 border dark:border-secondary-700",
     children,
 }) => {
     const { open, setOpen } = useContext(DropDownContext);
 
+    // Alignment
     let alignmentClasses = "origin-top";
+    if (align === "left") alignmentClasses = "origin-top-left start-0";
+    else if (align === "right") alignmentClasses = "origin-top-right end-0";
 
-    if (align === "left") {
-        alignmentClasses = "ltr:origin-top-left rtl:origin-top-right start-0";
-    } else if (align === "right") {
-        alignmentClasses = "ltr:origin-top-right rtl:origin-top-left end-0";
-    }
-
-    let widthClasses = "";
-
-    if (width === "48") {
-        widthClasses = "w-48";
-    }
+    // Width
+    let widthClasses = width === "48" ? "w-48" : "";
 
     return (
-        <>
-            <Transition
-                as={Fragment}
-                show={open}
-                enter="transition ease-out duration-200"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+        <Transition
+            as={Fragment}
+            show={open}
+            enter="transition ease-out duration-200"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+        >
+            <div
+                className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses} hidden md:block`}
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
+                    className={`rounded-md ring-1 ring-black ring-opacity-5 ${contentClasses}`}
                 >
-                    <div
-                        className={
-                            `rounded-md ring-1 ring-black ring-opacity-5 ` +
-                            contentClasses
-                        }
-                    >
-                        {children}
-                    </div>
+                    {children}
                 </div>
-            </Transition>
-        </>
+                {/* Backdrop untuk klik di luar */}
+                <div
+                    className="fixed inset-0 z-40 md:hidden"
+                    onClick={() => setOpen(false)}
+                />
+            </div>
+        </Transition>
     );
 };
 
@@ -90,8 +73,8 @@ const DropdownLink = ({ className = "", children, onClick, ...props }) => {
     const { setOpen } = useContext(DropDownContext);
 
     const handleClick = (e) => {
-        setOpen(false); // tutup dropdown
-        if (onClick) onClick(e); // jalankan callback tambahan
+        setOpen(false); // Tutup dropdown
+        if (onClick) onClick(e);
     };
 
     return (

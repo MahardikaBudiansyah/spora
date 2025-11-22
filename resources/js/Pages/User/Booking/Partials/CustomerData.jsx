@@ -12,6 +12,7 @@ import { formatTo08 } from "@/utils/numberPhone";
 export default function CustomerData({ user }) {
     const membershipStatus = getMembershipStatus(user.membership?.status);
 
+    const photoSrc = user?.photo ? `/storage/${user.photo}` : null;
     const getInitials = (name) => {
         if (!name) return "";
         const words = name.trim().split(" ");
@@ -30,7 +31,7 @@ export default function CustomerData({ user }) {
             <CardBody>
                 <div className="py-2 flex flex-row items-start gap-3">
                     <Avatar
-                        src={user.photo || ""}
+                        src={photoSrc}
                         fallback={getInitials(user.name)}
                         size="xl"
                         className="mt-1"

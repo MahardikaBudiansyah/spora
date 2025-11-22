@@ -6,7 +6,7 @@ export default function HeroSection() {
         <section className="bg-center bg-cover bg-no-repeat bg-[url('/assets/images/hero-section.jpg')] bg-gray-700 bg-blend-multiply">
             <div className="px-4 mx-auto max-w-screen-xl text-center sm:text-center lg:text-left pt-48 pb-32 lg:pt-48 lg:pb-40">
                 <h1 className="mb-4 text-4xl font-extrabold tracking-wide leading-tight text-white sm:text-5xl lg:text-6xl lg:w-1/2">
-                    Ingkenefutsal Web Magelang
+                    Spora Platform Web
                 </h1>
                 <p className="mb-8 text-base font-normal text-gray-100 lg:text-xl lg:w-1/2">
                     Platform all-in-one untuk sewa lapangan. Olahraga makin

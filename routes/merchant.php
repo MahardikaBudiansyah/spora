@@ -14,6 +14,7 @@ use App\Http\Controllers\Merchant\BookingController;
 use App\Http\Controllers\Merchant\ProfileController;
 use App\Http\Controllers\OperatorAssignmentController;
 use App\Http\Controllers\Merchant\MembershipController;
+use App\Http\Controllers\Merchant\NotifiactionController;
 use App\Http\Controllers\Merchant\MembershipUserController;
 use App\Http\Controllers\Merchant\MembershipPackageController;
 use App\Http\Controllers\Merchant\MerchantMembershipController;
@@ -178,5 +179,10 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
         });
 
 
+    });
+
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotifiactionController::class, 'index'])->name('index');
+        Route::get('/archive', [NotifiactionController::class, 'archive'])->name('archive');
     });
 });

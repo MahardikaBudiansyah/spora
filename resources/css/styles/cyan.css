@@ -141,3 +141,94 @@
 .cyan.dark .rmdp-border-right {
     border-color: #57534e;
 }
+
+/* =========================
+   LIGHT MODE FIX
+   ========================= */
+
+/* Warna teks hari header */
+.cyan .rmdp-week-day {
+    color: #6b7280 !important; /* gray-500 */
+}
+
+/* Warna tanggal normal */
+.cyan .rmdp-day span {
+    color: #374151 !important; /* gray-700 */
+}
+
+/* Warna tanggal yang bukan bulan ini */
+.cyan .rmdp-day.rmdp-deactive span {
+    color: #9ca3af !important; /* gray-400 */
+}
+
+/* =========================
+   DARK MODE FIX
+   ========================= */
+.cyan.dark .rmdp-week-day {
+    color: #9ca3af !important; /* gray-400 */
+}
+
+.cyan.dark .rmdp-day span {
+    color: #d1d5db !important; /* gray-300 */
+}
+
+.cyan.dark .rmdp-day.rmdp-deactive span {
+    color: #6b7280 !important; /* gray-500 */
+}
+
+/* =========================
+   DISABLED DATES - LIGHT MODE
+   ========================= */
+
+.cyan .rmdp-day.rmdp-disabled span {
+    color: #d1d5db !important; /* gray-300 */
+    background-color: transparent !important;
+    cursor: not-allowed !important;
+    opacity: 0.5;
+}
+
+.cyan .rmdp-day.rmdp-disabled:hover span {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* =========================
+   DISABLED DATES - DARK MODE
+   ========================= */
+.cyan.dark .rmdp-day.rmdp-disabled span {
+    color: #4b5563 !important; /* gray-600 */
+    cursor: not-allowed !important;
+    opacity: 0.4;
+}
+
+.cyan.dark .rmdp-day.rmdp-disabled:hover span {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Pastikan semua elemen disabled punya cursor not allowed */
+
+.cyan .rmdp-day.rmdp-disabled,
+.cyan .rmdp-day.rmdp-disabled span,
+.cyan.dark .rmdp-day.rmdp-disabled,
+.cyan.dark .rmdp-day.rmdp-disabled span {
+    cursor: not-allowed !important;
+}
+
+/* Matikan hover untuk seluruh elemen disabled */
+.cyan .rmdp-day.rmdp-disabled:hover span,
+.cyan .rmdp-day.rmdp-disabled span:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Matikan hover untuk seluruh elemen disabled */
+.cyan .rmdp-day.rmdp-disabled:hover span,
+.cyan .rmdp-day.rmdp-disabled span:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.cyan .rmdp-day span {
+    color: #374151 !important;
+}

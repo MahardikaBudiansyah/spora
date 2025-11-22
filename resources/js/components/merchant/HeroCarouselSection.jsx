@@ -5,7 +5,7 @@ const slides = [
     {
         id: 1,
         image: "/assets/images/hero-carousel-1.jpg",
-        title: "Selamat Datang di IngkeneFutsal",
+        title: "Selamat Datang di Spora!",
         subtitle: "Pesan lapangan futsal dengan mudah dan cepat",
     },
     {
@@ -17,13 +17,13 @@ const slides = [
     {
         id: 3,
         image: "/assets/images/hero-carousel-3.jpg",
-        title: "Merchant Terpercaya",
+        title: "Mitra Terpercaya",
         subtitle: "Bekerja sama dengan banyak venue profesional",
     },
     {
         id: 4,
         image: "/assets/images/hero-carousel-4.jpg",
-        title: "Merchant Terpercaya",
+        title: "Mitra Terpercaya",
         subtitle: "Bekerja sama dengan banyak venue profesional",
     },
 ];

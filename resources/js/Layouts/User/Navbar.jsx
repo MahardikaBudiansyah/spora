@@ -8,6 +8,7 @@ import NavLogo from "@/components/user/navbar/Navlogo";
 import NavMenuItem from "@/components/user/navbar/NavMenuItem";
 import NavAction from "@/components/user/navbar/NavAction";
 import UserAvatarDropdown from "@/components/common/UserAvatarDropdown";
+import NotificationDropdown from "@/components/Common/NotificationDropdown";
 import { ShoppingCart, LayoutDashboard, User, LogOut } from "lucide-react";
 import Cart from "@/components/user/Cart";
 
@@ -38,6 +39,59 @@ export default function Navbar() {
         },
     ];
 
+    // Dummy notifications
+    const [notifications, setNotifications] = useState([
+        {
+            title: "Booking Baru",
+            message: "Ada booking baru di lapangan A",
+            time: "21-11-2025 19:00",
+            isRead: false,
+            onDelete: () => console.log("Hapus notif 1"),
+        },
+        {
+            title: "Update Profil",
+            message: "Profil merchant Anda sudah diverifikasi",
+            time: "20-11-2025 15:30",
+            isRead: true,
+            onDelete: () => console.log("Hapus notif 2"),
+        },
+        {
+            title: "Maintenance",
+            message: "Lapangan B sedang dalam pemeliharaan",
+            time: "19-11-2025 09:00",
+            isRead: false,
+            onDelete: () => console.log("Hapus notif 3"),
+        },
+        {
+            title: "Update Profil",
+            message: "Profil merchant Anda sudah diverifikasi",
+            time: "20-11-2025 15:30",
+            isRead: true,
+            onDelete: () => console.log("Hapus notif 2"),
+        },
+        {
+            title: "Update Profil",
+            message: "Profil merchant Anda sudah diverifikasi",
+            time: "20-11-2025 15:30",
+            isRead: true,
+            onDelete: () => console.log("Hapus notif 2"),
+        },
+        {
+            title: "Update Profil",
+            message: "Profil merchant Anda sudah diverifikasi",
+            time: "20-11-2025 15:30",
+            isRead: true,
+            onDelete: () => console.log("Hapus notif 2"),
+        },
+        {
+            title: "Update Profil",
+            message: "Profil merchant Anda sudah diverifikasi",
+            time: "20-11-2025 15:30",
+            isRead: true,
+            onDelete: () => console.log("Hapus notif 2"),
+        },
+    ]);
+
     return (
         <nav className="bg-white dark:bg-dark fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
             <div className="max-w-screen-lg flex flex-wrap items-center justify-between mx-auto p-4">
@@ -45,10 +99,9 @@ export default function Navbar() {
 
                 <div className="relative flex items-center md:order-2 space-x-3 md:space-x-4 rtl:space-x-reverse">
                     {/* Cart icon */}
-                    {/* Cart icon */}
-                    <div className="relative">
+                    <button className="relative p-2 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-700 transition">
                         <ShoppingCart
-                            className="mr-4 text-primary-600 w-5 h-5 cursor-pointer"
+                            className="w-5 h-5 text-gray-600 dark:text-gray-300"
                             onClick={async () => {
                                 if (authenticated) {
                                     await fetchCarts(); // refresh dulu biar pasti update
@@ -60,11 +113,16 @@ export default function Navbar() {
                         />
 
                         {authenticated && cartCount > 0 && (
-                            <span className="absolute -top-[9px] right-1.5 bg-red-500 text-white text-[10px] leading-4 font-bold px-1 h-[18px] min-w-[20px] flex items-center justify-center rounded-full">
+                            <span className="absolute -top-1 -right-0 inline-flex items-center justify-center px-1.5 py-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
                                 {cartCount > 99 ? "99+" : cartCount}
                             </span>
                         )}
+                    </button>
+                    {/* {authenticated( */}
+                    <div className="relative">
+                        <NotificationDropdown notifications={notifications} />
                     </div>
+                    {/* )} */}
 
                     {/* User avatar / auth buttons */}
                     {authenticated ? (

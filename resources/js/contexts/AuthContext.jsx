@@ -4,12 +4,12 @@ import {
     useState,
     useEffect,
     useCallback,
+    useRef,
 } from "react";
 import { router } from "@inertiajs/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-// Axios instance
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
     withCredentials: true,
@@ -18,79 +18,71 @@ const api = axios.create({
 
 const AuthContext = createContext();
 
-export function AuthProvider({
-    children,
-    initialUser = null,
-    initialRole = null,
-}) {
+export function AuthProvider({ children, initialUser = null }) {
     const [user, setUser] = useState(initialUser);
-    const [role, setRole] = useState(initialRole); // simpan role sekarang
+    const [authLoading, setAuthLoading] = useState(false);
     const [loading, setLoading] = useState(!initialUser);
     const [error, setError] = useState(null);
 
+    const loginInProgressRef = useRef(false);
     const authenticated = !!user;
 
-    // Ambil data user sesuai role
-    const fetchUser = useCallback(
-        async (roleParam = role || "user") => {
-            try {
-                // Tentukan endpoint berdasarkan role
-                let endpoint = "/api/user";
-                if (roleParam === "merchant") endpoint = "/api/merchant/user";
-                else if (roleParam === "admin") endpoint = "/api/admin/user";
-
-                const { data } = await api.get(endpoint);
-                setUser(data.user);
-                setRole(roleParam);
-                setError(null);
-                // console.log(
-                //     `Logged in as (${roleParam}):`,
-                //     data.user.name,
-                //     "-",
-                //     data.user.email
-                // );
-            } catch (err) {
-                setUser(null);
-                setRole(null);
-            } finally {
-                setLoading(false);
-            }
-        },
-        [role]
-    );
-
-    // Login sesuai role
-    const login = async (credentials, roleParam = "user") => {
+    // Fetch current user
+    const fetchUser = useCallback(async () => {
         try {
-            setLoading(true);
+            const { data } = await api.get("/api/user");
+            setUser(data.user);
             setError(null);
-
-            await api.get("/sanctum/csrf-cookie");
-
-            let loginEndpoint = "/login";
-            if (roleParam === "merchant") loginEndpoint = "/merchant/login";
-            else if (roleParam === "admin") loginEndpoint = "/admin/login";
-
-            const res = await api.post(loginEndpoint, credentials);
-
-            // delay kecil supaya session siap
-            await new Promise((res) => setTimeout(res, 100));
-            await fetchUser(roleParam);
-
-            localStorage.setItem("authEvent", "login");
-
-            return { success: true, message: res.data.message };
-        } catch (err) {
-            const msg = err.response?.data?.message || "Terjadi kesalahan.";
-            setError(msg);
-            toast.error(msg, { position: "top-right" });
-            return { success: false, message: msg };
+        } catch {
+            setUser(null);
+            setError(null);
         } finally {
             setLoading(false);
         }
+    }, []);
+
+    // Login
+    const login = async (credentials) => {
+        if (loginInProgressRef.current)
+            return { success: false, message: "In progress" };
+
+        loginInProgressRef.current = true;
+        setAuthLoading(true);
+        setError(null);
+
+        try {
+            await api.get("/sanctum/csrf-cookie");
+            const res = await api.post("/login", credentials);
+
+            localStorage.setItem("authEvent", "login");
+
+            // tunggu fetchUser selesai
+            await fetchUser();
+
+            toast.success(res.data?.message || "Berhasil login");
+
+            return { success: true };
+        } catch (err) {
+            let msg = "Email atau nomor HP / kata sandi salah.";
+            if (!err.response)
+                msg =
+                    "Tidak dapat terhubung ke server. Silakan coba lagi nanti.";
+            else if (err.response?.status === 429)
+                msg = Object.values(err.response.data.errors).flat().join(" ");
+            else if (err.response.data?.message)
+                msg = err.response.data.message;
+
+            setError(msg);
+            toast.error(msg);
+
+            return { success: false };
+        } finally {
+            loginInProgressRef.current = false;
+            setAuthLoading(false);
+        }
     };
 
-    // Logout umum
+    // Logout
     const logout = useCallback(async (serverLogout = true) => {
         try {
             setLoading(true);
@@ -98,57 +90,45 @@ export function AuthProvider({
 
             if (serverLogout) {
                 await api.post("/logout");
-                router.visit(route("home"));
                 toast.success("Berhasil logout.");
+                router.visit(route("home"));
             }
 
             setUser(null);
-            setRole(null);
             localStorage.setItem("authEvent", "logout");
         } catch {
-            setError("Logout gagal.");
-            toast.error("Logout gagal.", { position: "top-right" });
+            toast.error("Logout gagal.");
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        if (!initialUser) {
-            api.get("/sanctum/csrf-cookie").then(() => {
-                fetchUser();
-            });
-        } else {
-            setLoading(false);
-        }
+        // Fetch CSRF cookie first, then user
+        api.get("/sanctum/csrf-cookie").then(() => {
+            fetchUser();
+        });
 
-        // Sinkron multi-tab login/logout
+        // Listen storage event for cross-tab login/logout
         const syncAuth = (event) => {
             if (event.key === "authEvent") {
-                if (event.newValue === "logout") {
-                    setUser(null);
-                    setRole(null);
-                } else if (event.newValue === "login") {
-                    fetchUser();
-                }
+                if (event.newValue === "logout") setUser(null);
+                else if (event.newValue === "login") fetchUser();
             }
         };
         window.addEventListener("storage", syncAuth);
 
-        // Auto-refresh session tiap 5 menit
+        // Auto-refresh user data every 5 minutes
         const interval = setInterval(async () => {
-            if (authenticated) {
+            if (user) {
+                // <-- pakai user terbaru
                 try {
                     await fetchUser();
-                    console.log("Session refreshed");
                 } catch {
-                    console.warn("Session expired");
                     toast.warning(
-                        "Sesi Anda telah berakhir. Anda akan keluar otomatis."
+                        "Sesi berakhir, Anda akan keluar secara otomatis dalam 3 detik."
                     );
-                    setTimeout(() => {
-                        logout(false);
-                    }, 3000);
+                    setTimeout(() => logout(false), 3000);
                 }
             }
         }, 5 * 60 * 1000);
@@ -157,14 +137,14 @@ export function AuthProvider({
             window.removeEventListener("storage", syncAuth);
             clearInterval(interval);
         };
-    }, [authenticated, fetchUser, logout, initialUser]);
+    }, [fetchUser, logout, user]); // <-- user sebagai dependency
 
     return (
         <AuthContext.Provider
             value={{
                 user,
-                role,
                 authenticated,
+                authLoading,
                 loading,
                 error,
                 login,

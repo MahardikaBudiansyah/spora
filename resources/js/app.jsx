@@ -14,7 +14,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { MembershipProvider } from "@/contexts/MembershipContext";
 import AppToast from "@/components/common/AppToast";
 
-const appName = import.meta.env.VITE_APP_NAME || "Ingkenefutsal Web Magelang";
+const appName = import.meta.env.VITE_APP_NAME || "Spora Platform Web";
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

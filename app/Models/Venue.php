@@ -73,6 +73,12 @@ class Venue extends Model
         return $this->belongsTo(Merchant::class, 'merchant_id', 'id');
     }
 
+    public function address()
+    {
+        return $this->morphOne(Address::class, 'addressable');
+    }
+
+
     public function addresses() 
     {
         return $this->morphMany(Address::class, 'addressable');

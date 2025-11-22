@@ -9,9 +9,9 @@ export const getPaymentStatus = (status) =>
     paymentStatusMap[status] || { label: status, color: "gray" };
 
 export const paymentMethodMap = {
-    cash: "Tunai",
-    transfer: "Transfer Bank",
-    gateway: "Payment Gateway",
+    cash: { label: "Tunai", color: "blue" },
+    transfer: { label: "Transfer", color: "green" },
+    gateway: { label: "Gateway", color: "orange" },
 };
 
 export const getPaymentMethod = (method) => paymentMethodMap[method] || method;
