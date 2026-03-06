@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-            Schema::create('membership_packages', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('venue_id')->constrained()->cascadeOnDelete();
-                $table->string('name'); 
-                $table->integer('duration_months')->default(1);
-                $table->decimal('price', 12, 2);  
-                $table->text('description')->nullable(); 
-                $table->boolean('is_active')->default(true);
-                $table->string('slug', 100)->nullable();
-                $table->softDeletes();
-                $table->timestamps();
-            });
+        Schema::create('membership_packages', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('venue_id')->constrained()->cascadeOnDelete();
+            $table->string('name'); 
+            $table->integer('duration_months')->default(1);
+            $table->decimal('price', 12, 2);  
+            $table->text('description')->nullable(); 
+            $table->boolean('is_active')->default(true);
+            $table->string('slug', 100)->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
     }
 
     /**

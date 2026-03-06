@@ -11,13 +11,11 @@ use Laravolt\Indonesia\Models\Province;
 
 class AddressController extends Controller
 {
-    // Ambil semua provinsi
     public function provinces()
     {
         return Province::select('id', 'code', 'name')->get();
     }
 
-    // Ambil kota/kabupaten berdasarkan province_code
     public function cities(Request $request)
     {
         $request->validate([
@@ -28,7 +26,6 @@ class AddressController extends Controller
                 ->select('id', 'code', 'name')->get();
     }
 
-    // Ambil kecamatan berdasarkan city_code
     public function districts(Request $request)
     {
         $request->validate([
@@ -39,7 +36,6 @@ class AddressController extends Controller
                     ->select('id', 'code', 'name')->get();
     }
 
-    // Ambil desa/kelurahan berdasarkan district_code
     public function villages(Request $request)
     {
         $request->validate([

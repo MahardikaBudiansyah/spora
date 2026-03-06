@@ -25,29 +25,29 @@ import {
     SyncLoader,
 } from "react-spinners";
 import { twMerge } from "tailwind-merge";
-import { useTheme } from "@/contexts/ThemeContext"; // pastikan path benar
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Spinner({
-    type = "clip", // tipe spinner: clip, ring, beat
-    size = "md", // ukuran: sm, md, lg
+    type = "clip",
+    size = "md",
+    color = "",
     className = "",
 }) {
-    const { isDark } = useTheme(); // ambil theme dari context
+    const { isDark } = useTheme();
 
-    // mapping ukuran Tailwind ke pixel react-spinners
     const sizes = {
         sm: 12,
         md: 24,
         lg: 32,
     };
 
-    // warna sesuai dark mode
-    const colors = {
-        light: "#22d3ee", // primary-400
-        dark: "#06b6d4", // primary-500
+    const getLoaderColor = () => {
+        if (color === "inherit" || color === "currentColor")
+            return "currentColor";
+        if (color) return color;
+        return isDark ? "#06b6d4" : "#22d3ee";
     };
 
-    // pilih komponen loader
     const loaders = {
         bar: BarLoader,
         beat: BeatLoader,
@@ -77,11 +77,16 @@ export default function Spinner({
     const LoaderComponent = loaders[type] || ClipLoader;
 
     return (
-        <div className={twMerge("flex justify-center items-center", className)}>
+        <div
+            className={twMerge(
+                "inline-flex justify-center items-center",
+                className
+            )}
+        >
             <LoaderComponent
                 size={sizes[size] || sizes.md}
-                color={isDark ? colors.dark : colors.light}
-                speedMultiplier={1} // optional
+                color={getLoaderColor()}
+                speedMultiplier={1}
             />
         </div>
     );

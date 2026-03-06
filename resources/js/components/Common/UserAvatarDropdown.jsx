@@ -1,4 +1,3 @@
-// resources/js/components/Common/UserAvatarDropdown.jsx
 import Avatar from "@/components/Common/Avatar";
 import Dropdown from "@/components/Common/Dropdown";
 import { useState } from "react";
@@ -14,17 +13,27 @@ const getInitials = (name) => {
         .toUpperCase();
 };
 
-export default function UserAvatarDropdown({ user, menuItems = [] }) {
+export default function UserAvatarDropdown({ src, user, menuItems = [] }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     if (!user) return null;
 
-    const photoSrc = user?.photo ? `/storage/${user.photo}` : null;
+    const photoSrc = src
+        ? src.startsWith("/assets") ||
+          src.startsWith("http") ||
+          src.startsWith("blob:") ||
+          src.startsWith("/storage") ||
+          src.startsWith("storage")
+            ? src
+            : `/storage/${src}`
+        : null;
 
-    // Handle click toggle dropdown / mobile modal
-    const handleToggle = () => {
+    const handleTriggerClick = (e, toggleOpen) => {
         if (window.innerWidth < 768) {
+            e.preventDefault();
             setMobileOpen(true);
+        } else {
+            toggleOpen();
         }
     };
 
@@ -34,7 +43,13 @@ export default function UserAvatarDropdown({ user, menuItems = [] }) {
             <Dropdown>
                 <Dropdown.Trigger>
                     <div
-                        onClick={handleToggle}
+                        onClick={(e) => {
+                            if (window.innerWidth < 768) {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                setMobileOpen(true);
+                            }
+                        }}
                         className="flex items-center gap-2 cursor-pointer hover:ring-4 hover:ring-primary-100 dark:hover:ring-secondary-700 focus:ring-4 focus:ring-gray-200 dark:foucs:ring-gray-700 rounded-full transition-all"
                         aria-label="User menu"
                     >
@@ -51,7 +66,6 @@ export default function UserAvatarDropdown({ user, menuItems = [] }) {
                     width="60"
                     className="hidden md:block"
                 >
-                    {/* Info user */}
                     <div className="my-2 px-4 py-2 hidden md:flex items-center gap-2 border-b border-b-secondary-100 dark:border-b-secondary-600 cursor-default">
                         <Avatar
                             src={photoSrc}
@@ -68,7 +82,6 @@ export default function UserAvatarDropdown({ user, menuItems = [] }) {
                         </div>
                     </div>
 
-                    {/* Menu items */}
                     {menuItems.map((item, index) => {
                         if (item.as === "button") {
                             return (
@@ -107,6 +120,7 @@ export default function UserAvatarDropdown({ user, menuItems = [] }) {
             <UserAvatarDropdownMobile
                 open={mobileOpen}
                 onClose={() => setMobileOpen(false)}
+                src={photoSrc}
                 user={user}
                 menuItems={menuItems}
             />

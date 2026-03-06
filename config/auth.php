@@ -127,15 +127,15 @@ return [
             'throttle' => 60,
         ],
 
-        'merchant' => [
-            'provider' => 'merchant',
+        'merchants' => [
+            'provider' => 'merchants',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],
 
-        'staff' => [
-            'provider' => 'staff',
+        'staffs' => [
+            'provider' => 'staffs',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,

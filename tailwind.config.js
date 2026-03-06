@@ -17,6 +17,14 @@ export default {
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
             },
+            zIndex: {
+                navbar: "40",
+                sidenav: "55",
+                dropdown: "60",
+                modal: "70",
+                "modal-dropdown": "80",
+                toast: "100",
+            },
             colors: {
                 dark: "#0c0a09", // stone-900
                 light: "#fafaf9", // stone-50
@@ -68,8 +76,6 @@ export default {
             },
         },
     },
-    plugins: [],
-
     darkMode: "class",
 
     plugins: [forms, require("tailwind-scrollbar-hide")],

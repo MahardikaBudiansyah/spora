@@ -17,15 +17,18 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                         hover:bg-primary-400 dark:hover:text-dark 
                         ${isAnyChildActive ? "bg-primary-400 text-dark" : ""}`}
                 >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                         <FolderArchive className="w-5" />
-                        <span>{venue.name}</span>
+                        <span className="truncate block">{venue.name}</span>
                     </div>
-                    <ChevronRight
-                        className={`w-4 transition-transform ${
-                            isOpen ? "rotate-90" : ""
-                        }`}
-                    />
+
+                    <div className="flex-shrink-0">
+                        <ChevronRight
+                            className={`w-4 transition-transform ${
+                                isOpen ? "rotate-90" : ""
+                            }`}
+                        />
+                    </div>
                 </div>
             </li>
 
@@ -44,10 +47,10 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                     </li> */}
                     <li>
                         <SidenavLink
-                            href={route("merchant.venues.fields.index", {
+                            href={route("merchant.venues.courts.index", {
                                 venue: venue.slug,
                             })}
-                            routeName="merchant.venues.fields.index"
+                            routeName="merchant.venues.courts.index"
                             params={{ venue: venue.slug }}
                             label="Lapangan"
                             icon={Folder}
@@ -59,7 +62,7 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                                 "merchant.venues.memberships.packages.index",
                                 {
                                     venue: venue.slug,
-                                }
+                                },
                             )}
                             routeName="merchant.venues.memberships.packages.index"
                             params={{ venue: venue.slug }}
@@ -70,14 +73,14 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                     <li>
                         <SidenavLink
                             href={route(
-                                "merchant.venues.memberships.members.index",
+                                "merchant.venues.memberships.cards.index",
                                 {
                                     venue: venue.slug,
-                                }
+                                },
                             )}
-                            routeName="merchant.venues.memberships.members.index"
+                            routeName="merchant.venues.memberships.cards.index"
                             params={{ venue: venue.slug }}
-                            label="Member Aktif"
+                            label="Kartu Member"
                             icon={Folder}
                         />
                     </li>
@@ -87,11 +90,11 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                                 "merchant.venues.memberships.orders.index",
                                 {
                                     venue: venue.slug,
-                                }
+                                },
                             )}
                             routeName="merchant.venues.memberships.orders.index"
                             params={{ venue: venue.slug }}
-                            label="Membership"
+                            label="Order Membership"
                             icon={Folder}
                         />
                     </li>
@@ -119,10 +122,13 @@ export default function VenueSection({ venue, toggle, isOpen }) {
                     </li>
                     <li>
                         <SidenavLink
-                            href={route("merchant.venues.settings.index", {
-                                venue: venue.slug,
-                            })}
-                            routeName="merchant.venues.settings.index"
+                            href={route(
+                                "merchant.venues.settings.payment-policy.index",
+                                {
+                                    venue: venue.slug,
+                                },
+                            )}
+                            routeName="merchant.venues.settings.payment-policy.index"
                             params={{ venue: venue.slug }}
                             label="Pengaturan"
                             icon={Settings}

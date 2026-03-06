@@ -1,9 +1,7 @@
-import FooterLogo from "@/components/user/footer/FooterLogo";
-import FooterLinkGroup from "@/components/user/footer/FooterLinkGroup";
-import FooterSocialIcons from "@/components/user/footer/FooterSocialIcons";
-import { router } from "@inertiajs/react";
-import BannerSection from "@/components/Common/BannerSection";
-// Bagian bawah footer (bisa dipakai sendiri)
+import FooterLogo from "@/components/user/Footer/FooterLogo";
+import FooterLinkGroup from "@/components/user/Footer/FooterLinkGroup";
+import FooterSocialIcons from "@/components/user/Footer/FooterSocialIcons";
+
 export function FooterBottom() {
     return (
         <div className="bg-white dark:bg-dark">
@@ -11,9 +9,12 @@ export function FooterBottom() {
                 <div className="h-10 bg-white dark:bg-dark border-t border-secondary-200 dark:border-secondary-600" />
                 {/* <hr className="my-6 border-gray-200 dark:border-gray-700 bg-light dark:bg-dark" /> */}
                 <div className="flex flex-col-reverse items-center justify-center gap-4 sm:flex-row sm:justify-between sm:items-center">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-secondary-500 dark:text-secondary-300">
                         © 2025{" "}
-                        <a href={route("home")} className="hover:underline">
+                        <a
+                            href={route("home")}
+                            className="hover:underline outline-none focus-visible:underline focus-visible:text-primary-500 dark:focus-visible:text-primary-400"
+                        >
                             Spora™
                         </a>
                         . All Rights Reserved.
@@ -25,7 +26,6 @@ export function FooterBottom() {
     );
 }
 
-// Footer utama (default)
 export default function Footer() {
     const footerSections = [
         {
@@ -67,7 +67,6 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* panggil FooterBottom */}
                 <FooterBottom />
             </div>
         </footer>

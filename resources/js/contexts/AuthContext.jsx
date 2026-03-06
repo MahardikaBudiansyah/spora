@@ -27,13 +27,12 @@ export function AuthProvider({ children, initialUser = null }) {
     const loginInProgressRef = useRef(false);
     const authenticated = !!user;
 
-    // Fetch current user
     const fetchUser = useCallback(async () => {
         try {
             const { data } = await api.get("/api/user");
-            setUser(data.user);
+            setUser(data.user || null);
             setError(null);
-        } catch {
+        } catch (err) {
             setUser(null);
             setError(null);
         } finally {
@@ -104,12 +103,12 @@ export function AuthProvider({ children, initialUser = null }) {
     }, []);
 
     useEffect(() => {
-        // Fetch CSRF cookie first, then user
+        // Fetch CSRF cookie first, then user saat mount
         api.get("/sanctum/csrf-cookie").then(() => {
             fetchUser();
         });
 
-        // Listen storage event for cross-tab login/logout
+        // Listen storage event untuk cross-tab login/logout
         const syncAuth = (event) => {
             if (event.key === "authEvent") {
                 if (event.newValue === "logout") setUser(null);
@@ -118,26 +117,27 @@ export function AuthProvider({ children, initialUser = null }) {
         };
         window.addEventListener("storage", syncAuth);
 
-        // Auto-refresh user data every 5 minutes
-        const interval = setInterval(async () => {
-            if (user) {
-                // <-- pakai user terbaru
-                try {
-                    await fetchUser();
-                } catch {
-                    toast.warning(
-                        "Sesi berakhir, Anda akan keluar secara otomatis dalam 3 detik."
-                    );
-                    setTimeout(() => logout(false), 3000);
-                }
-            }
-        }, 5 * 60 * 1000);
-
         return () => {
             window.removeEventListener("storage", syncAuth);
-            clearInterval(interval);
         };
-    }, [fetchUser, logout, user]); // <-- user sebagai dependency
+    }, [fetchUser]);
+
+    // Helper untuk request API aman (auto logout jika session expired)
+    const safeApi = useCallback(
+        async (request) => {
+            try {
+                return await request();
+            } catch (err) {
+                if (err.response?.status === 401) {
+                    // Session expired, logout
+                    toast.warning("Sesi berakhir, Anda akan keluar.");
+                    logout(false);
+                }
+                throw err; // biarkan caller handle error lain
+            }
+        },
+        [logout],
+    );
 
     return (
         <AuthContext.Provider
@@ -150,6 +150,7 @@ export function AuthProvider({ children, initialUser = null }) {
                 login,
                 logout,
                 fetchUser,
+                safeApi, // bisa digunakan untuk semua request API
             }}
         >
             {children}

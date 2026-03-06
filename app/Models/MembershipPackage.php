@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Venue;
 use App\Models\Invoice;
 use App\Models\Membership;
+use App\Models\MembershipOrder;
 use App\Models\MembershipBenefitOther;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\MembershipBenefitDiscount;
@@ -58,24 +59,33 @@ class MembershipPackage extends Model
         return $this->belongsTo(Venue::class);
     }
 
+    public function scopeActiveForVenue($query, $venueId)
+    {
+        return $query->with(['discounts', 'others'])
+            ->where('venue_id', $venueId)
+            ->where('is_active', true)
+            ->orderBy('id');
+    }
+
     public function discounts()
     {
         return $this->hasMany(MembershipBenefitDiscount::class);
     }
-
+    
     public function others()
     {
         return $this->hasMany(MembershipBenefitOther::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(MembershipOrder::class);
+    }
+            
     public function invoices()
     {
         return $this->morphMany(Invoice::class, 'order');
     }
 
 
-    public function memberships()
-    {
-        return $this->hasMany(Membership::class);
-    }
 }

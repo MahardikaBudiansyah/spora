@@ -3,12 +3,19 @@
 namespace App\Http\Controllers;
 
 use Log;
-use App\Models\Field;
+use Carbon\Carbon;
+use App\Models\Court;
 use App\Models\Venue;
+use App\Enums\CourtStatus;
 use App\Models\SlotStatus;
 use Illuminate\Http\Request;
+use App\Models\CourtSchedule;
+use App\Models\CourtStatusType;
 use App\Models\SlotStatusLabel;
+use Illuminate\Support\Facades\DB;
 use App\Events\TimeslotStatusUpdated;
+use App\Http\Resources\CourtAvailabilityResource;
+use App\Http\Requests\Merchant\CourtTimeSlotUpdateRequest;
 
 class TimeSlotController extends Controller
 {
@@ -19,168 +26,161 @@ class TimeSlotController extends Controller
         }
     }
 
-    protected function authorizeField(Field $field)
+    protected function authorizeCourt(Court $court)
     {
-        if ($field->venue->merchant_id !== auth('merchant')->id()) {
+        if ($court->venue->merchant_id !== auth('merchant')->id()) {
             abort(403, 'Anda tidak memiliki akses ke lapangan ini.');
         }
     }
 
-    protected function ensureFieldInVenue(Field $field, Venue $venue)
+    protected function ensureCourtInVenue(Court $court, Venue $venue)
     {
-        if ($field->venue_id !== $venue->id) {
+        if ($court->venue_id !== $venue->id) {
             abort(404, 'Anda tidak memiliki akses ke lapangan ini.');
         }
     }
 
     public function getTimeslotsByVenue(Request $request, Venue $venue)
     {
-        $date = $request->query('date') ?? now()->toDateString();
-        $defaultStatus = SlotStatusLabel::where('label', 'Tersedia')->first();
+        $dateString = $request->query('date') ?? now()->toDateString();
+        $dayOfWeek = date('N', strtotime($dateString)); 
+        $dayType = ($dayOfWeek >= 6) ? 'weekend' : 'weekday';
 
-        $fields = $venue->fields()->with([
-            'timeslots',
-            'type',
-            'slotStatuses' => fn($q) => $q
-                ->whereDate('date', $date)
-                ->with('slotStatusLabel')
-        ])->get();
+        $courts = Court::where('venue_id', $venue->id)
+            ->with([
+                'surface',
+                'timeSlots' => function ($q) use ($dayType) {
+                    $q->wherePivot('day_type', $dayType)->orderBy('start_time');
+                },
+                'schedules' => function ($q) use ($dateString) {
+                    $q->whereDate('date', $dateString)->with('statusType');
+                },
+            ])->get();
 
-    
+        $defaultStatus = CourtStatusType::where('name', CourtStatus::AVAILABLE->value)->first();
+
+        $mappedCourts = $courts->map(function ($court) use ($defaultStatus) {
+            $statusMap = $court->schedules->keyBy('time_slot_id');
+            
+            return [
+                'id' => $court->id,
+                'name' => $court->name,
+                'court_surface' => $court->surface->name ?? '-',
+                'timeslots' => $court->timeSlots->map(function ($ts) use ($statusMap, $defaultStatus) {
+                    $schedule = $statusMap[(int)$ts->id] ?? null;
+                    
+                    return [
+                        'id'           => $ts->id,
+                        'start_time'   => $ts->start_time,
+                        'end_time'     => $ts->end_time,
+                        'day_type'     => $ts->pivot->day_type,
+                        'price'        => (float) $ts->pivot->price,
+                        'status_id'    => $schedule ? (int)$schedule->status_id : (int)$defaultStatus->id,
+                        'status'       => $schedule?->statusType?->label ?? $defaultStatus->label,
+                        'is_available' => $schedule ? false : true,
+                        'debug_check'  => $schedule ? 'BOOKED' : 'AVAILABLE' 
+                    ];
+                })
+            ];
+        });
+
         return response()->json([
-            'venue_id' => $venue->id,
-            'date' => $date,
-            'fields' => $fields->map(function ($field) use ($defaultStatus) {
-                $statusMap = $field->slotStatuses->keyBy('time_slot_id');
+            'debug_info' => [
+                'date' => $dateString,
+                'schedules_count' => $courts->pluck('schedules')->flatten()->count(),
+            ],
+            'courts' => $mappedCourts
+        ]);
+    }
+
+    // public function getTimeSlotsByVenue(Request $request, Venue $venue)
+    // {
+    //     $dateString = $request->query('date') ?? now()->toDateString();
+    //     $date = Carbon::parse($dateString);
+    //     $dayType = $date->isWeekend() ? 'weekend' : 'weekday';
+        
+    //     $default_status = CourtStatusType::where('label', 'Tersedia')->first();
+
+    //     $courts = Court::where('venue_id', $venue->id)->with([
+    //         'surface',
+    //         'timeSlots' => function ($query) use ($dayType) {
+    //             $query->withPivot('price', 'day_type')->wherePivot('day_type', $dayType);
+    //         },
+    //         'schedules' => fn($q) => $q->whereDate('date', $dateString)->with('statusType')
+    //     ])->get();
+
+    //     return response()->json([
+    //         'venue_id' => $venue->id,
+    //         'date'     => $dateString,
+    //         'day_type' => $dayType,
+    //         'courts'   => $courts->map(function ($court) use ($default_status) {
+    //             $statusMap = $court->schedules->keyBy('time_slot_id');
+                
+    //             return [
+    //                 'id'            => $court->id,
+    //                 'name'          => $court->name,
+    //                 'court_surface' => $court->surface->name ?? '-',
+    //                 'timeslots'     => $court->timeSlots->map(function ($ts) use ($statusMap, $default_status) {
+    //                     $schedule = $statusMap[$ts->id] ?? null;
+    //                     return [
+    //                         'timeslot_id'  => $ts->id,
+    //                         'start_time'   => $ts->start_time,
+    //                         'end_time'     => $ts->end_time,
+    //                         'day_type'     => $ts->pivot ? $ts->pivot->day_type : '',
+    //                         'price'        => $ts->pivot ? $ts->pivot->price : 0,
+    //                         'status_id'    => $schedule ? $schedule->status_id : $default_status?->id,
+    //                         'status_label' => $schedule ? $schedule->statusType->label : ($default_status?->label ?? 'Tersedia'),
+    //                     ];
+    //                 }),
+    //             ];
+    //         }),
+    //     ]);
+    // }
+
+    public function getTimeSlotsByCourt(Request $request, Venue $venue, Court $court)
+    {
+        $this->authorizeVenue($venue);
+        $this->authorizeCourt($court);
+        $this->ensureCourtInVenue($court, $venue);
+
+        $dateString = $request->query('date') ?? now()->toDateString();
+        $date = Carbon::parse($dateString);
+
+        $isWeekend = $date->isWeekend();
+        $dayType = $isWeekend ? 'weekend' : 'weekday';
+        
+        $default_status = CourtStatusType::where('label', 'Tersedia')->first();
+
+        $court->load([
+            'timeSlots' => function ($query) use ($dayType) {
+                $query->withPivot('price', 'day_type')->wherePivot('day_type', $dayType);
+            },
+            'schedules' => fn ($q) => $q
+                ->whereDate('date', $dateString)
+                ->with('statusType')
+        ]);
+
+        $statusMap = $court->schedules->keyBy('time_slot_id');
+        
+        return response()->json([
+            'venue_id'  => $venue->id,
+            'court_id'  => $court->id,
+            'date'      => $dateString,
+            'day_type'  => $dayType, 
+            'timeslots' => $court->timeSlots->map(function ($ts) use ($statusMap, $default_status) {
+                $schedule = $statusMap[$ts->id] ?? null;
+                
                 return [
-                    'id' => $field->id,
-                    'name' => $field->name,
-                    'field_type' => $field->type->name,
-                    'slots' => $field->timeSlots->map(function ($ts) use ($statusMap, $defaultStatus) {
-                        $status = $statusMap[$ts->id] ?? null;
-                        return [
-                            'timeslot_id' => $ts->id,
-                            'name' => $ts->name,
-                            'price' => $ts->pivot->price,
-                            'status_id' => $status?->status_id ?? $defaultStatus?->id,
-                            'status_label' => $status?->slotStatusLabel?->label ?? $defaultStatus?->label,
-                            'updated_at' => $status?->updated_at?->format('d M Y H:i') ?? '-',
-                        ];
-                    }),
+                    'timeslot_id'  => $ts->id,
+                    'start_time'   => $ts->start_time,
+                    'end_time'     => $ts->end_time,
+                    'day_type'     => $ts->pivot ? $ts->pivot->day_type : '',
+                    'price'        => $ts->pivot ? $ts->pivot->price : 0,
+                    'status_id'    => $schedule ? $schedule->status_id : $default_status?->id,
+                    'status_label' => $schedule ? $schedule->statusType->label : ($default_status?->label ?? 'Tersedia'),
+                    'updated_at'   => $schedule ? $schedule->updated_at->format('d M Y H:i') : '-',
                 ];
             }),
         ]);
-    }
-
-    public function getTimeslotsByField(Request $request, Venue $venue, Field $field)
-    {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-        $this->ensureFieldInVenue($field, $venue);
-
-        $date = $request->query('date') ?? now()->toDateString();
-        $defaultStatus = SlotStatusLabel::where('label', 'Tersedia')->first();
-
-        $field->load([
-            'timeslots',
-            'slotStatuses' => fn ($q) => $q
-                ->whereDate('date', $date)
-                ->with('slotStatusLabel')
-        ]);
-
-        $statusMap = $field->slotStatuses->keyBy('time_slot_id');
-
-        return response()->json([
-            'venue_id' => $venue->id,
-            'field_id' => $field->id,
-            'date' => $date,
-            'timeslots' => $field->timeslots->map(function ($ts) use ($statusMap, $defaultStatus) {
-                $status = $statusMap[$ts->id] ?? null;
-                return [
-                    'timeslot_id' => $ts->id,
-                    'name' => $ts->name,
-                    'price' => $ts->pivot->price,
-                    'status_id' => $status?->status_id ?? $defaultStatus?->id,
-                    'status_label' => $status?->slotStatusLabel?->label ?? $defaultStatus?->label,
-                    'updated_at' => $status?->updated_at?->format('d M Y H:i') ?? '-',
-                ];
-            }),
-        ]);
-    }
-
-    public function updateTimeslots(Request $request, Venue $venue, Field $field)
-    {   
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-        $this->ensureFieldInVenue($field, $venue);
-
-        $validated = $request->validate([
-            'timeslot_ids' => ['required', 'array'],
-            'timeslot_ids.*' => ['exists:time_slots,id'],
-            'prices' => ['required', 'array'],
-            'prices.*' => ['numeric', 'min:0'],
-        ]);
-
-        // Buat array pivot: [timeslot_id => ['price' => x]]
-        $this->syncTimeslots($field, $validated['timeslot_ids'], $validated['prices']);
-
-        return redirect()->route('merchant.venues.fields.calendar', [
-            'venue' => $venue->slug,
-            'field' => $field->slug,
-        ])->with('success', 'Slot waktu berhasil diperbarui.');
-    }
-
-    public function updateTimeslotStatuses(Request $request, Venue $venue, Field $field)
-    {
-        $this->authorizeVenue($venue);
-        $this->authorizeField($field);
-        $this->ensureFieldInVenue($field, $venue);
-
-        $validated = $request->validate([
-            'date' => ['required', 'date'],
-            'status_id' => ['required', 'exists:slot_status_labels,id'],
-            'timeslot_ids' => ['required', 'array'],
-            'timeslot_ids.*' => ['required', 'exists:time_slots,id'],
-        ]);
-
-        foreach ($validated['timeslot_ids'] as $timeslotId) {
-            Log::info('Updating slot status', [
-                'field_id' => $field->id,
-                'timeslot_id' => $timeslotId,
-                'date' => $validated['date'],
-                'status_id' => $validated['status_id'],
-            ]);
-
-            SlotStatus::updateOrCreate(
-                [
-                    'field_id' => $field->id,
-                    'time_slot_id' => $timeslotId,
-                    'date' => $validated['date'],
-                ],
-                [
-                    'status_id' => $validated['status_id'],
-                ]
-            );
-        }
-
-        TimeslotStatusUpdated::dispatch(
-            $field->id,
-            $validated['timeslot_ids'],
-            $validated['date'],
-            $validated['status_id']
-        );
-
-        return redirect()->back()->with('success', 'Status slot berhasil diperbarui.');
-    }
-
-    protected function syncTimeslots(Field $field, array $timeslotIds, array $prices)
-    {
-        $syncData = [];
-
-        foreach ($timeslotIds as $id) {
-            $syncData[$id] = ['price' => $prices[$id] ?? 0];
-        }
-
-        $field->timeslots()->sync($syncData);
     }
 }

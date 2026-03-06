@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('membership_package_id')->constrained('membership_packages')->cascadeOnDelete();
             $table->string('name'); 
             $table->text('description')->nullable(); 
-            $table->softDeletes();
             $table->timestamps();
         });
     }

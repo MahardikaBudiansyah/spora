@@ -16,13 +16,25 @@ import {
 } from "@/components/Common/Card";
 import Table from "@/components/Common/Table";
 import Button from "@/components/Common/Button";
+import DevelopmentPlaceholder from "@/components/Common/DevelopmentPlaceholder";
+import {
+    CalendarCheck,
+    Edit,
+    FileText,
+    Info,
+    Plus,
+    Trash2,
+} from "lucide-react";
+import BannerAlert from "@/components/Common/BannerAlert";
 
 export default function Index() {
     const {
+        merchant,
         staff: staffProps,
         globalRoles,
         merchantRoles,
         shifts: shiftsProps,
+        can_create,
     } = usePage().props;
     const { isOpen, open, close } = useModal();
     const [staffState, setStaffState] = useState(staffProps);
@@ -30,6 +42,7 @@ export default function Index() {
     const isRoleModalOpen = isOpen("RoleModal");
     const isShiftModalOpen = isOpen("ShiftModal");
     const isStaffModalOpen = isOpen("StaffModal");
+    const isPrintModalOpen = isOpen("PrintModal");
     const [selectedRoles, setSelectedRoles] = useState([]);
 
     useEffect(() => {
@@ -52,7 +65,7 @@ export default function Index() {
                     close();
                 },
                 onError: () => toast.error("Gagal memperbarui role"),
-            }
+            },
         );
     };
 
@@ -64,7 +77,7 @@ export default function Index() {
                 route("merchant.staff.updateStatus", { staff: row.username }),
                 {
                     status: newStatus,
-                }
+                },
             )
             .then((response) => {
                 toast.success(`Status berhasil diubah menjadi ${newStatus}`);
@@ -72,7 +85,7 @@ export default function Index() {
                 setStaffState((prev) => ({
                     ...prev,
                     data: prev.data.map((r) =>
-                        r.id === row.id ? { ...r, status: newStatus } : r
+                        r.id === row.id ? { ...r, status: newStatus } : r,
                     ),
                 }));
             })
@@ -141,6 +154,7 @@ export default function Index() {
                         variant="info"
                         size="xs"
                         onClick={() => handleInfo(row)}
+                        className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                     >
                         Info
                     </Button>
@@ -148,6 +162,7 @@ export default function Index() {
                         variant="success"
                         size="xs"
                         onClick={() => handleEdit(row)}
+                        className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                     >
                         Edit
                     </Button>
@@ -156,6 +171,7 @@ export default function Index() {
                             variant="warning"
                             size="xs"
                             onClick={() => handleAssignment(row)}
+                            className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                         >
                             Penugasan
                         </Button>
@@ -164,6 +180,7 @@ export default function Index() {
                         variant="danger"
                         size="xs"
                         onClick={() => handleDelete(row)}
+                        className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                     >
                         Hapus
                     </Button>
@@ -178,31 +195,43 @@ export default function Index() {
 
     const handleAssignment = (row) => {
         router.get(
-            route("merchant.staff.operator.index", { staff: row.username })
+            route("merchant.staff.operator.index", { staff: row.username }),
         );
     };
 
     return (
         <MerchantLayout>
-            <Head title="Staff" />
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
-                <CardHeader>
-                    <div className="flex flex-row justify-between items-center p-4">
-                        <div className="font-bold uppercase text-lg">Staff</div>
-                        <div className="flex flex-row gap-4">
+            <Head title={`Daftar Staff - ${merchant?.name || "Merchant"}`} />
+            <Card className="flex flex-col h-full rounded-md shadow-none">
+                <CardHeader className="p-4 md:p-6">
+                    <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
+                        <div className="flex flex-col md:gap-1 justify-center text-center md:text-left">
+                            <div className="flex flex-col md:flex-row font-bold text-2xl">
+                                <span>Daftar Staff</span>
+                            </div>
+                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                <span>Mitra </span>
+                                <span>{merchant.name}</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-row flex-wrap gap-2">
                             <Button
                                 variant="primary"
                                 size="xs"
                                 onClick={() => open("RoleModal")}
+                                disabled={!can_create}
+                                className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                             >
-                                + Tambah/Edit Role
+                                Role
                             </Button>
                             <Button
                                 variant="primary"
                                 size="xs"
                                 onClick={() => open("ShiftModal")}
+                                disabled={!can_create}
+                                className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                             >
-                                + Tambah/Hapus Shift Kerja
+                                Shift
                             </Button>
                             <Button
                                 variant="primary"
@@ -214,31 +243,70 @@ export default function Index() {
                                         open("StaffModal");
                                     }
                                 }}
+                                disabled={!can_create}
+                                className="flex items-center w-auto gap-1.5 px-3 min-w-max"
                             >
-                                + Tambah Staff
+                                Tambah Staff
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="xs"
+                                onClick={() => open("PrintModal")}
+                                disabled={!can_create}
+                                className="px-2 md:px-3 gap-1.5"
+                            >
+                                Cetak Data
                             </Button>
                         </div>
                     </div>
                 </CardHeader>
-                <CardBody className="px-0 pb-8">
-                    <Table
-                        columns={columns}
-                        data={staffState.data}
-                        wrapperClassName="border-none rounded-none shadow-none"
-                        tableClassName="text-xs items-center"
-                        emptyState={
-                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                Tidak ada data Staff.
+                <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                    {!can_create && (
+                        <BannerAlert
+                            type="warning"
+                            title="Verifikasi Data Mitra Diperlukan"
+                            size="md"
+                            titleClassName="text-xs"
+                            className="mt-0 mb-4 mx-4 md:mx-8 "
+                        >
+                            <div className="flex text-xs">
+                                <p>
+                                    Anda belum dapat menambah atau mengelola
+                                    fitur staff secara penuh sebelum verifikasi
+                                    profil Mitra Anda disetujui oleh Admin.
+                                    Silakan lengkapi data profil dan tunggu
+                                    proses verifikasi.{" "}
+                                    <Link
+                                        href={route("merchant.profile.index")}
+                                        className="font-bold"
+                                    >
+                                        Lengkapi Profil Sekarang.
+                                    </Link>
+                                </p>
                             </div>
-                        }
-                    />
-                    <Pagination
-                        links={staffState.links}
-                        meta={staffState}
-                        className="p-6 my-2"
-                    />
+                        </BannerAlert>
+                    )}
+                    <div className="py-2 flex-1 overflow-x-auto">
+                        <Table
+                            columns={columns}
+                            data={staffState.data}
+                            wrapperClassName="border-none rounded-none shadow-none"
+                            tableClassName="text-xs items-center"
+                            emptyState={
+                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                                    Tidak ada data Staff.
+                                </div>
+                            }
+                        />
+                        <Pagination
+                            links={staffState.links}
+                            meta={staffState}
+                            className="p-6 my-2"
+                        />
+                    </div>
                 </CardBody>
-                <CardFooter className="my-8 p-8 flex justify-end gap-2"></CardFooter>
+
+                <CardFooter className="p-6 md:p-8 flex gap-2 justify-end"></CardFooter>
             </Card>
 
             <CreateRoleModal
@@ -258,6 +326,12 @@ export default function Index() {
                 show={isStaffModalOpen}
                 onClose={close}
                 roles={merchantRoles}
+            />
+
+            <DevelopmentPlaceholder
+                show={isPrintModalOpen}
+                title="Fitur Cetak Data"
+                onClose={close}
             />
         </MerchantLayout>
     );

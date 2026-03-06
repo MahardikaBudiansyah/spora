@@ -8,19 +8,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureBookingCartHasSelectedSlots
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-
     public function handle(Request $request, Closure $next)
     {
-        $user = $request->user();
-        $carts = $user->carts;
+        $hasCartSession = session()->has('checkout_cart_ids') && !empty(session('checkout_cart_ids'));
+        
+        $hasSnapToken = session()->has('flash.snap_token') || session()->has('snap_token');
 
-        if ($carts->isEmpty()) {
-            return redirect()->route('home')->with('error', 'Pilih slot terlebih dahulu.');
+        if (!$hasCartSession && !$hasSnapToken) {
+            return redirect()->route('user.dashboard')->with('error', 'Sesi checkout telah berakhir.');
         }
 
         return $next($request);

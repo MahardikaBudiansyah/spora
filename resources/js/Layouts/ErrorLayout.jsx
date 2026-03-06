@@ -28,6 +28,7 @@ export default function ErrorLayout({ code, message, dashboardUrl }) {
                     {/* Tombol */}
                     <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-3">
                         <Button
+                            type="button"
                             variant="light"
                             onClick={() => window.history.back()}
                             className="px-6 py-3 text-base font-normal"
@@ -35,13 +36,15 @@ export default function ErrorLayout({ code, message, dashboardUrl }) {
                             Kembali
                         </Button>
 
-                        <Button
-                            variant="primary"
-                            onClick={dashboardUrl}
-                            className="px-6 py-3 text-base font-normal"
-                        >
-                            Ke Dashboard
-                        </Button>
+                        <Link href={dashboardUrl}>
+                            <Button
+                                type="button"
+                                variant="primary"
+                                className="px-6 py-3 text-base font-normal"
+                            >
+                                Ke Dashboard
+                            </Button>
+                        </Link>
                     </div>
 
                     {/* Catatan kecil */}

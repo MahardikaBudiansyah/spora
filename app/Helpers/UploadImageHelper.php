@@ -2,10 +2,11 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class UploadImageHelper
 {
@@ -40,6 +41,13 @@ class UploadImageHelper
         return $uploadedImages;
     }
 
+    public static function handleSingleUpload(UploadedFile $file, string $folder, string $filename): string
+    {
+        $ext = $file->getClientOriginalExtension();
+        $fullFilename = "{$filename}.{$ext}";
+
+        return $file->storeAs("uploads/{$folder}", $fullFilename, 'public');
+    }
     /**
      * Sinkronisasi gambar saat update data.
      *
@@ -54,16 +62,15 @@ class UploadImageHelper
     {
         $slugName = Str::slug($options['slug_name'] ?? 'item');
         $folder = $options['folder'] ?? 'uploads';
-        $existingImageIds = collect(json_decode($request->input('existing_image_ids', '[]')));
-        $mainImageIndex = intval($request->input('main_image_index', 0));
 
-        // Tambahkan main_image ke existing jika belum ada
-        $mainImageId = intval($request->input('main_image_id', 0));
-        if ($mainImageId && !$existingImageIds->contains($mainImageId)) {
-            $existingImageIds->push($mainImageId);
-        }
+        // 1. Ambil data input
+        $rawIds = $request->input('existing_image_ids', '[]');
 
-        // Hapus gambar yang tidak disimpan
+        // PASTIKAN ada parameter 'true' di json_decode agar jadi Array PHP
+        $decodedIds = is_string($rawIds) ? json_decode($rawIds, true) : $rawIds;
+        $existingImageIds = collect($decodedIds ?? []);
+
+        // 2. Hapus yang tidak ada di list
         $model->images()->whereNotIn('id', $existingImageIds)->get()->each(function ($image) {
             if ($image->image_path) {
                 Storage::disk('public')->delete($image->image_path);
@@ -71,36 +78,50 @@ class UploadImageHelper
             $image->delete();
         });
 
-        // Upload image baru
+        // 3. Upload gambar baru
+        // Di log tadi 'New Files to Upload' namanya 'images', maka:
         if ($request->hasFile('images')) {
-            $startOrder = $existingImageIds->count();
+            Log::info('Helper detected files. Starting loop...');
+            foreach ($request->file('images') as $index => $image) {
+                $path = $image->storeAs("{$folder}/{$model->id}", "test-{$index}-" . time() . ".jpg", 'public');
 
-            foreach ($request->file('images') as $i => $image) {
-                if (!($image instanceof UploadedFile)) continue;
-
-                $ext = $image->getClientOriginalExtension();
-                $filename = "{$model->id}-{$slugName}-gambar-" . ($i + 1) . '-' . time() . ".{$ext}";
-                $path = $image->storeAs("{$folder}/{$model->id}", $filename, 'public');
-
-                $model->images()->create([
+                $newImg = $model->images()->create([
                     'image_path' => $path,
                     'is_featured' => false,
-                    'order' => $startOrder + $i,
+                    'order' => 99,
                 ]);
+
+                Log::info('Image created:', ['id' => $newImg->id, 'path' => $newImg->image_path]);
             }
+        } else {
+            Log::warning('Helper did not see any files in $request->file("images")');
         }
 
-        // Reset is_featured dulu semua
-        $model->images()->update(['is_featured' => false]);
+        // 4. Update Urutan & Featured Image
+        $mainImageIndex = intval($request->input('main_image_index', 0));
 
-        // Ambil ulang gambar, atur urutan dan featured
-        $allImages = $model->images()->orderBy('id')->get()->values();
-        $mainImage = $allImages->get($mainImageIndex);
+        // REFRESH relasi agar gambar baru (ID 25-28) masuk ke koleksi
+        $allImages = $model->images()
+            ->orderBy('order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
 
-        foreach ($allImages as $i => $image) {
-            $image->order = $i;
-            $image->is_featured = $mainImage && $image->id == $mainImage->id;
-            $image->save();
+        // HITUNG ULANG Featured
+        foreach ($allImages as $index => $image) {
+            // Paksa update urutan agar bersih (0, 1, 2, 3...)
+            // Dan set featured hanya jika index-nya cocok dengan yang dikirim React
+            $image->update([
+                'order' => $index,
+                'is_featured' => ($index === $mainImageIndex)
+            ]);
+
+            if ($index === $mainImageIndex) {
+                Log::info("Featured Image Berhasil Diset:", [
+                    'image_id' => $image->id,
+                    'index_target' => $mainImageIndex,
+                    'image_path' => $image->image_path
+                ]);
+            }
         }
     }
 
@@ -110,7 +131,38 @@ class UploadImageHelper
         $filename = "{$userId}-profile-" . time() . ".{$ext}";
         $path = $file->storeAs('uploads/users', $filename, 'public');
 
-        return $path; // HARUS string
+        return $path;
     }
 
+    public static function resolveProfilePath($request, $model, string $fieldName, string $folderPrefix)
+    {
+        $inputValue = $request->{$fieldName};
+        $id = $model->id;
+        $subFolder = "{$folderPrefix}/accounts/{$id}";
+
+        if ($request->hasFile($fieldName)) {
+            if ($model->{$fieldName} && !str_contains($model->{$fieldName}, 'assets/')) {
+                Storage::disk('public')->delete($model->{$fieldName});
+            }
+
+            $filename = "profile-{$id}-" . time();
+            return self::handleSingleUpload($request->file($fieldName), $subFolder, $filename);
+        }
+
+        if (is_string($inputValue) && !empty($inputValue)) {
+            $parsedUrl = parse_url($inputValue, PHP_URL_PATH);
+            $cleanPath = ltrim($parsedUrl, '/');
+
+            if (str_contains($cleanPath, 'assets/')) {
+                if ($model->{$fieldName} && !str_contains($model->{$fieldName}, 'assets/')) {
+                    Storage::disk('public')->delete($model->{$fieldName});
+                }
+                return $parsedUrl;
+            }
+
+            return $cleanPath;
+        }
+
+        return $model->{$fieldName};
+    }
 }

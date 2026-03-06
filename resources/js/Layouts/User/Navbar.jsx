@@ -4,13 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import HamburgerButton from "@/components/common/HamburgerButton";
 import ThemeToggle from "@/components/common/ThemeToggle";
-import NavLogo from "@/components/user/navbar/Navlogo";
-import NavMenuItem from "@/components/user/navbar/NavMenuItem";
-import NavAction from "@/components/user/navbar/NavAction";
+import NavLogo from "@/components/user/Navbar/Navlogo";
+import NavMenuItem from "@/components/user/Navbar/NavMenuItem";
+import NavAction from "@/components/user/Navbar/NavAction";
 import UserAvatarDropdown from "@/components/common/UserAvatarDropdown";
 import NotificationDropdown from "@/components/Common/NotificationDropdown";
 import { ShoppingCart, LayoutDashboard, User, LogOut } from "lucide-react";
 import Cart from "@/components/user/Cart";
+import { router } from "@inertiajs/react";
+import IconButton from "@/components/Common/IconButton";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function Navbar() {
     const userMenu = [
         {
             label: "Dashboard",
-            href: route("user.dashboard"),
+            href: route("user.dashboard.index"),
             icon: LayoutDashboard,
         },
         {
@@ -39,7 +41,6 @@ export default function Navbar() {
         },
     ];
 
-    // Dummy notifications
     const [notifications, setNotifications] = useState([
         {
             title: "Booking Baru",
@@ -93,38 +94,45 @@ export default function Navbar() {
     ]);
 
     return (
-        <nav className="bg-white dark:bg-dark fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
+        <nav className="bg-white dark:bg-dark fixed w-full z-20 top-0 start-0 border-b border-secondary-200 dark:border-secondary-600">
             <div className="max-w-screen-lg flex flex-wrap items-center justify-between mx-auto p-4">
                 <NavLogo />
 
                 <div className="relative flex items-center md:order-2 space-x-3 md:space-x-4 rtl:space-x-reverse">
                     {/* Cart icon */}
-                    <button className="relative p-2 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-700 transition">
-                        <ShoppingCart
-                            className="w-5 h-5 text-gray-600 dark:text-gray-300"
-                            onClick={async () => {
-                                if (authenticated) {
-                                    await fetchCarts(); // refresh dulu biar pasti update
-                                    setIsCartOpen(true);
-                                } else {
-                                    openModal("login", true);
-                                }
-                            }}
-                        />
+                    <IconButton
+                        variant="light"
+                        onClick={async () => {
+                            if (authenticated) {
+                                await fetchCarts();
+                                setIsCartOpen(true);
+                            } else {
+                                openModal("login", true);
+                            }
+                        }}
+                        className="relative rounded-full border-none hover:bg-secondary-100 dark:hover:bg-secondary-700 outline-none"
+                    >
+                        <ShoppingCart className="w-4 h-4 text-secondary-600 dark:text-secondary-300 outline-none" />
 
                         {authenticated && cartCount > 0 && (
                             <span className="absolute -top-1 -right-0 inline-flex items-center justify-center px-1.5 py-1 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
                                 {cartCount > 99 ? "99+" : cartCount}
                             </span>
                         )}
-                    </button>
-                    {/* {authenticated( */}
-                    <div className="relative">
-                        <NotificationDropdown notifications={notifications} />
-                    </div>
-                    {/* )} */}
+                    </IconButton>
+                    {authenticated && (
+                        <NotificationDropdown
+                            notifications={notifications.list}
+                            unreadCount={notifications.unread_count}
+                            // onMarkAllRead={handleMarkAllRead}
+                            onNotificationClick={(id) =>
+                                router.post(
+                                    route("user.notifications.markAsRead", id),
+                                )
+                            }
+                        />
+                    )}
 
-                    {/* User avatar / auth buttons */}
                     {authenticated ? (
                         <UserAvatarDropdown user={user} menuItems={userMenu} />
                     ) : (
@@ -132,7 +140,7 @@ export default function Navbar() {
                     )}
 
                     <ThemeToggle tooltipPlacement="right" />
-                    <div className="hidden md:block w-px h-6 bg-gray-300 dark:bg-gray-600" />
+                    <div className="hidden md:block w-px h-6 bg-secondary-300 dark:bg-secondary-600" />
                     <HamburgerButton
                         isOpen={isOpen}
                         onClick={() => setIsOpen(!isOpen)}
@@ -141,7 +149,6 @@ export default function Navbar() {
                     />
                 </div>
 
-                {/* Menu navigasi */}
                 <div
                     className={`items-center justify-between w-full md:flex md:w-auto md:order-1 ${
                         isOpen ? "block" : "hidden"
@@ -170,10 +177,9 @@ export default function Navbar() {
                             isActive={route().current("contact")}
                         />
 
-                        {/* Auth buttons khusus mobile */}
                         {!authenticated && (
                             <>
-                                <hr className="my-4 border-gray-300 dark:border-gray-600 md:hidden" />
+                                <hr className="my-4 border-secondary-300 dark:border-secondary-600 md:hidden" />
                                 <li className="md:hidden">
                                     <button
                                         onClick={() => openModal("login")}

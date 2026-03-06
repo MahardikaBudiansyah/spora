@@ -16,7 +16,7 @@ import Badge from "@/components/common/Badge";
 import { formatTo08 } from "@/utils/numberPhone";
 import { formatFullDateTime } from "@/utils/date";
 import { formatRupiah } from "@/utils/currency";
-import { getInvoiceStatus } from "@/utils/invoiceAttribute";
+import { getInvoiceStatus } from "@/utils/attributes/invoiceAttribute";
 
 export default function Index() {
     const { transactions = [] } = usePage().props;
@@ -61,7 +61,7 @@ export default function Index() {
                     // jika booking_customers ada, bisa ambil nama utama atau gabungan
                     return row.order.customer?.name || "-";
                 } else if (row.order_type_label === "Membership") {
-                    return row.order.membership_user?.user?.name || "-";
+                    return row.order?.user?.name || "-";
                 }
                 return "-";
             },
@@ -77,8 +77,7 @@ export default function Index() {
                 if (row.order_type_label === "Booking") {
                     phone = row.order.customer?.phone_number || "-";
                 } else if (row.order_type_label === "Membership") {
-                    phone =
-                        row.order.membership_user?.user?.phone_number || "-";
+                    phone = row.order?.user?.phone_number || "-";
                 }
                 return formatTo08(phone);
             },

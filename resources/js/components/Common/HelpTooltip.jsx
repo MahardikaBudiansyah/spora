@@ -1,11 +1,10 @@
 import Tippy from "@tippyjs/react";
-import "tippy.js/dist/tippy.css";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Info } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 export default function HelpTooltip({
     text,
-    trigger = "hover",
+    trigger = "mouseenter focus",
     placement = "top",
     className = "",
     tooltipClassName = "",
@@ -27,8 +26,13 @@ export default function HelpTooltip({
                     className
                 )}
             >
-                <HelpCircle
-                    className={twMerge("w-5 h-5 text-gray-500", iconClassName)}
+                <Info
+                    strokeWidth={2}
+                    size={16}
+                    className={twMerge(
+                        "text-secondary-500 dark:text-secondary-200",
+                        iconClassName
+                    )}
                 />
             </span>
         </Tippy>

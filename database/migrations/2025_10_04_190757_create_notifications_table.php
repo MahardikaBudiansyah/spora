@@ -12,16 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->string('type');
 
-            // Polymorphic relation untuk multi-guard
-            $table->morphs('notifiable'); // membuat notifiable_type & notifiable_id
+            $table->morphs('notifiable');
 
-            $table->string('source')->default('platform'); // platform sendiri, midtrans, twilio, dll
-            $table->string('type'); // tipe notifikasi, misal: 'booking_created', 'payment_success'
-            $table->json('data')->nullable(); // data tambahan terkait notifikasi
-            $table->timestamp('read_at')->nullable(); // tanda sudah dibaca
+            $table->string('source')->default('platform');
+            $table->string('category')->nullable();
+            $table->json('data');
+            $table->timestamp('read_at')->nullable();
+            $table->boolean('is_pinned')->default(false);
+            $table->boolean('is_archived')->default(false);
             $table->timestamps();
+
+            $table->index(['read_at', 'is_pinned', 'is_archived']);
         });
     }
 

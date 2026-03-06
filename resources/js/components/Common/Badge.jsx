@@ -1,17 +1,25 @@
+import React from "react";
 import { twMerge } from "tailwind-merge";
+import Tippy from "@tippyjs/react";
 
-export default function Badge({ children, color = "gray", className = "" }) {
+export default function Badge({
+    children,
+    color = "gray",
+    variant = "subtle",
+    className = "",
+    tooltip,
+    ...props
+}) {
     const baseStyle =
-        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium";
+        "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold cursor-default";
 
-    const colorMap = {
+    const subtleMap = {
         slate: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-100",
         gray: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100",
         zinc: "bg-zinc-100 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-100",
         neutral:
             "bg-neutral-100 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-100",
         stone: "bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-100",
-
         red: "bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-100",
         orange: "bg-orange-100 text-orange-800 dark:bg-orange-700 dark:text-orange-100",
         amber: "bg-amber-100 text-amber-800 dark:bg-amber-700 dark:text-amber-100",
@@ -33,11 +41,52 @@ export default function Badge({ children, color = "gray", className = "" }) {
         rose: "bg-rose-100 text-rose-800 dark:bg-rose-700 dark:text-rose-100",
     };
 
-    const combined = twMerge(
-        baseStyle,
-        colorMap[color] || colorMap.gray,
-        className
+    const solidMap = {
+        slate: "bg-slate-600 text-white dark:bg-slate-400 dark:text-slate-950",
+        gray: "bg-gray-600 text-white dark:bg-gray-400 dark:text-gray-950",
+        zinc: "bg-zinc-600 text-white dark:bg-zinc-400 dark:text-zinc-950",
+        neutral:
+            "bg-neutral-600 text-white dark:bg-neutral-400 dark:text-neutral-950",
+        stone: "bg-stone-600 text-white dark:bg-stone-400 dark:text-stone-950",
+        red: "bg-red-600 text-white dark:bg-red-400 dark:text-red-950",
+        orange: "bg-orange-600 text-white dark:bg-orange-400 dark:text-orange-950",
+        amber: "bg-amber-600 text-white dark:bg-amber-400 dark:text-amber-950",
+        yellow: "bg-yellow-500 text-black dark:bg-yellow-400 dark:text-yellow-950",
+        lime: "bg-lime-600 text-white dark:bg-lime-400 dark:text-lime-950",
+        green: "bg-green-600 text-white dark:bg-green-400 dark:text-green-950",
+        emerald:
+            "bg-emerald-600 text-white dark:bg-emerald-400 dark:text-emerald-950",
+        teal: "bg-teal-600 text-white dark:bg-teal-400 dark:text-teal-950",
+        cyan: "bg-cyan-600 text-white dark:bg-cyan-400 dark:text-cyan-950",
+        sky: "bg-sky-600 text-white dark:bg-sky-400 dark:text-sky-950",
+        blue: "bg-blue-600 text-white dark:bg-blue-400 dark:text-blue-950",
+        indigo: "bg-indigo-600 text-white dark:bg-indigo-400 dark:text-indigo-950",
+        violet: "bg-violet-600 text-white dark:bg-violet-400 dark:text-violet-950",
+        purple: "bg-purple-600 text-white dark:bg-purple-400 dark:text-purple-950",
+        fuchsia:
+            "bg-fuchsia-600 text-white dark:bg-fuchsia-400 dark:text-fuchsia-950",
+        pink: "bg-pink-600 text-white dark:bg-pink-400 dark:text-pink-950",
+        rose: "bg-rose-600 text-white dark:bg-rose-400 dark:text-rose-950",
+    };
+
+    const colorClasses =
+        variant === "solid"
+            ? solidMap[color] || solidMap.gray
+            : subtleMap[color] || subtleMap.gray;
+
+    const combined = twMerge(baseStyle, colorClasses, className);
+
+    const badgeContent = (
+        <span className={combined} {...props}>
+            {children}
+        </span>
     );
 
-    return <span className={combined}>{children}</span>;
+    return tooltip ? (
+        <Tippy content={tooltip} touch={false}>
+            {badgeContent}
+        </Tippy>
+    ) : (
+        badgeContent
+    );
 }

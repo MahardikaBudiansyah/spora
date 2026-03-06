@@ -17,6 +17,7 @@ export default function DatePickerInput({
     wrapperClassName,
     calendarClassName,
     disabled,
+    isError = false,
     isRange = false,
     isMultiple = false,
     value,
@@ -42,14 +43,18 @@ export default function DatePickerInput({
         "dark:bg-secondary-800 dark:border-secondary-700"
     );
 
-    const baseWrapperClasses = `
-      w-full flex flex-row justify-between items-center rounded-md border border-secondary-300 shadow-sm
-      focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500
-      hover:border-primary-500 dark:hover:border-primary-500
-      dark:border-secondary-600 dark:bg-secondary-800 dark:text-white
-    `;
+    const baseWrapperClasses = twMerge(
+        "w-full flex flex-row justify-between items-center rounded-md shadow-sm border transition-all " +
+            "border-secondary-300 dark:border-secondary-600 dark:bg-secondary-800 dark:text-white " +
+            "hover:border-primary-500 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 ",
 
-    // ✅ Handle perubahan value
+        isError &&
+            "border-red-500 dark:border-red-500 hover:border-red-500 focus-within:border-red-500 focus-within:ring-red-500",
+        disabled &&
+            "opacity-50 cursor-not-allowed bg-secondary-100 dark:bg-secondary-700",
+        wrapperClassName
+    );
+
     const handleChange = (newVal) => {
         if (isRange) {
             onChange?.({
@@ -61,7 +66,6 @@ export default function DatePickerInput({
                 Array.isArray(newVal) ? newVal.map((d) => new Date(d)) : []
             );
         } else {
-            // Single date → kirim Date tunggal
             onChange?.(newVal ? new Date(newVal) : null);
         }
     };
@@ -107,6 +111,7 @@ export default function DatePickerInput({
             disabled={disabled}
             zIndex={zIndex}
             portal
+            containerClassName="w-full"
             className={twMerge(
                 "rmdp-cyan cyan",
                 `rmdp-${adaptiveLayout}`,
@@ -117,14 +122,7 @@ export default function DatePickerInput({
             plugins={plugins}
             placeholder="Pilih tanggal..."
             render={(value, openCalendar) => (
-                <div
-                    className={twMerge(
-                        baseWrapperClasses,
-                        disabled &&
-                            "opacity-50 cursor-not-allowed bg-secondary-100 dark:bg-secondary-700",
-                        wrapperClassName
-                    )}
-                >
+                <div className={baseWrapperClasses}>
                     <input
                         readOnly
                         disabled={disabled}
@@ -132,15 +130,18 @@ export default function DatePickerInput({
                         onClick={!disabled ? openCalendar : undefined}
                         placeholder="Pilih tanggal..."
                         className={twMerge(
-                            "w-full border-none outline-none ring-0 bg-transparent",
-                            "placeholder:text-xs placeholder-secondary-400 dark:placeholder-secondary-500",
+                            "w-full border-none outline-none focus:ring-0 ring-0 bg-transparent text-sm px-3 py-2",
+                            "placeholder:text-xs placeholder-secondary-400 dark:placeholder:text-secondary-500",
                             disabled ? "cursor-not-allowed" : "cursor-pointer"
                         )}
                     />
                     <Calendar
                         onClick={!disabled ? openCalendar : undefined}
                         className={twMerge(
-                            "w-5 h-5 mx-4 text-secondary-500 dark:text-secondary-400",
+                            "w-5 h-5 mx-3 transition-colors",
+                            isError
+                                ? "text-red-500"
+                                : "text-secondary-500 dark:text-secondary-400",
                             disabled
                                 ? "cursor-not-allowed opacity-50"
                                 : "cursor-pointer"

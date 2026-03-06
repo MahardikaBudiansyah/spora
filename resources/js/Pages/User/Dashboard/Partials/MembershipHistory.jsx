@@ -6,8 +6,7 @@ import {
     CardFooter,
     CardHeader,
 } from "@/components/Common/Card";
-import { getMembershipStatus } from "@/utils/membershipAttribute";
-import { getInvoiceStatus } from "@/utils/invoiceAttribute";
+import { getInvoiceStatus } from "@/utils/attributes/invoiceAttribute";
 import { formatShortDate } from "@/utils/date";
 import { formatRupiah } from "@/utils/currency";
 import Badge from "@/components/common/Badge";
@@ -60,13 +59,13 @@ export default function MembershipHistory({
             case "payment":
                 window.location.href = route(
                     "user.memberships.payment",
-                    membership.id
+                    membership.id,
                 );
                 break;
             case "review":
                 window.location.href = route(
                     "user.memberships.review",
-                    membership.id
+                    membership.id,
                 );
                 break;
             case "rebook":
@@ -91,7 +90,7 @@ export default function MembershipHistory({
                 {memberships.map((membership) => {
                     const { label, color } = getMembershipStatus(
                         membership.status,
-                        membership.is_queued
+                        membership.is_queued,
                     );
                     const invoice = membership.invoice;
                     const invoiceInfo = invoice
@@ -108,7 +107,6 @@ export default function MembershipHistory({
                             }`}
                             className="py-6 px-4 border rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-secondary-800 transition"
                         >
-                            {/* HEADER */}
                             <CardHeader className="flex flex-col gap-2 border-none">
                                 <div className="flex items-center gap-2">
                                     <div className="font-bold">
@@ -140,7 +138,6 @@ export default function MembershipHistory({
                                 </div>
                             </CardHeader>
 
-                            {/* BODY */}
                             <CardBody className="flex flex-col gap-2">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                                     <div>
@@ -165,11 +162,11 @@ export default function MembershipHistory({
                                         <div className="text-sm text-gray-600 dark:text-gray-400">
                                             Periode:{" "}
                                             {formatShortDate(
-                                                membership.start_date
+                                                membership.start_date,
                                             )}{" "}
                                             -{" "}
                                             {formatShortDate(
-                                                membership.end_date
+                                                membership.end_date,
                                             )}
                                         </div>
                                     </div>
@@ -177,14 +174,13 @@ export default function MembershipHistory({
                                     <div className="mt-2 sm:mt-0 text-right">
                                         <span className="font-bold ">
                                             {formatRupiah(
-                                                membership.total_price
+                                                membership.total_price,
                                             )}
                                         </span>
                                     </div>
                                 </div>
                             </CardBody>
 
-                            {/* FOOTER */}
                             <CardFooter className="flex gap-2 justify-end items-center border-none">
                                 {getCardActions(membership).map(
                                     (action, idx) => (
@@ -197,7 +193,7 @@ export default function MembershipHistory({
                                         >
                                             {action.label}
                                         </Button>
-                                    )
+                                    ),
                                 )}
                             </CardFooter>
                         </Card>

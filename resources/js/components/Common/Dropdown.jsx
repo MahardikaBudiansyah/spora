@@ -1,4 +1,11 @@
-import { useState, createContext, useContext, Fragment } from "react";
+import {
+    useState,
+    createContext,
+    useContext,
+    Fragment,
+    useEffect,
+    useRef,
+} from "react";
 import { Link } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
 
@@ -6,39 +13,54 @@ const DropDownContext = createContext();
 
 const Dropdown = ({ children }) => {
     const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
-    const toggleOpen = () => {
-        setOpen((prev) => !prev);
-    };
+    const toggleOpen = () => setOpen((prev) => !prev);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <DropDownContext.Provider value={{ open, setOpen, toggleOpen }}>
-            <div className="relative">{children}</div>
+            <div className="relative" ref={dropdownRef}>
+                {children}
+            </div>
         </DropDownContext.Provider>
     );
 };
 
 const Trigger = ({ children }) => {
     const { toggleOpen } = useContext(DropDownContext);
-
-    return <div onClick={toggleOpen}>{children}</div>;
+    return (
+        <div className="cursor-pointer" onClick={toggleOpen}>
+            {children}
+        </div>
+    );
 };
 
 const Content = ({
     align = "right",
-    width = "48",
-    contentClasses = "pt-1 pb-3 bg-white dark:bg-secondary-900 border dark:border-secondary-700",
+    width = "w-48",
+    contentClasses = "py-1 bg-white dark:bg-secondary-900 border dark:border-secondary-700",
     children,
+    onClick, // Menerima onClick custom
 }) => {
-    const { open, setOpen } = useContext(DropDownContext);
+    const { open } = useContext(DropDownContext);
 
-    // Alignment
     let alignmentClasses = "origin-top";
     if (align === "left") alignmentClasses = "origin-top-left start-0";
     else if (align === "right") alignmentClasses = "origin-top-right end-0";
-
-    // Width
-    let widthClasses = width === "48" ? "w-48" : "";
 
     return (
         <Transition
@@ -52,18 +74,14 @@ const Content = ({
             leaveTo="opacity-0 scale-95"
         >
             <div
-                className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses} hidden md:block`}
+                className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${width}`}
+                onClick={onClick}
             >
                 <div
                     className={`rounded-md ring-1 ring-black ring-opacity-5 ${contentClasses}`}
                 >
                     {children}
                 </div>
-                {/* Backdrop untuk klik di luar */}
-                <div
-                    className="fixed inset-0 z-40 md:hidden"
-                    onClick={() => setOpen(false)}
-                />
             </div>
         </Transition>
     );
@@ -72,17 +90,15 @@ const Content = ({
 const DropdownLink = ({ className = "", children, onClick, ...props }) => {
     const { setOpen } = useContext(DropDownContext);
 
-    const handleClick = (e) => {
-        setOpen(false); // Tutup dropdown
-        if (onClick) onClick(e);
-    };
-
     return (
         <Link
             {...props}
-            onClick={handleClick}
+            onClick={(e) => {
+                setOpen(false);
+                if (onClick) onClick(e);
+            }}
             className={
-                "block w-full px-4 py-2 text-start text-xs leading-5 text-gray-900 dark:text-white hover:bg-primary-400 dark:hover:bg-secondary-600 focus:outline-none focus:bg-primary-400 transition duration-150 ease-in-out " +
+                "block w-full px-4 py-2 text-start text-xs leading-5 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-secondary-800 focus:outline-none transition duration-150 ease-in-out " +
                 className
             }
         >

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, usePage, router, Link } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { toast } from "react-toastify";
 import AdminLayout from "@/Layouts/AdminLayout";
 import {
@@ -8,117 +8,18 @@ import {
     CardBody,
     CardFooter,
 } from "@/components/Common/Card";
-import Table from "@/components/Common/Table";
 import Button from "@/components/Common/Button";
-import Pagination from "@/components/common/Pagination";
 import DeleteModal from "@/components/common/DeleteModal";
-import Badge from "@/components/Common/Badge";
-import ButtonToggle from "@/components/Common/ButtonToggle";
-import { Eye, EyeClosed } from "lucide-react";
-
-import { formatTo08 } from "@/utils/numberPhone";
-import { formatFullDateTime } from "@/utils/date";
-import { getMerchantStatus } from "@/utils/merchantAttribute";
-import { getVenuesCountBadge } from "@/utils/venueAttribute";
+import MerchantTable from "@/features/merchants/components/tables/MerchantTable";
 
 export default function Index() {
-    const { merchants = [] } = usePage().props;
+    const {
+        merchants: { data: merchants },
+    } = usePage().props;
     console.log(merchants);
 
-    const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedMerchant, setSelectedMerchant] = useState(null);
-
-    const columns = [
-        { key: "number", header: "#", className: "text-center content-center" },
-        { key: "name", header: "Nama Mitra", className: "content-center" },
-        {
-            key: "email",
-            header: "email",
-            className: "text-center content-center",
-        },
-        {
-            key: "address",
-            header: "Alamat",
-            className: "content-center",
-            render: (val, row) =>
-                row.address ? (
-                    <div className="text-left">{row.address.address}</div>
-                ) : (
-                    <div className="text-center content-center">-</div>
-                ),
-        },
-        {
-            key: "phone_number",
-            header: "No Handphone",
-            render: (val, row) => formatTo08(row.phone_number) || "-",
-            className: "text-center content-center",
-        },
-        {
-            key: "venues_count",
-            header: "Jumlah Venue",
-            className: "text-center content-center w-32",
-            render: (val, row) => {
-                const { label, color } = getVenuesCountBadge(row.venues_count);
-                return <Badge color={color}>{label}</Badge>;
-            },
-        },
-        {
-            key: "status",
-            header: "Status",
-            render: (val) => {
-                const { label, color } = getMerchantStatus(val);
-                return <Badge color={color}>{label}</Badge>;
-            },
-            className: "text-center content-center",
-        },
-        {
-            key: "created_at",
-            header: "Tanggal Registrasi",
-            render: (val, row) => formatFullDateTime(row.created_at) || "-",
-            className: "text-center content-center",
-        },
-        {
-            key: "action",
-            header: "Aksi",
-            className: "text-center content-center",
-            render: (val, row) => (
-                <div className="flex gap-2 justify-center">
-                    <ButtonToggle
-                        active={row.is_active}
-                        onClick={() => handleToggleActive(row)}
-                        activeIcon={<Eye className="w-4 h-4" />}
-                        inactiveIcon={<EyeClosed className="w-4 h-4" />}
-                        tooltipActive="Aktif"
-                        tooltipInactive="Nonaktif"
-                        activeVariant="success"
-                        inactiveVariant="danger"
-                        size="sm"
-                    />
-                    <Button
-                        variant="warning"
-                        size="xs"
-                        onClick={() => handleInfo(row)}
-                    >
-                        Validasi
-                    </Button>
-                    <Button
-                        variant="info"
-                        size="xs"
-                        onClick={() => handleInfo(row)}
-                    >
-                        Info
-                    </Button>
-                    <Button
-                        variant="danger"
-                        size="xs"
-                        onClick={() => handleDelete(row)}
-                    >
-                        Hapus
-                    </Button>
-                </div>
-            ),
-        },
-    ];
 
     const handleToggleActive = async (row) => {
         try {
@@ -133,19 +34,25 @@ export default function Index() {
                         toast.success(
                             `Akun Mitra "${row.name}" berhasil ${
                                 newStatus ? "diaktifkan" : "dinonaktifkan"
-                            }.`
+                            }.`,
                         );
                     },
                     onError: () => {
                         toast.error(
-                            `Gagal mengubah status akun Mitra "${row.name}".`
+                            `Gagal mengubah status akun Mitra "${row.name}".`,
                         );
                     },
-                }
+                },
             );
         } catch (err) {
             toast.error("Terjadi kesalahan saat mengubah status.");
         }
+    };
+
+    const handleVerification = (row) => {
+        router.get(
+            route("admin.merchants.verification.index", { merchant: row.slug }),
+        );
     };
 
     const handleInfo = (row) => {
@@ -154,7 +61,7 @@ export default function Index() {
 
     const handleDelete = (row) => {
         setSelectedMerchant(row);
-        setShowModal(true);
+        setShowDeleteModal(true);
     };
 
     const deleteMerchant = () => {
@@ -168,7 +75,7 @@ export default function Index() {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success("Data akun Mitra berhasil dihapus!");
-                    setShowModal(false);
+                    setShowDeleteModal(false);
                     setSelectedMerchant(null);
                 },
                 onError: (errors) => {
@@ -178,7 +85,7 @@ export default function Index() {
                         toast.error("Gagal menghapus data akun Mitra!");
                     }
                 },
-            }
+            },
         );
     };
 
@@ -200,37 +107,26 @@ export default function Index() {
                         </Button>
                     </div>
                 </CardHeader>
-                <CardBody className="px-0 pb-8">
-                    <Table
-                        columns={columns}
-                        data={merchants.data}
-                        wrapperClassName="border-none rounded-none shadow-none"
-                        tableClassName="text-xs"
-                        emptyState={
-                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                Tidak ada data Mitra.{" "}
-                            </div>
-                        }
-                    />
-                    <Pagination
-                        links={merchants.links}
-                        meta={merchants}
-                        className="p-6 my-2"
+                <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                    <MerchantTable
+                        merchants={merchants}
+                        handleToggleActive={handleToggleActive}
+                        handleVerification={handleVerification}
+                        handleInfo={handleInfo}
+                        handleDelete={handleDelete}
                     />
                 </CardBody>
-
-                {showModal && selectedMerchant && (
-                    <DeleteModal
-                        show={showModal}
-                        onClose={() => setShowModal(false)}
-                        onDelete={deleteMerchant}
-                        title="Hapus data Mitra"
-                        description={`Yakin ingin menghapus data akun Mitra "${selectedMerchant.name}"?`}
-                    />
-                )}
-
-                <CardFooter className="my-8 p-8 flex justify-end gap-2"></CardFooter>
+                <CardFooter className="p-6 md:p-8 flex gap-2 justify-end"></CardFooter>
             </Card>
+            {showDeleteModal && (
+                <DeleteModal
+                    show={showDeleteModal}
+                    onClose={() => setShowDeleteModal(false)}
+                    onDelete={deleteMerchant}
+                    title="Hapus Data Mitra"
+                    description={`Yakin ingin menghapus data akun Mitra "${selectedMerchant.name}"?`}
+                />
+            )}
         </AdminLayout>
     );
 }

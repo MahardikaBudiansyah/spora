@@ -19,7 +19,7 @@ import { Eye, EyeClosed } from "lucide-react";
 
 import { formatTo08 } from "@/utils/numberPhone";
 import { formatFullDate } from "@/utils/date";
-import { getAdminStatus } from "@/utils/adminAttribute";
+import { getAdminStatus } from "@/utils/attributes/adminAttribute";
 
 export default function Index() {
     const { auth, admins = [] } = usePage().props;

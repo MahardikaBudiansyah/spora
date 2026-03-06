@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('staff_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
-            $table->string('NIK')->nullable();
-            $table->string('avatar')->nullable(); // simpan path foto profil
+            $table->string('nik', 16)->nullable(); 
+            $table->string('avatar_path')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->softDeletes();

@@ -1,5 +1,5 @@
 import { useAuthModal } from "@/contexts/AuthModalContext"; // sesuaikan path
-import AuthModal from "@/components/user/auth/AuthModal";
+import AuthModal from "@/components/user/Auth/AuthModal";
 import Navbar from "@/Layouts/User/Navbar";
 import Footer, { FooterBottom } from "@/Layouts/User/Footer";
 

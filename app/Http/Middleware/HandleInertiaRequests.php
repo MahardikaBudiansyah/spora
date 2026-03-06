@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use Log;
-use Inertia\Middleware;
+use App\Http\Resources\NotificationResource;
+use App\Models\Merchant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,21 +35,44 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
 
             'auth' => [
-                'user' => fn () => auth('web')->user(),
+                'user' => fn() => auth('web')->user(),
+                'admin' => fn() => auth('admin')->user(),
+                'merchant' => function () {
+                    $merchant = auth('merchant')->user();
 
-                'merchant' => fn () => tap(auth('merchant')->user(), function ($merchant) {
-                    if ($merchant) {
-                        $venues = $merchant->venues()->with('fields')->get();
-                        $merchant->setRelation('venues', $venues);
+                    if ($merchant instanceof Merchant) {
+                        return $merchant->load('venues');
                     }
-                }),
 
-                'admin' => fn () => auth('admin')->user(),
-                
-                'staff' => fn () => auth('staff')->user(),
+                    return null;
+                },
+                'staff' => fn() => auth('staff')->user(),
             ],
-
             'prefill' => session()->only(['registered_email']),
+            'flash' => [
+                'success'      => fn() => $request->session()->get('success'),
+                'error'        => fn() => $request->session()->get('error'),
+                'order_type'   => fn() => $request->session()->get('order_type'),
+                'gateway_data' => fn() => $request->session()->get('gateway_data'),
+            ],
+            'notifications' => function () use ($request) {
+                $user = $request->user();
+
+                if (!$user) return [
+                    'list' => [],
+                    'unread_count' => 0
+                ];
+
+                $latestNotifications = $user->notifications()
+                    ->latest()
+                    ->limit(10)
+                    ->get();
+
+                return [
+                    'list' => NotificationResource::collection($latestNotifications),
+                    'unread_count' => $user->unreadNotifications()->count(),
+                ];
+            },
         ];
     }
 }

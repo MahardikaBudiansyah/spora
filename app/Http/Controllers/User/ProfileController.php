@@ -31,22 +31,30 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        // validated tanpa 'photo'
         $validated = $request->safe()->except(['photo']);
 
         if (!empty($validated['phone_number'])) {
             $validated['phone_number'] = NumberPhoneHelper::normalize($validated['phone_number']);
+            
+            if (!$user->phone_verified_at) {
+                $user->phone_verified_at = now();
+            }
         }
 
-        // Upload foto jika ada
+        if (!empty($validated['email'])) {
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+            }
+        }
+
         if ($request->hasFile('photo')) {
             $path = UploadImageHelper::handleUserProfile($request->file('photo'), $user->id);
             $user->photo = $path;
         }
 
         $user->fill($validated);
-        $user->save();
+        
+        $user->save(); 
 
         return Redirect::route('user.profile.edit')
             ->with('status', 'Profil berhasil diperbarui.');

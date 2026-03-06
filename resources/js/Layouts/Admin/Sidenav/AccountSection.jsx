@@ -3,7 +3,7 @@ import SidenavLink from "@/components/Common/SidenavLink";
 import Avatar from "@/components/Common/Avatar";
 import { ChevronRight, LogOut, Settings, Users } from "lucide-react";
 
-export default function AccountSection({ user, isOpen, toggle }) {
+export default function AccountSection({ src, user, isOpen, toggle }) {
     const getInitials = (name) =>
         name
             ?.trim()
@@ -14,6 +14,16 @@ export default function AccountSection({ user, isOpen, toggle }) {
             .toUpperCase();
 
     const { url } = usePage();
+
+    const photoSrc = src
+        ? src.startsWith("/assets") ||
+          src.startsWith("http") ||
+          src.startsWith("blob:") ||
+          src.startsWith("/storage") ||
+          src.startsWith("storage")
+            ? src
+            : `/storage/${src}`
+        : null;
 
     const basePath = "/admin/profile";
     const isAnyChildActive = url.startsWith(basePath);
@@ -28,10 +38,9 @@ export default function AccountSection({ user, isOpen, toggle }) {
             >
                 <div className="flex gap-2 items-center">
                     <Avatar
-                        src={user?.photo}
+                        src={photoSrc}
                         fallback={getInitials(user?.name)}
                         size="md"
-                        className="p-4"
                     />
                     <span>{user?.name}</span>
                 </div>
@@ -49,11 +58,8 @@ export default function AccountSection({ user, isOpen, toggle }) {
                             href={route("admin.profile.index")}
                             routeName={"admin.profile.index"}
                             icon={Users}
-                            label="Profil Saya"
+                            label="Profil Admin"
                         />
-                    </li>
-                    <li>
-                        <SidenavLink icon={Settings} label="Pengaturan" />
                     </li>
                     <li>
                         <SidenavLink

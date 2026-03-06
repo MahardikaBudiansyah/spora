@@ -18,7 +18,6 @@ export default function Tabs({
 
     useEffect(() => {
         if (activeTab && !activeTab.content && activeTab.children?.length > 0) {
-            // otomatis buka group dan pilih subtab pertama
             setExpandedTabs((prev) => ({ ...prev, [activeIndex]: true }));
             setActiveSubIndex(0);
         } else {
@@ -45,7 +44,6 @@ export default function Tabs({
         }));
     };
 
-    // ✅ Tentukan konten aktif
     const activeContent =
         activeTab?.children && activeSubIndex !== null
             ? activeTab.children[activeSubIndex]?.content
@@ -55,15 +53,16 @@ export default function Tabs({
         <div
             className={twMerge(
                 "w-full flex",
-                orientation === "vertical" ? "flex-row" : "flex-col"
+                orientation === "vertical"
+                    ? "flex-col md:flex-row"
+                    : "flex-col",
             )}
         >
-            {/* Nav */}
             <div
                 className={twMerge(
                     orientation === "horizontal"
-                        ? "flex flex-row gap-2 border-b border-secondary-200 dark:border-secondary-700"
-                        : "flex flex-col gap-2 border-secondary-200 dark:border-secondary-700 w-64"
+                        ? "flex flex-row gap-2 border-b border-secondary-200 dark:border-secondary-700 overflow-x-auto scrollbar-hide"
+                        : "flex flex-col gap-2 border-secondary-200 dark:border-secondary-700 w-full md:w-64",
                 )}
             >
                 {tabs.map((tab, index) => {
@@ -71,64 +70,84 @@ export default function Tabs({
                     const hasChildren = !!tab.children;
 
                     return (
-                        <div key={tab.id || index}>
+                        <div
+                            key={tab.id || index}
+                            className={
+                                orientation === "horizontal"
+                                    ? "flex-shrink-0"
+                                    : "w-full"
+                            }
+                        >
                             <button
+                                type="button"
                                 onClick={() =>
                                     hasChildren
                                         ? toggleExpand(index)
                                         : handleClick(index)
                                 }
                                 className={twMerge(
-                                    "px-4 py-2 font-medium rounded-md transition-colors w-full flex items-center justify-between",
-                                    className,
+                                    "px-4 py-2 text-sm font-medium transition-colors flex items-center justify-between focus:outline-none",
                                     orientation === "horizontal"
-                                        ? isActive
-                                            ? "border-b-2 border-primary text-primary"
-                                            : "text-gray-500 hover:text-gray-700"
-                                        : isActive
-                                        ? "border-l-4 border-primary-600 text-primary-700 dark:text-white font-bold bg-primary-100 dark:bg-primary-900"
-                                        : "border-l-4 border-transparent hover:text-primary-600 hover:bg-secondary-50 dark:hover:bg-secondary-800"
+                                        ? [
+                                              "whitespace-nowrap",
+                                              isActive
+                                                  ? "border-b-2 border-primary-500 font-semibold text-primary-500"
+                                                  : "text-secondary-400 hover:text-secondary-700 border-b-2 border-transparent",
+                                          ]
+                                        : [
+                                              "w-full text-left",
+                                              isActive
+                                                  ? "border-l-4 border-primary-600 text-primary-700 dark:text-white font-bold bg-primary-100 dark:bg-primary-900 rounded-md md:rounded-r-md md:rounded-l-none"
+                                                  : "border-l-4 border-transparent hover:text-primary-600 hover:bg-secondary-50 dark:hover:bg-secondary-800 rounded-md",
+                                          ],
+                                    className,
                                 )}
                             >
                                 {tab.label}
                                 {hasChildren && (
                                     <span className="ml-2">
                                         {expandedTabs[index] ? (
-                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                            <ChevronDown className="w-4 h-4 text-secondary-400" />
                                         ) : (
-                                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                                            <ChevronRight className="w-4 h-4 text-secondary-400" />
                                         )}
                                     </span>
                                 )}
                             </button>
 
-                            {/* Sub Tabs */}
                             {hasChildren && expandedTabs[index] && (
-                                <div className="ml-4 mt-1 flex flex-col gap-1">
+                                <divf className="ml-4 mt-1 flex flex-col gap-1">
                                     {tab.children.map((child, subIndex) => {
                                         const isSubActive =
                                             isActive &&
                                             subIndex === activeSubIndex;
                                         return (
                                             <button
+                                                type="button"
                                                 key={child.id || subIndex}
                                                 onClick={() =>
                                                     handleSubClick(
                                                         index,
-                                                        subIndex
+                                                        subIndex,
                                                     )
                                                 }
                                                 className={twMerge(
                                                     "px-3 py-2 text-sm rounded-md transition-colors text-left",
                                                     isSubActive
                                                         ? "text-primary-700 dark:text-white font-bold bg-primary-100 dark:bg-primary-900"
-                                                        : "hover:bg-primary-50 dark:hover:bg-primary-800"
+                                                        : "hover:bg-primary-50 dark:hover:bg-primary-800",
                                                 )}
                                             >
                                                 {child.label}
                                             </button>
                                         );
                                     })}
+                                </divf>
+                            )}
+
+                            {orientation === "vertical" && isActive && (
+                                <div className="block md:hidden py-4 px-2 border-b border-secondary-100 dark:border-secondary-800">
+                                    {activeContent}
                                 </div>
                             )}
                         </div>
@@ -136,12 +155,13 @@ export default function Tabs({
                 })}
             </div>
 
-            {/* Content */}
             <div
                 className={twMerge(
-                    "mt-4 flex-1 border-l border-secondary-200 dark:border-secondary-700 pl-4",
-                    orientation === "vertical" && "mt-0 ml-4",
-                    contentClassName
+                    "p-2 flex-1 dark:border-secondary-700 ",
+                    orientation === "vertical"
+                        ? "hidden md:block mt-0 md:mx-6 border-l"
+                        : "block",
+                    contentClassName,
                 )}
             >
                 {activeContent || null}

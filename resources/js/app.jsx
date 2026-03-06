@@ -14,7 +14,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { MembershipProvider } from "@/contexts/MembershipContext";
 import AppToast from "@/components/common/AppToast";
 
-const appName = import.meta.env.VITE_APP_NAME || "Spora Platform Web";
+const appName = import.meta.env.VITE_APP_NAME || "Spora: Your Sport Your Arena";
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -44,6 +44,9 @@ createInertiaApp({
         );
     },
     progress: {
-        color: "#4B5563",
+        delay: 250, // Progress bar muncul hanya jika loading lebih dari 250ms
+        color: "#29d",
+        includeCSS: true,
+        showSpinner: false,
     },
 });

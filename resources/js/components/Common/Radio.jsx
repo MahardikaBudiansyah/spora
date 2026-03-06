@@ -40,64 +40,81 @@ export default function Radio({
     const id = useId();
     const sizes = sizeMap[size] ?? sizeMap.md;
 
-    const baseLabel = twMerge(
-        "flex items-start rounded-2xl border p-3 transition-all",
+    // Lingkaran Luar - Kita gunakan logic prop 'checked' agar pasti sinkron
+    const controlClass = twMerge(
+        "relative inline-flex flex-shrink-0 items-center justify-center  rounded-full border transition-all duration-200 mt-1",
+        sizes.control,
+        invalid
+            ? "border-red-500"
+            : checked
+            ? "border-primary-600 ring-1 ring-primary-600"
+            : "border-secondary-400",
+        checked ? "bg-white" : "bg-white dark:bg-secondary-900",
+        disabled && "bg-gray-100 dark:bg-secondary-900"
+    );
+
+    // Titik Tengah (Dot) - Menggunakan logic ternary agar tidak bergantung pada peer Tailwind
+    const dotClass = twMerge(
+        "pointer-events-none rounded-full transform transition-all duration-200 bg-primary-600 ",
+        sizes.dot,
+        checked ? "opacity-100 scale-100" : "opacity-0 scale-50"
+    );
+
+    const labelWrapperClass = twMerge(
+        "flex items-start bg-white dark:bg-secondary-800 rounded-lg border p-3 transition-all cursor-pointer",
         sizes.gap,
-        "border-gray-300 dark:border-zinc-700",
-        "hover:border-gray-400 dark:hover:border-zinc-600",
+        "border-secondary-300 dark:border-secondary-700",
+        "hover:border-secondary-400 dark:hover:border-secondary-600",
+        checked &&
+            "border border-primary-500 bg-primary-50 dark:bg-primary-900/10 hover:border-primary-600",
+        invalid && "border-red-500 ring-2 ring-red-200/60",
         disabled && "opacity-60 cursor-not-allowed",
-        invalid && "border-red-500 ring-2 ring-red-200/60 dark:ring-red-500/20",
         className
     );
 
-    const controlClass = twMerge(
-        "relative inline-flex flex-shrink-0 items-center justify-center rounded-full border",
-        sizes.control,
-        "border-gray-400 dark:border-zinc-500 bg-white dark:bg-zinc-900",
-        "transition-all",
-        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-primary/60 dark:peer-focus-visible:ring-primary/40",
-        invalid && "border-red-500"
-    );
-
-    const dotClass = twMerge(
-        "pointer-events-none rounded-full opacity-0 scale-75 transform transition",
-        sizes.dot,
-        "peer-checked:opacity-100 peer-checked:scale-100",
-        "bg-primary"
-    );
-
-    const textWrap = twMerge(
-        "flex flex-col",
-        sizes.gap.replace("gap-", "space-y-")
-    );
-    const labelClass = twMerge("font-medium text-foreground", sizes.label);
-    const descClass = twMerge("text-muted-foreground", sizes.desc);
-
     return (
         <div className="relative w-full">
-            <label htmlFor={id} className={baseLabel}>
+            <label htmlFor={id} className={labelWrapperClass}>
                 <input
                     id={id}
                     type="radio"
                     name={name}
                     value={String(value)}
-                    className="peer sr-only"
+                    className="sr-only"
                     disabled={disabled}
                     checked={checked}
                     onChange={(e) => onChange && onChange(e.target.value)}
-                    aria-invalid={invalid || undefined}
+                    aria-invalid={invalid ? "true" : undefined}
                 />
 
+                {/* Visual Radio Custom */}
                 <span aria-hidden className={controlClass}>
                     <span className={dotClass} />
                 </span>
 
-                <span className={textWrap}>
-                    {label && <span className={labelClass}>{label}</span>}
-                    {description && (
-                        <span className={descClass}>{description}</span>
+                {/* Konten Teks */}
+                <div className="flex flex-col leading-tight">
+                    {label && (
+                        <span
+                            className={twMerge(
+                                "font-medium text-gray-900 dark:text-white",
+                                sizes.label
+                            )}
+                        >
+                            {label}
+                        </span>
                     )}
-                </span>
+                    {description && (
+                        <span
+                            className={twMerge(
+                                "text-gray-500 dark:text-secondary-400 mt-1",
+                                sizes.desc
+                            )}
+                        >
+                            {description}
+                        </span>
+                    )}
+                </div>
             </label>
         </div>
     );

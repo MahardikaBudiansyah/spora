@@ -2,28 +2,31 @@
 
 namespace App\Models;
 
-use App\Models\Venue;
+use App\Enums\StaffStatus;
 use App\Models\Address;
 use App\Models\Merchant;
-use App\Models\StaffRole;
-use App\Traits\HasPassword;
-use Illuminate\Support\Str;
-use App\Models\Notification;
-use App\Models\StaffProfile;
-use App\Traits\HasUniqueField;
 use App\Models\MerchantStaffRole;
 use App\Models\OperatorAssignment;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
+use App\Models\StaffProfile;
+use App\Models\StaffRole;
+use App\Traits\HasNotifications;
+use App\Traits\HasPassword;
+use App\Traits\HasStatusHistory;
 use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Staff extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasUniqueField, HasPassword;
+    use HasFactory, Notifiable, SoftDeletes, Sluggable, HasPassword, HasStatusHistory, HasNotifications {
+        HasNotifications::notifications insteadof Notifiable;
+        HasNotifications::readNotifications insteadof Notifiable;
+        HasNotifications::unreadNotifications insteadof Notifiable;
+        Notifiable::notifications as laravelNotifications;
+        Notifiable::unreadNotifications as laravelUnreadNotifications;
+    }
 
     protected $table = 'staff';
 
@@ -44,26 +47,25 @@ class Staff extends Authenticatable
         'remember_token',
     ];
 
-    protected $uniqueFields = [
-        'username' => 'name',
-    ];
-
-    const STATUS_ACTIVE = 'active';
-    const STATUS_INACTIVE = 'inactive';
-    const STATUS_RESIGNED = 'resigned';
-
     protected $attributes = [
-        'status' => self::STATUS_ACTIVE,
-        'is_active' => true, 
+        'status' => StaffStatus::ACTIVE,
+        'is_active' => true,
     ];
 
     protected $casts = [
+        'satus' => StaffStatus::class,
         'is_active' => 'boolean',
     ];
 
-    public function getRouteKeyName()
+    public function sluggable(): array
     {
-        return 'username';
+        return [
+            'username' => [
+                'source' => 'name',
+                'separator' => '-',
+                'unique' => true,
+            ]
+        ];
     }
 
     public function merchant()
@@ -86,16 +88,15 @@ class Staff extends Authenticatable
         return $this->hasOneThrough(
             StaffRole::class,
             MerchantStaffRole::class,
-            'id',                   // Foreign key di MerchantStaffRole
-            'id',                   // Foreign key di StaffRole
-            'merchant_staff_role_id', // Local key di Staff
-            'staff_role_id'         // Local key di MerchantStaffRole
+            'id',
+            'id',
+            'merchant_staff_role_id',
+            'staff_role_id'
         );
     }
 
     public function hasRole($roles): bool
     {
-        // Pastikan bisa menerima string atau array
         if (is_string($roles)) {
             $roles = [$roles];
         }
@@ -111,12 +112,6 @@ class Staff extends Authenticatable
         return $this->hasRole('operator');
     }
 
-    public function isActive(): bool
-    {
-        return $this->status === self::STATUS_ACTIVE;
-    }
-
-
     public function profiles()
     {
         return $this->hasMany(StaffProfile::class, 'staff_id');
@@ -125,10 +120,5 @@ class Staff extends Authenticatable
     public function operatorAssignments()
     {
         return $this->hasMany(OperatorAssignment::class);
-    }
-
-    public function notifications()
-    {
-        return $this->morphMany(Notification::class, 'notifiable');
     }
 }

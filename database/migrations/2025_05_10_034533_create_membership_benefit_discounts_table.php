@@ -14,12 +14,11 @@ return new class extends Migration
         Schema::create('membership_benefit_discounts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('membership_package_id')->constrained('membership_packages')->cascadeOnDelete();
-            $table->string('name')->default('Potongan Harga'); // kalau mau konsisten namanya
+            $table->string('name')->default('Potongan Harga');
             $table->enum('discount_type', ['percentage', 'fixed']); 
             $table->decimal('discount_value', 10, 2); 
-            $table->integer('discount_limit')->nullable(); // berapa kali bisa dipakai
-            $table->text('description')->nullable(); // penjelasan tambahan
-            $table->softDeletes();
+            $table->integer('discount_limit')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

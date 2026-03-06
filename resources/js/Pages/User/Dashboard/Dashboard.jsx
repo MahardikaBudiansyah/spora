@@ -1,202 +1,37 @@
-import { useEffect } from "react";
+import { Head, usePage, Link } from "@inertiajs/react";
 import UserLayout from "@/Layouts/UserLayout";
-import { Head } from "@inertiajs/react";
 import BannerSection from "@/components/common/BannerSection";
-import {
-    Card,
-    CardHeader,
-    CardBody,
-    CardFooter,
-} from "@/components/common/Card";
+import { Card, CardHeader, CardBody } from "@/components/common/Card";
 import BannerAlert from "@/components/common/BannerAlert";
-import Tabs from "@/components/Common/Tabs";
+import { CalendarCheck, IdCard, BellRing, Home } from "lucide-react";
 
-// Import konten tab
-import Membership from "@/Pages/User/Dashboard/Partials/Membership";
-import BookingHistory from "@/Pages/User/Dashboard/Partials/BookingHistory";
-import MembershipHistory from "@/Pages/User/Dashboard/Partials/MembershipHistory";
-import Notification from "@/Pages/User/Dashboard/Partials/Notification";
-import Archieve from "@/Pages/User/Dashboard/Partials/Archieve";
-import {
-    CalendarCheck,
-    IdCard,
-    CreditCard,
-    Bell,
-    BellRing,
-    Archive,
-} from "lucide-react";
-import ModernTabs from "@/components/Common/ModernTabs";
-import Button from "@/components/Common/Button";
+export default function Dashboard({ auth, profileIncomplete, children }) {
+    const { url } = usePage();
 
-export default function Dashboard({
-    auth,
-    profileIncomplete,
-    bookings,
-    memberships,
-    highlightOrder,
-}) {
-    useEffect(() => {
-        if (highlightOrder) {
-            const el = document.getElementById(`order-${highlightOrder}`);
-            if (el) {
-                el.scrollIntoView({ behavior: "smooth", block: "start" });
-                // Opsional: tambahkan highlight sementara
-                el.classList.add("ring-4", "ring-yellow-400");
-                setTimeout(
-                    () => el.classList.remove("ring-4", "ring-yellow-400"),
-                    3000
-                );
-            }
-        }
-    }, [highlightOrder]);
-
-    const tabs = [
+    const navItems = [
         {
-            id: "membrshipUser",
-            label: (
-                <span className="flex items-center">
-                    <IdCard className="w-4 h-4 mr-2" />
-                    Daftar Membership
-                </span>
-            ),
-            content: <Membership />,
+            name: "Dashboard",
+            href: route("user.dashboard.index"),
+            icon: <Home className="w-4 h-4 mr-2" />,
+            active: url === "/user/dashboard",
         },
         {
-            id: "order",
-            label: (
-                <span className="flex items-center">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Order (Pesanan)
-                </span>
-            ),
-            content: (
-                <div className="flex flex-row gap-4 items-center">
-                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
-                        <div>
-                            <BellRing className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <div className="font-bold text-md">
-                                Riwayat Booking
-                            </div>
-                            <span className="text-xs text-secondary-600">
-                                Riwayat pesanan Booking
-                            </span>
-                        </div>
-                    </div>
-                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
-                        <div>
-                            <BellRing className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <div className="font-bold text-md">
-                                Riwayat Membership
-                            </div>
-                            <span className="text-xs text-secondary-600">
-                                Riwayat pesanan Membership
-                            </span>
-                        </div>
-                    </div>
-                    {/* <Button variant="primary">Notifikasi Aktif</Button>
-                    <Button variant="primary">Arsip</Button> */}
-                </div>
-            ),
-            // children: [
-            //     {
-            //         id: "bookings",
-            //         label: (
-            //             <span className="flex items-center">
-            //                 <CalendarCheck className="w-4 h-4 mr-2" />
-            //                 Booking Lapangan
-            //             </span>
-            //         ),
-            //         content: (
-            //             <BookingHistory
-            //                 bookings={bookings.data}
-            //                 pagination={bookings.links}
-            //                 meta={bookings.meta}
-            //             />
-            //         ),
-            //     },
-            //     {
-            //         id: "memberships",
-            //         label: (
-            //             <span className="flex items-center">
-            //                 <CreditCard className="w-4 h-4 mr-2" />
-            //                 Order Membership
-            //             </span>
-            //         ),
-            //         content: (
-            //             <MembershipHistory
-            //                 memberships={memberships.data}
-            //                 pagination={memberships.links}
-            //                 meta={memberships.meta}
-            //             />
-            //         ),
-            //     },
-            // ],
+            name: "Daftar Membership",
+            href: route("user.dashboard.memberships"),
+            icon: <IdCard className="w-4 h-4 mr-2" />,
+            active: url.startsWith("/user/dashboard/memberships"),
         },
         {
-            id: "order",
-            label: (
-                <span className="flex items-center">
-                    <Bell className="w-4 h-4 mr-2" />
-                    Pemberitahuan
-                </span>
-            ),
-            content: (
-                <div className="flex flex-row gap-4 items-center">
-                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
-                        <div>
-                            <BellRing className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <div className="font-bold text-md">
-                                Notifikasi Aktif
-                            </div>
-                            <span className="text-xs text-secondary-600">
-                                Daftar Notifikasi Aktif
-                            </span>
-                        </div>
-                    </div>
-                    <div className="py-3 px-6 w-65 flex flex-row gap-3 items-center border rounded-lg shadow-sm">
-                        <div>
-                            <BellRing className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1">
-                            <div className="font-bold text-md">Arsip</div>
-                            <span className="text-xs text-secondary-600">
-                                Daftar Arsip Notifikasi
-                            </span>
-                        </div>
-                    </div>
-                    {/* <Button variant="primary">Notifikasi Aktif</Button>
-                    <Button variant="primary">Arsip</Button> */}
-                </div>
-            ),
-
-            // children: [
-            //     {
-            //         id: "notifications",
-            //         label: (
-            //             <span className="flex items-center">
-            //                 <BellRing className="w-4 h-4 mr-2" />
-            //                 Notifikasi Aktif
-            //             </span>
-            //         ),
-            //         content: <Notification />,
-            //     },
-            //     {
-            //         id: "archieves",
-            //         label: (
-            //             <span className="flex items-center">
-            //                 <Archive className="w-4 h-4 mr-2" />
-            //                 Arsip
-            //             </span>
-            //         ),
-            //         content: <Archieve />,
-            //     },
-            // ],
+            name: "Daftar Booking",
+            href: route("user.dashboard.bookings"),
+            icon: <CalendarCheck className="w-4 h-4 mr-2" />,
+            active: url.startsWith("/user/dashboard/bookings"),
+        },
+        {
+            name: "Pemberitahuan",
+            href: route("user.dashboard.notifications"),
+            icon: <BellRing className="w-4 h-4 mr-2" />,
+            active: url.startsWith("/user/dashboard/notifications"),
         },
     ];
 
@@ -207,40 +42,40 @@ export default function Dashboard({
 
             <div className="px-4 py-8 max-w-screen-lg mx-auto rounded-lg text-sm">
                 <Card className="flex flex-col h-full min-h-screen rounded-lg shadow-none dark:border-none">
-                    <CardHeader className="px-8 pt-8 pb-4 border-none">
-                        <div className="text-xl font-bold dark:text-white">
-                            Dashboard
-                        </div>
-                        {profileIncomplete && (
-                            <BannerAlert type="warning">
-                                Lengkapi data diri terlebih dahulu untuk
-                                mengakses semua fitur dashboard.
-                                <a
-                                    href={route("user.profile.edit")}
-                                    className="ml-2 underline font-bold text-red-500 hover:text-red-600"
+                    <CardHeader className="px-8 pt-8 pb-0 border-none">
+                        <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar">
+                            {navItems.map((item) => (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`flex items-center py-3 px-6 border-b-2 transition-colors whitespace-nowrap ${
+                                        item.active
+                                            ? "border-primary-500 text-primary-600 font-bold"
+                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                    }`}
                                 >
-                                    Lengkapi Sekarang!
-                                </a>
-                            </BannerAlert>
+                                    {item.icon}
+                                    {item.name}
+                                </Link>
+                            ))}
+                        </div>
+
+                        {profileIncomplete && (
+                            <div className="mt-4">
+                                <BannerAlert type="warning">
+                                    Lengkapi data diri...
+                                    <Link
+                                        href={route("user.profile.edit")}
+                                        className="ml-2 underline font-bold text-red-500"
+                                    >
+                                        Lengkapi Sekarang!
+                                    </Link>
+                                </BannerAlert>
+                            </div>
                         )}
                     </CardHeader>
 
-                    <CardBody className="px-8 pb-8">
-                        <Tabs
-                            tabs={tabs}
-                            defaultActive={0}
-                            orientation="horizontal"
-                            className="text-sm"
-                        />
-                    </CardBody>
-                    <CardFooter>
-                        {/* <ModernTabs
-                            tabs={tabs}
-                            defaultActive={0}
-                            orientation="horizontal"
-                            className="text-sm"
-                        /> */}
-                    </CardFooter>
+                    <CardBody className="px-8 pb-8 pt-6">{children}</CardBody>
                 </Card>
             </div>
         </UserLayout>

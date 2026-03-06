@@ -6,6 +6,7 @@ class RouteHelper
 {
     public static function getDashboardRouteByRole()
     {
+        // Jika login, arahkan ke dashboard sesuai role
         if (auth('admin')->check()) {
             return route('admin.dashboard');
         }
@@ -18,12 +19,24 @@ class RouteHelper
             return route('staff.dashboard');
         }
 
-        // default: user
         if (auth('web')->check()) {
             return route('home');
         }
 
-        // fallback kalau tidak login
+        // Jika belum login, arahkan ke login sesuai guard (default ke home)
+        if (request()->is('admin/*')) {
+            return route('admin.login');
+        }
+
+        if (request()->is('merchant/*')) {
+            return route('merchant.login');
+        }
+
+        if (request()->is('staff/*')) {
+            return route('staff.login');
+        }
+
         return route('home');
     }
 }
+

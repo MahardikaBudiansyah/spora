@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Field;
+use App\Models\Court;
 use App\Models\Venue;
 use Illuminate\Http\Request;
 use App\Models\MembershipPackage;
@@ -37,8 +37,8 @@ class RouteServiceProvider extends ServiceProvider
             return Venue::where('slug', $value)->firstOrFail();
         });
 
-        Route::bind('field', function ($value) {
-            return Field::where('slug', $value)->firstOrFail();
+        Route::bind('court', function ($value) {
+            return Court::where('slug', $value)->firstOrFail();
         });
 
         Route::bind('package', function ($value, $route) {

@@ -6,13 +6,14 @@ import newlogo3 from "@/assets/logo/logo-3.png";
 import newlogo4 from "@/assets/logo/logo-4.png";
 import newlogo5 from "@/assets/logo/logo-5.png";
 import newlogo6 from "@/assets/logo/logo-6.png";
+import newlogo7 from "@/assets/logo/logo-7.png";
 import icon from "@/assets/images/ingkenefutsal-icon.png";
 import text from "@/assets/images/ingkenefutsal-text.png";
 import original from "@/assets/images/ingkenefutsal-original.png";
 
 const AppLogo = ({
     variant = "default",
-    className = "h-8 w-auto",
+    className = "h-8 w-auto outline-none focus:outline-none border-none focus:border-none",
     alt = "Logo",
 }) => {
     let logoPath;
@@ -38,6 +39,9 @@ const AppLogo = ({
             break;
         case "newlogo6":
             logoPath = newlogo6;
+            break;
+        case "newlogo7":
+            logoPath = newlogo7;
             break;
         case "icon":
             logoPath = icon;

@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
+use App\Services\Membership\MembershipOrderService;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
@@ -12,8 +13,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('membership:auto-activate')->dailyAt('00:05');
-        $schedule->command('membership:auto-expire')->dailyAt('00:10');
+        $schedule->command('cart:clear-expired')->daily();
+        
+        $schedule->command('membership:auto-activate')->daily();
+        $schedule->command('membership:auto-expire')->daily();
+
+        $schedule->command('booking:cancel-expired')->everyMinute();
 
     }
 

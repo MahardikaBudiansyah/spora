@@ -3,18 +3,25 @@
 namespace App\Models;
 
 use App\Models\Cart;
-use App\Models\Field;
-use App\Models\Image;
-use App\Models\Address;
+use App\Models\Court;
+use App\Models\Review;
 use App\Models\Booking;
-use App\Models\Facility;
+use App\Enums\OrderType;
+use App\Enums\VenueStatus;
 use App\Models\Merchant;
 use App\Models\VenueImage;
+use App\Traits\HasAddress;
 use App\Models\Subscription;
 use App\Models\OperatorVenue;
+use App\Models\VenueCategory;
+use App\Models\VenueFacility;
+use App\Models\MembershipCard;
 use App\Models\MembershipUser;
-use App\Models\VenuePaymentType;
+use App\Traits\HasSocialMedia;
+use App\Models\MembershipOrder;
+use App\Traits\HasStatusHistory;
 use App\Models\MembershipPackage;
+use App\Models\VenuePaymentPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,7 +29,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Venue extends Model
 {
-    use HasFactory, Sluggable, SoftDeletes;
+    use HasFactory, Sluggable, SoftDeletes, HasStatusHistory, HasAddress, HasSocialMedia;
 
     protected $table = 'venues';
 
@@ -32,16 +39,19 @@ class Venue extends Model
         'description',
         'phone_number',
         'status',
+        'is_reverification_required',
         'is_active',
         'slug',
     ];
 
     protected $casts = [
+        'status' => VenueStatus::class,
         'is_active' => 'boolean',
     ];
 
     protected $attributes = [
-        'is_active' => true, 
+        'status' => VenueStatus::DRAFT,
+        'is_active' => false,
     ];
 
     public function sluggable(): array
@@ -73,25 +83,20 @@ class Venue extends Model
         return $this->belongsTo(Merchant::class, 'merchant_id', 'id');
     }
 
-    public function address()
-    {
-        return $this->morphOne(Address::class, 'addressable');
-    }
-
-
-    public function addresses() 
-    {
-        return $this->morphMany(Address::class, 'addressable');
-    }
-
     public function operatorVenues()
     {
         return $this->hasMany(OperatorVenue::class, 'venue_id', 'id');
     }
-    
+
+    public function categories()
+    {
+        return $this->belongsToMany(VenueCategory::class, 'category_venue', 'venue_id', 'category_id')
+            ->withTimestamps();
+    }
+
     public function facilities()
     {
-        return $this->belongsToMany(Facility::class, 'facility_venue', 'venue_id', 'facility_id')->withTimestamps();
+        return $this->belongsToMany(VenueFacility::class, 'facility_venue', 'venue_id', 'venue_facility_id')->withTimestamps();
     }
 
     public function subscriptions()
@@ -104,14 +109,19 @@ class Venue extends Model
         return $this->hasMany(MembershipPackage::class);
     }
 
+    public function membershipCards()
+    {
+        return $this->hasMany(MembershipCard::class);
+    }
+
     public function membershipUsers()
     {
         return $this->hasMany(MembershipUser::class);
     }
 
-    public function fields()
+    public function courts()
     {
-        return $this->hasMany(Field::class, 'venue_id', 'id');
+        return $this->hasMany(Court::class, 'venue_id', 'id');
     }
 
     public function carts()
@@ -124,9 +134,26 @@ class Venue extends Model
         return $this->hasMany(Booking::class, 'venue_id', 'id');
     }
 
-    public function paymentType()
+    public function reviews()
     {
-        return $this->hasOne(VenuePaymentType::class);
+        return $this->hasMany(Review::class);
     }
 
+    public function paymentPolicies()
+    {
+        return $this->hasMany(VenuePaymentPolicy::class);
+    }
+
+    public function getPolicyFor($type)
+    {
+        if (is_string($type)) {
+            $type = match ($type) {
+                Booking::class => OrderType::BOOKING,
+                MembershipOrder::class => OrderType::MEMBERSHIP,
+                default => $type
+            };
+        }
+
+        return $this->paymentPolicies()->where('order_type', $type)->first();
+    }
 }

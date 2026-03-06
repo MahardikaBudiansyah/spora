@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ToastContainer } from "react-toastify";
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/components/Common/Dropdown";
 import NavLink from "@/Components/NavLink";
@@ -13,7 +12,6 @@ export default function Authenticated({ user, header, children }) {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <ToastContainer position="top-right" autoClose={3000} />
             <nav className="bg-white border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16">

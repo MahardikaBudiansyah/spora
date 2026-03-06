@@ -2,37 +2,39 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\NotificationCategory;
+use App\Enums\NotificationSource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\DatabaseNotification as BaseNotification;
 
-class Notification extends Model
+class Notification extends BaseNotification
 {
     use HasFactory;
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
+        'id',
+        'type',
         'notifiable_id',
         'notifiable_type',
         'source',
-        'type',
+        'category',
         'data',
         'read_at',
+        'is_pinned',
+        'is_archived',
     ];
 
     protected $casts = [
+        'source' => NotificationSource::class,
+        'category' => NotificationCategory::class,
         'data' => 'array',
         'read_at' => 'datetime',
+        'is_pinned' => 'boolean',
+        'is_archived' => 'boolean',
     ];
-
-    // Polymorphic relation ke user/merchant/staff/admin
-    public function notifiable()
-    {
-        return $this->morphTo();
-    }
-
-    public function markAsRead()
-    {
-        $this->update(['read_at' => now()]);
-    }
 
     public function isRead()
     {

@@ -11,7 +11,7 @@ import DatePickerInput from "@/components/Common/DatePickerInput";
 
 function DatePicker({ selected, onChange, maxDays = 30 }) {
     const [startDate, setStartDate] = useState(
-        calculateStartDate(selected ?? parseDate(new Date()))
+        calculateStartDate(selected ?? parseDate(new Date())),
     );
 
     const daysToShow = 7;
@@ -21,7 +21,7 @@ function DatePicker({ selected, onChange, maxDays = 30 }) {
     }
 
     const today = parseDate(new Date()).startOf("day");
-    const maxDate = today.plus({ days: maxDays }); // ★ Batas user booking
+    const maxDate = today.plus({ days: maxDays });
 
     const getDaysToShow = (start) => {
         const nextDays = [];
@@ -59,7 +59,7 @@ function DatePicker({ selected, onChange, maxDays = 30 }) {
         if (firstActive) {
             onChange(firstActive);
         } else {
-            onChange(null); // minggu ini tidak punya tanggal valid
+            onChange(null);
         }
     };
 
@@ -94,7 +94,7 @@ function DatePicker({ selected, onChange, maxDays = 30 }) {
     }, [selected]);
 
     return (
-        <div className="max-w-full flex flex-row justify-between md:justify-center gap-8 md:gap-16 items-center bg-white dark:bg-secondary-800 px-6 py-4 rounded-md">
+        <div className="max-w-full flex flex-row justify-between md:justify-center gap-8 md:gap-16 items-center bg-white dark:bg-secondary-900 px-6 py-4 rounded-md">
             <div className="flex flex-row w-3/4 md:w-full gap-2 overflow-x-auto scrollbar-hide">
                 <Button
                     onClick={goToPreviousWeek}
@@ -120,8 +120,8 @@ function DatePicker({ selected, onChange, maxDays = 30 }) {
             isSelected
                 ? "bg-primary-700 dark:bg-primary-800 text-white"
                 : isDisabled
-                ? "text-secondary-400 dark:text-secondary-600 cursor-not-allowed opacity-50"
-                : "hover:bg-primary-100 dark:hover:bg-primary-700 cursor-pointer"
+                  ? "text-secondary-400 dark:text-secondary-600 cursor-not-allowed opacity-50"
+                  : "hover:bg-primary-100 dark:hover:bg-primary-700 cursor-pointer"
         }
     `}
                             onClick={() => !isDisabled && handleDateClick(day)}

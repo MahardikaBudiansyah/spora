@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Carbon\Carbon;
 use App\Models\Staff;
 use Illuminate\Database\Seeder;
+use App\Helpers\NumberPhoneHelper;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -44,6 +45,8 @@ class StaffSeeder extends Seeder
         ];
 
         foreach ($data as $value) {
+            $value['phone_number'] = NumberPhoneHelper::normalize($value['phone_number']);
+            
             Staff::create($value);
         };
     }

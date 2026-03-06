@@ -6,6 +6,7 @@ import {
     X,
     TriangleAlert,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const variantStyles = {
     subtle: {
@@ -33,7 +34,8 @@ const variantStyles = {
 };
 
 const sizeStyles = {
-    sm: "p-2 text-xs",
+    xs: "py-3 px-4 text-xs",
+    sm: "py-2 px-4 text-sm",
     md: "p-4 text-sm",
     lg: "p-6 text-base",
 };
@@ -46,10 +48,10 @@ const iconSizes = {
 };
 
 const typeIcons = {
-    info: (size) => <Info className={`${size} mr-2`} />,
-    success: (size) => <CheckCircle className={`${size} mr-2`} />,
-    warning: (size) => <AlertTriangle className={`${size} mr-2`} />,
-    error: (size) => <TriangleAlert className={`${size} mr-2`} />,
+    info: (size) => <Info className={`${size}`} />,
+    success: (size) => <CheckCircle className={`${size}`} />,
+    warning: (size) => <AlertTriangle className={`${size}`} />,
+    error: (size) => <TriangleAlert className={`${size}`} />,
 };
 export default function BannerAlert({
     type = "info",
@@ -57,20 +59,23 @@ export default function BannerAlert({
     size = "md",
     typeIconSize,
     closeIconSize,
-    showIcon = true,
+    showIcon = false,
     customIcon = null,
-    title, // sekarang bisa string atau node
+    title,
+    titleClassName = "",
+    descriptionClassName = "",
     children,
     className = "",
     closable = false,
     onClose,
-    alignItems = "center",
+    alignItems = "start",
     ...props
 }) {
     const baseClasses = twMerge(
-        "flex justify-between my-4 rounded-lg",
-        `items-${alignItems}`
+        "flex justify-between my-2 rounded-lg overflow-hidden",
+        className,
     );
+
     const variantClass =
         variantStyles[variant]?.[type] || variantStyles.subtle.info;
     const sizeClass = sizeStyles[size] || sizeStyles.md;
@@ -80,37 +85,42 @@ export default function BannerAlert({
 
     const icon = customIcon
         ? customIcon
-        : typeIcons[type]?.(resolvedTypeIconSize) ??
-          typeIcons.info(iconSizes.md);
+        : (typeIcons[type]?.(resolvedTypeIconSize) ??
+          typeIcons.info(iconSizes.md));
 
     return (
-        <div
-            className={twMerge(baseClasses, variantClass, sizeClass, className)}
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className={twMerge(" ", baseClasses, variantClass, sizeClass)}
             {...props}
         >
-            <div
-                className={`flex p-2 ${
-                    alignItems === "start" ? "items-start" : "items-center"
-                }`}
-            >
-                {showIcon && icon}
-                <div className="flex flex-col">
-                    {title && (
-                        <span className="pb-1 font-semibold flex items-center gap-2">
-                            {title}
-                        </span>
-                    )}
-                    <span>{children}</span>
-                </div>
+            {showIcon && <div className="mt-0.5 shrink-0">{icon}</div>}
+
+            <div className="flex flex-col flex-1 leading-relaxed">
+                {title && (
+                    <div
+                        className={twMerge(
+                            "font-bold uppercase tracking-wide",
+                            titleClassName,
+                        )}
+                    >
+                        {title}
+                    </div>
+                )}
+                <div className={twMerge(descriptionClassName)}>{children}</div>
             </div>
+
             {closable && (
                 <button
                     onClick={onClose}
-                    className="ml-4 text-inherit hover:opacity-70"
+                    className="ml-2 shrink-0 self-start mt-0.5 hover:opacity-60 transition-opacity"
                 >
                     <X className={resolvedCloseIconSize} />
                 </button>
             )}
-        </div>
+        </motion.div>
     );
 }

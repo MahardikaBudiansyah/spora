@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\User;
-use App\Models\Field;
+use App\Models\Court;
 use App\Models\Venue;
 use App\Models\TimeSlot;
 use App\Models\CartHistory;
@@ -19,9 +19,10 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'venue_id',
-        'field_id',
+        'court_id',
         'time_slot_id',
         'price',
+        'day_type',
         'date',
     ];
 
@@ -35,9 +36,9 @@ class Cart extends Model
         return $this->belongsTo(Venue::class);
     }
 
-    public function field()
+    public function court()
     {
-        return $this->belongsTo(Field::class);
+        return $this->belongsTo(Court::class);
     }
 
     public function timeSlot()

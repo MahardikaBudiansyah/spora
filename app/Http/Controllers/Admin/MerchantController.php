@@ -2,24 +2,38 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Log;
-use Inertia\Inertia;
+use App\Http\Controllers\Admin\Controller;
+use App\Http\Resources\MerchantResource;
 use App\Models\Merchant;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Admin\Controller;
+use Inertia\Inertia;
 
 class MerchantController extends Controller
 {
     public function index(Request $request)
     {
-        $merchants = Merchant::withCount('venues')
-            ->with('address')
-            ->orderBy('created_at', 'asc') // atau oldest()
+        $merchants = Merchant::withCount(['payoutMethods', 'venues'])
+            ->with([
+                'latestStatusHistory',
+                'profile.address.province',
+                'profile.address.city',
+                'profile.address.district',
+                'profile.address.village',
+                'primaryPayoutMethod',
+            ])
+            ->orderBy('created_at', 'asc')
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('Admin/Merchants/Index', [
-            'merchants' => $merchants,
+            'merchants' => MerchantResource::collection($merchants),
+        ]);
+    }
+
+    public function show(Merchant $merchant)
+    {
+        return Inertia::render('Admin/Merchants/Show', [
+            'merchant' => $merchant,
         ]);
     }
 
@@ -35,18 +49,10 @@ class MerchantController extends Controller
         return back()->with('success', 'Status Merchant diperbarui.');
     }
 
-    public function show(Merchant $merchant)
-    {
-        return Inertia::render('Admin/merchants/Show', [
-            'merchant' => $merchant,
-        ]);
-    }
-
     public function destroy(Merchant $merchant)
     {
-        $merchant->delete(); 
+        $merchant->delete();
 
         return back()->with('success', 'Merchant berhasil dihapus.');
     }
-
 }

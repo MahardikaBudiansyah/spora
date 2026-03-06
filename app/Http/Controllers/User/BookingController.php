@@ -2,272 +2,215 @@
 
 namespace App\Http\Controllers\User;
 
-use Log;
-use Carbon\Carbon;
 use App\Models\Cart;
 use Inertia\Inertia;
-use App\Models\Field;
-use App\Models\Venue;
 use App\Models\Booking;
-use App\Models\TimeSlot;
-use App\Models\Membership;
+use App\Enums\PaymentStatus;
 use Illuminate\Http\Request;
-use App\Models\MembershipUser;
+use App\Models\MembershipCard;
+use App\Enums\MembershipOrderStatus;
+use App\Http\Resources\CartResource;
 use Illuminate\Support\Facades\Auth;
-use App\Services\Billing\PricingService;
-use App\Http\Controllers\User\Controller;
-use App\Services\Billing\DiscountService;
-use App\Services\Booking\BookingUserService;
+use App\Http\Resources\VenueResource;
+use App\Services\Billing\PaymentService;
+use App\Http\Resources\CheckoutItemResource;
+use App\Services\Booking\BookingFlowService;
+use App\Http\Resources\MembershipCardResource;
 use App\Http\Requests\User\BookingStoreRequest;
+use App\Services\Booking\BookingPricingService;
 
 class BookingController extends Controller
 {
-    private function getUser()
-    {
-        return Auth::guard('web')->user();
+    protected $bookingFlowService;
+    protected $bookingPricingService;
+    protected $paymentService;
+
+    public function __construct(
+        BookingFlowService $bookingFlowService,
+        BookingPricingService $bookingPricingService,
+        PaymentService $paymentService
+    ) {
+        $this->bookingFlowService = $bookingFlowService;
+        $this->bookingPricingService = $bookingPricingService;
+        $this->paymentService = $paymentService;
     }
 
     public function create(Request $request)
     {
-        $user = $this->getUser();
+        $user = Auth::user();
+        
+        $selectedIds = session('checkout_cart_ids', []);
+        $venueIdFromSession = session('checkout_venue_id');
 
-        $carts = Cart::with([
-            'venue.addresses.district',
-            'venue.addresses.city',
-            'venue.paymentType',
-            'field',
-            'timeSlot'
-        ])
-        ->where('user_id', $user->id)
-        ->get();
+        if (empty($selectedIds)) {
+            return redirect()->route('user.dashboard.index')->with('error', 'Sesi checkout berakhir.');
+        }
 
-        $venueId = $carts->first()->venue_id ?? null;
+        $allCarts = Cart::with(['venue.paymentPolicies', 'venue.addresses', 'court', 'timeSlot'])
+            ->where('user_id', $user->id)
+            ->whereIn('id', $selectedIds)
+            ->get();
 
-        $activeMembership = Membership::activeForUserVenue($user->id, $venueId)->first();
+        if ($allCarts->isEmpty() && !session()->has('gateway_data')) {
+            return redirect()->route('user.dashboard.index')->with('error', 'Item keranjang tidak ditemukan.');
+        }
 
-        $remainingLimit = $activeMembership?->remaining_discount_limits;
+        $activeVenueId = (int) ($request->venue_id 
+            ?? $allCarts->first()?->venue_id 
+            ?? $venueIdFromSession);
 
-        // Map cart untuk menghitung harga & discount
-        $cartItems = $carts->map(function ($cart) use ($activeMembership, &$remainingLimit) {
-            $originalPrice = (float) $cart->price;
-            $discountAmount = 0;
-
-            if ($activeMembership && $remainingLimit && $remainingLimit > 0) {
-                $benefit = $activeMembership->membershipPackage->discounts->first();
-                if ($benefit) {
-                    if ($benefit->discount_type === 'percentage') {
-                        $discountAmount = ($originalPrice * $benefit->discount_value) / 100;
-                    } else {
-                        $discountAmount = min($benefit->discount_value, $originalPrice);
-                    }
-
-                    // kurangi remaining limit setelah dipakai
-                    if ($remainingLimit !== null) {
-                        $remainingLimit--;
-                    }
-                }
-            }
-
-            $finalPrice = max(0, $originalPrice - $discountAmount);
-
-            $venuePaymentType = $cart->venue?->paymentType ? [
-                'enable_dp' => $cart->venue->paymentType->enable_dp,
-                'dp_type'   => $cart->venue->paymentType->dp_type,
-                'dp_value'  => $cart->venue->paymentType->dp_value,
-                'is_active' => $cart->venue->paymentType->is_active,
-                'full_payment_days_before' => $cart->venue->paymentType->full_payment_days_before,
-                'max_full_payment_days'    => $cart->venue->paymentType->max_full_payment_days,
-            ] : null;
-            
+        $details = $allCarts->map(function($cart) {
             return [
                 'cart_id'        => $cart->id,
-                'field_id'       => $cart->field_id,
-                'field_name'     => $cart->field->name,
-                'timeslot_id'    => $cart->timeSlot?->id,
-                'timeslot_name'  => $cart->timeSlot?->name,
-                'booking_date'   => $cart->date,
-                'original_price' => $originalPrice,
-                'discount_amount'=> $discountAmount,
-                'final_price'    => $finalPrice,
-                'paymentType'    => $venuePaymentType,
-                'discount_usage' => $activeMembership ? [
-                    'used'  => $activeMembership->membershipPackage->discounts->first()?->discount_limit !== null && $remainingLimit !== null
-                                ? ($activeMembership->membershipPackage->discounts->first()->discount_limit - $remainingLimit)
-                                : 0,
-                    'limit' => $activeMembership->membershipPackage->discounts->first()?->discount_limit ?? 0,
-                ] : null,
+                'court_id'       => $cart->court_id,
+                'court_name'     => $cart->court->name, 
+                'start_time'     => $cart->timeSlot->start_time, 
+                'end_time'       => $cart->timeSlot->end_time,
+                'booking_date'   => $cart->date, 
+                'original_price' => $cart->price,
             ];
-        });
+        })->toArray();
+        
+        $summary = session('latest_summary');
+        
+        if (!$summary && $allCarts->isNotEmpty()) {
+            $summary = $this->bookingPricingService->getBookingSummary(
+                $details,
+                $user->phone_number,
+                $activeVenueId,
+                'full_payment'
+            );
+        }
 
-        // Hitung summary total
-        $originalTotal  = $cartItems->sum('original_price');
-        $discountAmount = $cartItems->sum('discount_amount');
-        $finalTotal     = $cartItems->sum('final_price');
+        $membershipCard = MembershipCard::with([
+            'user',
+            'orders' => function($query) {
+                $query->whereIn('status', [
+                    MembershipOrderStatus::ACTIVE->value, 
+                    MembershipOrderStatus::QUEUED->value
+                ])
+                ->orderBy('start_date', 'asc');
+            }
+        ])
+        ->where('user_id', $user->id)
+        ->where('venue_id', $activeVenueId)
+        ->first();
 
-        // Grouping data untuk tampilan (venue > date > field)
-        $grouped = $carts->groupBy('venue_id')->map(function ($venueGroup) {
-            $venue = $venueGroup->first()->venue;
-            $address = $venue->addresses()->with(['district', 'city'])->first();
-
-            // Ambil paymentType yang terbaru
-            $pt = $venue->paymentType;
-
-            $paymentTypes = $pt ? [
-                [
-                    'enable_dp'                 => $pt->enable_dp,
-                    'dp_type'                   => $pt->dp_type,
-                    'dp_value'                  => $pt->dp_value,
-                    'apply_to_merchant'         => $pt->apply_to_merchant,
-                    'is_active'                 => $pt->is_active,
-                    'full_payment_days_before'  => $pt->full_payment_days_before,
-                    'max_full_payment_days'     => $pt->max_full_payment_days,
-                ]
-            ] : [];
-
-            // Group per tanggal
-            $dates = $venueGroup->groupBy('date')->map(function ($dateGroup, $date) {
-                $fields = $dateGroup->groupBy('field_id')->map(function ($fieldGroup) {
-                    return [
-                        'field' => $fieldGroup->first()->field,
-                        'timeslots' => $fieldGroup->map(function ($item) {
-                            return [
-                                'cart_id'     => $item->id,
-                                'timeslot_id' => $item->timeSlot->id,
-                                'name'        => $item->timeSlot->name,
-                                'price'       => (float) $item->price,
-                            ];
-                        })->values(),
-                    ];
-                })->values();
-
-                return [
-                    'date'   => $date,
-                    'fields' => $fields,
-                ];
-            })->values();
-
-            return [
-                'venue' => [
-                    'id'      => $venue->id,
-                    'name'    => $venue->name,
-                    'slug'    => $venue->slug,
-                    'address' => $address ? [
-                        'district' => $address->district?->name,
-                        'city'     => $address->city?->name,
-                    ] : null,
-                ],
-                'paymentType' => $paymentTypes,
-                'dates' => $dates,
-            ];
-        })->values();
-
-        return Inertia::render('User/Booking/Create', [
-            'user' => [
-                'id'           => $user->id,
-                'name'         => $user->name,
-                'email'        => $user->email,
-                'phone_number' => $user->phone_number,
-                'photo'        => $user->photo,
-                'membership'   => $activeMembership ? [
-                    'id'              => $activeMembership->id,
-                    'order_no'        => $activeMembership->order_no,
-                    'package_name'    => $activeMembership->membershipPackage->name,
-                    'package_id'      => $activeMembership->membershipPackage->id,
-                    'venue_id'        => $activeMembership->membershipUser->venue_id,
-                    'venue_name'      => $activeMembership->membershipUser->venue?->name,
-                    'member_no'       => $activeMembership->membershipUser->member_no,
-                    'start_date'      => $activeMembership->start_date,
-                    'end_date'        => $activeMembership->end_date,
-                    'status'          => $activeMembership->status,
-                    'total_price'     => (float) $activeMembership->total_price,
-                    'discount' => [
-                        'type'   => $activeMembership->membershipPackage->discounts->first()?->discount_type,
-                        'value'  => $activeMembership->membershipPackage->discounts->first()?->discount_value ?? 0,
-                        'limit'  => $activeMembership->membershipPackage->discounts->first()?->discount_limit ?? 0,
-                        'used'   => ($activeMembership->membershipPackage->discounts->first()?->discount_limit ?? 0)
-                                    - ($activeMembership->remaining_discount_limits ?? 0),
-                        'remain' => $activeMembership->remaining_discount_limits ?? 0,
-                    ],
-                ] : null,
-            ],
-            'carts'   => $grouped,
-            'items'   => $cartItems,
-            'summary' => [
-                'original_total'  => $originalTotal,
-                'discount_amount' => $discountAmount,
-                'final_total'     => $finalTotal,
-            ],
+        return Inertia::render('User/Orders/Booking/Create', [
+            'user'       => $user,
+            'membership' => $membershipCard ? new MembershipCardResource($membershipCard) : ['data' => null],
+            'items'      => CheckoutItemResource::collection($allCarts)->additional(['pricing' => $summary]),
+            'carts'      => new CartResource($allCarts),
+            'venue'      => $allCarts->first() 
+                ? new VenueResource($allCarts->first()->venue) 
+                : null,
         ]);
-
     }
-    
-    public function store(BookingStoreRequest $request)
+
+    public function calculate(Request $request)
     {
         try {
-            $validated = $request->validated();
-            $user = $this->getUser();
+            $user = Auth::user();
+            
+            $summary = $this->bookingPricingService->getBookingSummary(
+                $request->input('details', []), 
+                $user->phone_number,
+                (int) $request->input('venue_id'),
+                $request->input('payment_type', 'full_payment')
+            );
 
-            // Overwrite customer info dari user login
-            $validated['customer'] = [
-                'user_id'      => $user->id,
-                'name'         => $user->name,
-                'phone_number' => $user->phone_number,
-            ];
+            return redirect()->back()->with('latest_summary', $summary);
 
-            // Ambil field & venue
-            $fieldId = $validated['details'][0]['field_id'] ?? null;
-            $field = Field::with('venue.paymentType')->findOrFail($fieldId);
-            $venue = $field->venue;
-
-            // Pastikan payment array ada
-            $validated['payment'] = $validated['payment'] ?? [];
-
-            // Tentukan tipe pembayaran (DP/full) jika diperlukan
-            $venuePaymentType = $venue->paymentType()->first();
-            if ($venuePaymentType?->enable_dp) {
-                $earliestBookingDate = collect($validated['details'])
-                    ->min(fn($d) => Carbon::parse($d['booking_date']));
-                $daysBeforePlay = now()->diffInDays(Carbon::parse($earliestBookingDate), false);
-
-                if ($daysBeforePlay <= $venuePaymentType->full_payment_days_before) {
-                    $validated['payment']['type'] = 'full_payment';
-                    Log::info("DP tidak berlaku karena booking mendadak. Diubah ke full payment.", [
-                        'days_before_play' => $daysBeforePlay,
-                        'required_min'     => $venuePaymentType->full_payment_days_before,
-                    ]);
-                }
-            }
-
-            // Buat booking via service
-            [$booking, $invoice, $payment, $snapToken] = app(BookingUserService::class)
-                ->create($validated, $venue, $request);
-
-            return response()->json([
-                'success'      => true,
-                'booking_slug' => $booking->slug,
-                'invoice_no'   => $invoice->invoice_no,
-                'payment_id'   => $payment['id'] ?? null,
-                'snap_token'   => $snapToken,
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors([
+                'calculation' => 'Gagal menghitung ulang harga: ' . $e->getMessage()
             ]);
-
-        } catch (\Throwable $e) {
-            report($e);
-            Log::error('Booking store error', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-                'payload' => $request->all(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat membuat booking.',
-            ], 500);
         }
     }
 
+    public function store(BookingStoreRequest $request)
+    {
+        try {
+            $validatedData = $request->validated();
 
+            $result = $this->bookingFlowService->handleOnlineBooking(
+                Auth::id(),
+                $validatedData,
+                ['gateway_name' => config('services.payment.default')]
+            );
 
+            $gatewayData = $result['gateway_data'];
+            $gatewayData['snap_token'] = $gatewayData['token'] ?? null;
 
+            return redirect()->back()->with([
+                'success'       => 'Pesanan berhasil dibuat.',
+                'order_type'    => 'booking',
+                'order_id'      => $result['order']->order_no,
+                'gateway_data' => $gatewayData, 
+            ]);
 
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
 
+    public function prepareCheckout(Request $request) 
+    {
+        $request->validate([
+            'venue_id' => 'required',
+            'ids' => 'required|array', 
+        ]);
+
+        session([
+            'checkout_venue_id' => $request->venue_id,
+            'checkout_cart_ids' => $request->ids,
+        ]);
+
+        return redirect()->route('user.bookings.create');
+    }
+
+    public function getPaymentToken(Booking $booking) 
+    {
+        // $booking->loadMissing(['customer', 'invoice.payments']);
+
+        $ownerId = $booking->customer?->user_id; 
+
+        if ($ownerId !== auth()->id()) {
+            return back()->withErrors(['message' => 'Bukan pesanan Anda.']);
+        }
+
+        $invoice = $booking->invoice; 
+        if (!$invoice) {
+            return back()->withErrors(['message' => 'Invoice tidak ditemukan.']);
+        }
+        
+        $totalPaid = (float) $invoice->payments()
+            ->where('payment_status', PaymentStatus::PAID)
+            ->sum('amount');
+            
+        $amountToPay = (float) $invoice->total_amount - $totalPaid;
+
+        if ($amountToPay <= 0) {
+            return back()->with('message', 'Tagihan ini sudah lunas.');
+        }
+
+        try {
+            $userData = [
+                'first_name' => auth()->user()->name,
+                'email'      => auth()->user()->email,
+                'phone'      => auth()->user()->phone_number,
+            ];
+
+            $result = $this->paymentService->createOnlineTransaction($invoice, $userData);
+
+            return back()->with('flash', [
+                'gateway_data' => $result,
+                'snap_token' => $result['token'],
+                'order_type' => 'booking'
+            ]);
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['message' => 'Gagal mendapatkan token: ' . $e->getMessage()]);
+        }
+    }
 }

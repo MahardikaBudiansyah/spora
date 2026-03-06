@@ -1,28 +1,27 @@
-import { useState, useEffect } from "react";
-import Dropdown from "@/components/Common/Dropdown"; // path sesuaikan
-import Checkbox from "@/components/Common/Checkbox";
 import { ChevronDown } from "lucide-react";
+import Dropdown from "@/Components/Common/Dropdown"; // Sesuaikan path
+import Checkbox from "@/Components/Common/Checkbox"; // Sesuaikan path
 
 export default function MultiSelectCheckboxInput({
-    options = [], // [{ value: 1, label: "Option 1" }]
-    value = [],
+    options = [],
+    value = [], // Ini biasanya state dari useForm Inertia atau useState biasa
     onChange,
     placeholder = "Pilih opsi...",
+    className = "",
 }) {
-    const [selectedValues, setSelectedValues] = useState(value);
+    const selectedValues = Array.isArray(value) ? value : [];
 
-    useEffect(() => {
-        setSelectedValues(value);
-    }, [value]);
+    const handleToggle = (val, e) => {
+        // Mencegah klik pada item menutup dropdown
+        e.stopPropagation();
 
-    const handleToggle = (val) => {
         let updated;
         if (selectedValues.includes(val)) {
             updated = selectedValues.filter((item) => item !== val);
         } else {
             updated = [...selectedValues, val];
         }
-        setSelectedValues(updated);
+
         if (onChange) onChange(updated);
     };
 
@@ -33,43 +32,45 @@ export default function MultiSelectCheckboxInput({
 
     return (
         <Dropdown>
-            {/* Trigger */}
             <Dropdown.Trigger>
                 <button
                     type="button"
-                    className="w-full flex justify-between items-center rounded-md border border-secondary-300 dark:border-secondary-600 px-3 py-2 bg-white dark:bg-secondary-800 text-sm text-gray-700 dark:text-gray-200 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500 hover:border-primary-500 dark:hover:border-primary-500 "
+                    className={`w-full flex justify-between items-center rounded-md border border-gray-300 dark:border-secondary-700 px-3 py-2 bg-white dark:bg-secondary-800 text-sm text-gray-700 dark:text-gray-200 shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition ${className}`}
                 >
-                    <span className="truncate ">
+                    <span className="truncate">
                         {selectedLabels || placeholder}
                     </span>
-                    <ChevronDown className="w-4 h-4 text-secondary-400" />
+                    <ChevronDown className="ml-2 w-4 h-4 text-gray-400" />
                 </button>
             </Dropdown.Trigger>
 
-            {/* Content */}
             <Dropdown.Content
                 align="left"
-                contentClasses="bg-white dark:bg-secondary-800 shadow-lg rounded-md p-2 max-h-64 w-full overflow-y-auto"
+                width="w-full"
+                // Mencegah dropdown menutup saat area konten (background putihnya) diklik
+                onClick={(e) => e.stopPropagation()}
+                contentClasses="bg-white dark:bg-secondary-800 shadow-xl rounded-md p-1 max-h-60 overflow-y-auto border dark:border-secondary-700"
             >
                 {options.length > 0 ? (
                     options.map((opt) => (
-                        <label
+                        <div
                             key={opt.value}
-                            className="flex items-center px-2 py-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-secondary-700 rounded"
+                            className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-secondary-700 rounded transition-colors"
+                            onClick={(e) => handleToggle(opt.value, e)}
                         >
                             <Checkbox
                                 checked={selectedValues.includes(opt.value)}
-                                onChange={() => handleToggle(opt.value)}
-                                className="mr-2"
+                                readOnly // Karena handleToggle sudah dihandle oleh parent div
+                                className="mr-3"
                             />
-                            <span className="text-sm text-gray-700 dark:text-gray-200">
+                            <span className="text-sm text-gray-700 dark:text-gray-200 select-none">
                                 {opt.label}
                             </span>
-                        </label>
+                        </div>
                     ))
                 ) : (
-                    <div className="px-2 py-1 text-sm text-gray-400">
-                        Tidak ada opsi
+                    <div className="px-3 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                        Tidak ada opsi tersedia
                     </div>
                 )}
             </Dropdown.Content>

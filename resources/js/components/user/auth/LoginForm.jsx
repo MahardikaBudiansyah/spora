@@ -12,7 +12,7 @@ export default function LoginForm({ onSuccess, defaultValues }) {
     const { login, authLoading, error } = useAuth();
     const [rememberMe, setRememberMe] = useState(false);
     const [form, setForm] = useState(
-        defaultValues || { identifier: "", password: "" }
+        defaultValues || { identifier: "", password: "" },
     );
     const [isRateLimited, setIsRateLimited] = useState(false);
     const [countdown, setCountdown] = useState(0);
@@ -150,8 +150,8 @@ export default function LoginForm({ onSuccess, defaultValues }) {
                 {isRateLimited
                     ? `Tunggu ${countdown}s`
                     : authLoading
-                    ? "Memproses..."
-                    : "Masuk"}
+                      ? "Memproses..."
+                      : "Masuk"}
             </Button>
         </form>
     );

@@ -2,169 +2,120 @@
 
 namespace App\Http\Controllers\Merchant;
 
-use Inertia\Inertia;
-use App\Models\Venue;
-use Illuminate\Http\Request;
-use App\Models\MembershipPackage;
-use App\Http\Controllers\Merchant\Controller;
+use App\Enums\MerchantStatus;
+use App\Enums\VenueStatus;
 use App\Http\Requests\Merchant\MerchantMembershipPackageRequest;
+use App\Http\Resources\VenueResource;
+use App\Models\MembershipPackage;
+use App\Models\Venue;
+use App\Services\Membership\MembershipPackageService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class MerchantMembershipPackageController extends Controller
-{    
+{
+    protected $service;
+
+    public function __construct(MembershipPackageService $service)
+    {
+        $this->service = $service;
+    }
+
     public function index(Request $request)
     {
-        $merchantId = auth('merchant')->id();
+        $this->authorize('viewAny', MembershipPackage::class);
 
-        $venues = Venue::with(['membershipPackages.discounts', 'membershipPackages.others'])
-        ->where('merchant_id', $merchantId)
-        ->get()
-        ->map(function ($venue) {
-            $venue->membership_packages = $venue->membershipPackages->map(function ($pkg) {
-                $latestUpdate = collect([
-                    $pkg->updated_at,
-                    optional($pkg->discounts->max('updated_at')),
-                    optional($pkg->others->max('updated_at')),
-                ])->filter()->max();
+        $merchant = auth('merchant')->user();
 
-                return [
-                    'id' => $pkg->id,
-                    'slug' => $pkg->slug, 
-                    'name' => $pkg->name,
-                    'duration_months' => $pkg->duration_months,
-                    'price' => $pkg->price,
-                    'description' => $pkg->description,
-                    'membership_benefit_discounts' => $pkg->discounts->map(function ($d) {
-                        return [
-                            'id' => $d->id,
-                            'name' => $d->name,
-                            'discount_type' => $d->discount_type,
-                            'discount_value' => $d->discount_value,
-                            'discount_limit' => $d->discount_limit,
-                            'description' => $d->description,
-                        ];
-                    }),
-                    'membership_benefit_others' => $pkg->others->map(function ($o) {
-                        return [
-                            'id' => $o->id,
-                            'name' => $o->name,
-                            'description' => $o->description,
-                        ];
-                    }),
-                    'is_active'   => $pkg->is_active,
-                    'updated_at'  => $latestUpdate?->format('Y-m-d H:i:s'), // tanggal update terakhir
-                ];
-            });
-            return $venue;
-        });
+        $venues = $this->service->getPackagesByMerchant($merchant->id);
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'venues' => $venues,
-            ]);
-        }
+        $isMerchantApproved = $merchant->status === MerchantStatus::APPROVED;
+        $hasApprovedVenue = $venues->contains(fn($v) => $v->status === VenueStatus::APPROVED);
 
-        return Inertia::render('Merchant/Membership/MembershipPackage/Index', [
-            'venues' => $venues,
+        return Inertia::render('Merchant/Membership/MembershipPackages/Index', [
+            'merchant' => [
+                'name' => $merchant->name,
+            ],
+            'venues' => VenueResource::collection($venues),
+            'auth_status' => [
+                'is_merchant_approved' => $isMerchantApproved,
+                'has_approved_venue' => $hasApprovedVenue,
+                'can_create' => $isMerchantApproved && $hasApprovedVenue
+            ]
         ]);
     }
 
     public function store(MerchantMembershipPackageRequest $request)
     {
-        logger($request->all()); 
-        $data = $request->validated();
+        $this->authorize('create', MembershipPackage::class);
 
-        $package = MembershipPackage::create([
-            'venue_id' => $request->venue_id,
-            'name' => $data['package_name'],
-            'duration_months' => $data['package_duration_months'],
-            'price' => $data['package_price'],
-            'description' => $data['package_descriptions'],
-        ]);
+        try {
+            $data = $request->validated();
 
-        if ($data['discount_name']) {
-            $package->discounts()->create([
-                'name' => $data['discount_name'],
-                'discount_type' => $data['discount_type'],
-                'discount_value' => $data['discount_value'],
-                'discount_limit' => $data['discount_limit'],
-                'description' => $data['discount_descriptions'],
-            ]);
+            $venue = Venue::findOrFail($data['venue_id']);
+
+            $this->authorize('create', [MembershipPackage::class, $venue]);
+
+            $this->service->createPackage($data);
+
+            return back()->with('success', 'Paket membership berhasil ditambahkan!');
+        } catch (AuthorizationException $e) {
+            return back()->with('error', 'Anda tidak memiliki izin untuk menambah paket di venue ini.');
+        } catch (ModelNotFoundException $e) {
+            return back()->with('error', 'Venue tidak ditemukan.');
+        } catch (\Exception $e) {
+            \Log::error("Gagal membuat paket membership: " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat membuat paket.');
         }
-
-        if ($data['other_name']) {
-            $package->others()->create([
-                'name' => $data['other_name'],
-                'description' => $data['other_descriptions'],
-            ]);
-        }
-
-        // Jika pakai useForm Inertia, cukup return redirect back atau with
-        return back()->with([
-            'package' => $package->fresh()->load(['discounts', 'others']),
-        ]);
     }
 
-
-    public function update(MerchantMembershipPackageRequest $request, MembershipPackage $membershipPackages)
+    public function update(MerchantMembershipPackageRequest $request, MembershipPackage $membershipPackage)
     {
-        $data = $request->validated();
+        $this->authorize('update', $membershipPackage);
 
-        $membershipPackages->update([
-            'name' => $data['package_name'],
-            'duration_months' => $data['package_duration_months'],
-            'price' => $data['package_price'],
-            'description' => $data['package_descriptions'],
-        ]);
+        try {
+            $this->service->updatePackage($membershipPackage, $request->validated());
 
-        $membershipPackages->discounts()->delete();
-        $membershipPackages->others()->delete();
-
-        if ($data['discount_name']) {
-            $membershipPackages->discounts()->create([
-                'name' => $data['discount_name'],
-                'discount_type' => $data['discount_type'],
-                'discount_value' => $data['discount_value'],
-                'discount_limit' => $data['discount_limit'],
-                'description' => $data['discount_descriptions'],
-            ]);
+            return back()->with('success', 'Paket membership berhasil diperbarui!');
+        } catch (\Exception $e) {
+            \Log::error("Error update global package: " . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui paket.');
         }
+    }
 
-        if ($data['other_name']) {
-            $membershipPackages->others()->create([
-                'name' => $data['other_name'],
-                'description' => $data['other_descriptions'],
+    public function toggleActive(MembershipPackage $membershipPackage, Request $request)
+    {
+        $this->authorize('toggleActive', $membershipPackage);
+
+        try {
+            $this->service->togglePackageStatus($membershipPackage, $request->is_active);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status paket membership berhasil diperbarui',
+                'is_active' => $membershipPackage->is_active,
             ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false], 500);
         }
-
-        return back()->with([
-            'package' => $membershipPackages->fresh()->load(['discounts', 'others']),
-        ]);
     }
 
-    public function destroy(MembershipPackage $membershipPackages)
+    public function destroy(MembershipPackage $membershipPackage)
     {
-        $membershipPackages->delete();
+        $this->authorize('delete', $membershipPackage);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Paket berhasil dihapus',
-        ]);
+        try {
+            $packageName = $membershipPackage->name;
+
+            $this->service->deletePackage($membershipPackage);
+
+            return back()->with('success', "Paket membership '{$packageName}' berhasil dihapus.");
+        } catch (\Exception $e) {
+            \Log::error("Error deleting Membership Package ID {$membershipPackage->id}: " . $e->getMessage());
+
+            return back()->with('error', 'Gagal menghapus paket membership. Pastikan tidak ada data terkait yang masih aktif.');
+        }
     }
-
-    public function toggleActive(MembershipPackage $membershipPackages, Request $request)
-    {
-        $request->validate([
-            'is_active' => 'required|boolean',
-        ]);
-
-        $membershipPackages->is_active = $request->is_active;
-        $membershipPackages->save();
-
-        return response()->json([
-            'message' => 'Status paket berhasil diperbarui',
-            'is_active' => $membershipPackages->is_active,
-        ]);
-    }
-
-
 }

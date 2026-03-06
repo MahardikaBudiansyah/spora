@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Models\Invoice;
+use App\Enums\PaymentType;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Models\PaymentDetail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,9 +21,18 @@ class Payment extends Model
         'payment_method',
         'payment_type',
         'gateway_order_id',
+        'checout_url',
         'amount',
         'payment_status',
     ];
+
+    protected $casts = [
+        'payment_method' => PaymentMethod::class,
+        'payment_type' => PaymentType::class,
+        'payment_status' => PaymentStatus::class,
+        'amount' => 'decimal:2',
+    ];
+
 
     public function invoice()
     {

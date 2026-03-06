@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Carbon\Carbon;
 use App\Models\StaffProfile;
 use Illuminate\Database\Seeder;
+use App\Helpers\NumberPhoneHelper;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class StaffProfileSeeder extends Seeder
@@ -19,7 +20,7 @@ class StaffProfileSeeder extends Seeder
                 'staff_id' => 1,
                 'NIK' => '123456789',
                 'phone_number' => '089629792894',
-                'avatar' => null,
+                'avatar_path' => null,
                 'date_of_birth' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -29,7 +30,7 @@ class StaffProfileSeeder extends Seeder
                 'staff_id' => 2,
                 'NIK' => null,
                 'phone_number' => null,
-                'avatar' => null,
+                'avatar_path' => null,
                 'date_of_birth' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -37,6 +38,8 @@ class StaffProfileSeeder extends Seeder
         ];
 
         foreach ($data as $value) {
+            $value['phone_number'] = NumberPhoneHelper::normalize($value['phone_number']);
+            
             StaffProfile::create($value);
         };
     }

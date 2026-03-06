@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  soketi:
+    image: quay.io/soketi/soketi:0.34-16-alpine
+    container_name: soketi
+    depends_on:
+      - redis
+    ports:
+      - "6001:6001"
+    environment:
+      SOCKET_PORT: 6001
+      SOCKET_APP_ID: local
+      SOCKET_KEY: local
+      SOCKET_SECRET: local
+      SOCKET_ENABLE_TLS: "false"
+      SOCKET_REDIS_HOST: redis
+      SOCKET_REDIS_PORT: 6379
+    restart: unless-stopped

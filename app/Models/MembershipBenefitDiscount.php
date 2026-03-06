@@ -4,12 +4,11 @@ namespace App\Models;
 
 use App\Models\MembershipPackage;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MembershipBenefitDiscount extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'membership_benefit_discounts';
 
@@ -20,6 +19,12 @@ class MembershipBenefitDiscount extends Model
         'discount_limit',
         'description',
 
+    ];
+
+    protected $casts = [
+        'discount_type'  => 'string', 
+        'discount_value' => 'decimal:2', 
+        'discount_limit' => 'integer',
     ];
 
     public function membershipPackage()

@@ -21,8 +21,10 @@ Route::get('/indonesia/districts', [AddressController::class, 'districts']);
 Route::get('/indonesia/villages', [AddressController::class, 'villages']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    $user = $request->user();
+
     return response()->json([
-        'user' => $request->user(),
+        'user' => $user ? $user : null,
         'session_id' => session()->getId(),
     ]);
 });

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('status', ['active', 'inactive', 'resigned'])->default('active');
             $table->boolean('is_active')->default(true);
+            $table->text('notes')->nullable();
             $table->rememberToken();
             $table->softDeletes(); 
             $table->timestamps();

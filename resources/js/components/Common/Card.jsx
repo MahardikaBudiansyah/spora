@@ -1,20 +1,32 @@
 import React from "react";
+import { Link } from "@inertiajs/react";
 import { twMerge } from "tailwind-merge";
 
-/**
- * 🧩 Card — komponen container fleksibel dengan dukungan ref dan onClick.
- */
 export const Card = React.forwardRef(function Card(
-    { children, className = "", onClick },
+    { children, className = "", onClick, href, ...props },
     ref
 ) {
     const baseClass =
-        "bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-2xl shadow-md overflow-hidden";
+        "bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-700 rounded-xl shadow-md overflow-hidden";
     const mergedClass = twMerge(baseClass, className);
+
+    if (href) {
+        return (
+            <Link
+                href={href}
+                ref={ref}
+                className={mergedClass}
+                style={{ cursor: "pointer", display: "block" }}
+                {...props}
+            >
+                {children}
+            </Link>
+        );
+    }
 
     return (
         <div
-            ref={ref} // ✅ agar bisa di-scroll atau diakses lewat ref
+            ref={ref}
             className={mergedClass}
             onClick={onClick}
             role={onClick ? "button" : undefined}
@@ -26,42 +38,33 @@ export const Card = React.forwardRef(function Card(
                 }
             }}
             style={onClick ? { cursor: "pointer" } : undefined}
+            {...props}
         >
             {children}
         </div>
     );
 });
 
-// Tambahkan displayName agar muncul di React DevTools
 Card.displayName = "Card";
 
-/**
- * 🧩 Bagian header dari Card
- */
 export function CardHeader({ children, className = "" }) {
     const baseClass =
-        "px-4 py-2 border-b border-secondary-200 dark:border-secondary-700";
+        "p-4 border-b border-secondary-200 dark:border-secondary-700";
     const mergedClass = twMerge(baseClass, className);
 
     return <div className={mergedClass}>{children}</div>;
 }
 
-/**
- * 🧩 Bagian body dari Card
- */
 export function CardBody({ children, className = "" }) {
-    const baseClass = "px-4 py-2";
+    const baseClass = "p-4";
     const mergedClass = twMerge(baseClass, className);
 
     return <div className={mergedClass}>{children}</div>;
 }
 
-/**
- * 🧩 Bagian footer dari Card
- */
 export function CardFooter({ children, className = "" }) {
     const baseClass =
-        "px-4 py-2 border-t border-secondary-200 dark:border-secondary-700";
+        "p-4 border-t border-secondary-200 dark:border-secondary-700";
     const mergedClass = twMerge(baseClass, className);
 
     return <div className={mergedClass}>{children}</div>;

@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\BusinessType;
 use App\Models\MerchantProfile;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Helpers\NumberPhoneHelper;
+use App\Enums\MerchantProfileStatus;
 
 class MerchantProfileSeeder extends Seeder
 {
@@ -17,22 +18,27 @@ class MerchantProfileSeeder extends Seeder
         $data = [
             [
                 'merchant_id' => 1,
-                'nik' => '0101010101010101',
-                'full_name' => 'Mahardika Budiansyah',
-                'ktp_photo' => null,
-                'selfie_with_ktp' => null,
-                'bank_name' => 'Bank Central Asia',
-                'bank_account_number' => '089629792894',
-                'bank_account_holder' => 'Mahardika Budiansyah',
-                'verification_status' => 'approved',
-                'verified_at' => now(), 
-                'rejection_reason' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
+                'business_name' => 'Jakal Futsal Group',
+                'business_email' => 'jakal.futsal@gmail.com',
+                'business_phone_number' => '089629792894',
+                'status' => BusinessType::INDIVIDUAL,
+                'nib' => '1234567890123',
+                'status' => MerchantProfileStatus::DRAFT,
+            ],
+            [
+                'merchant_id' => 2,
+                'business_name' => 'Telaga Futsal Group',
+                'business_email' => 'telaga.futsal@gmail.com',
+                'business_phone_number' => '081310578168',
+                'status' => BusinessType::INDIVIDUAL,
+                'nib' => '1234567890124',
+                'status' => MerchantProfileStatus::DRAFT,
             ],
         ];
 
         foreach ($data as $value) {
+            $value['business_phone_number'] = NumberPhoneHelper::normalize($value['business_phone_number']);
+
             MerchantProfile::create($value);
         }
     }

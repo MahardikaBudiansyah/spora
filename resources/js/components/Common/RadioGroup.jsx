@@ -37,7 +37,7 @@ export default function RadioGroup({
             <div
                 role="radiogroup"
                 aria-invalid={invalid || undefined}
-                className="flex flex-col"
+                className={twMerge("flex flex-col gap-2", className)}
             >
                 {options.length > 0
                     ? options.map((opt) => (
@@ -61,8 +61,9 @@ export default function RadioGroup({
                 <p
                     id={`${groupId}-helper`}
                     className={twMerge(
-                        "mt-2 text-muted-foreground",
-                        size === "sm" ? "text-xs" : "text-sm"
+                        "mt-2 transition-colors",
+                        size === "sm" ? "text-xs" : "text-sm",
+                        invalid ? "text-red-500" : "text-muted-foreground"
                     )}
                 >
                     {helper}

@@ -3,12 +3,7 @@ import { Head, usePage, router, Link } from "@inertiajs/react";
 
 import MerchantLayout from "@/Layouts/MerchantLayout";
 
-import {
-    Card,
-    CardHeader,
-    CardBody,
-    CardFooter,
-} from "@/components/Common/Card";
+import { Card, CardHeader, CardBody } from "@/components/Common/Card";
 
 export default function Index() {
     return (

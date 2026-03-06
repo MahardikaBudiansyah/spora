@@ -5,7 +5,7 @@ import UpdatePasswordForm from "@/Pages/User/Profile/Partials/UpdatePasswordForm
 import UpdateProfileInformationForm from "@/Pages/User/Profile/Partials/UpdateProfileInformationForm";
 import BannerSection from "@/components/common/BannerSection";
 import { Card, CardHeader, CardBody } from "@/components/common/Card";
-import Tabs from "@/components/common/Tabs"; // 👈 pakai komponen Tabs
+import Tabs from "@/components/common/Tabs";
 import { KeyRound, UserRound, Trash2 } from "lucide-react";
 
 export default function Edit({ auth, mustVerifyEmail, status }) {

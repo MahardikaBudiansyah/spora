@@ -2,32 +2,32 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Cart;
-use App\Models\Address;
-use App\Models\TimeSlot;
-use App\Models\Membership;
-use App\Traits\HasPassword;
-use App\Models\Notification;
-use App\Models\MembershipUser;
-use App\Traits\HasUniqueField;
+use App\Enums\UserStatus;
 use App\Models\BookingCustomer;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
-use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Cart;
+use App\Models\MembershipCard;
+use App\Models\TimeSlot;
+use App\Traits\HasAddress;
+use App\Traits\HasNotifications;
+use App\Traits\HasPassword;
+use App\Traits\HasStatusHistory;
+use App\Traits\HasUniqueField;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUniqueField, HasPassword;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasUniqueField, HasPassword,  HasStatusHistory, HasAddress, HasNotifications {
+        HasNotifications::notifications insteadof Notifiable;
+        HasNotifications::readNotifications insteadof Notifiable;
+        HasNotifications::unreadNotifications insteadof Notifiable;
+        Notifiable::notifications as laravelNotifications;
+        Notifiable::unreadNotifications as laravelUnreadNotifications;
+    }
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'username',
@@ -36,7 +36,7 @@ class User extends Authenticatable
         'password',
         'phone_number',
         'phone_verified_at',
-        'photo',
+        'avatar_path',
         'status',
         'is_active',
     ];
@@ -51,43 +51,38 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'status' => UserStatus::class,
         'email_verified_at' => 'datetime',
         'phone_verified_at' => 'datetime',
         'is_active' => 'boolean',
     ];
 
     protected $attributes = [
-        'is_active' => true, 
+        'is_active' => true,
     ];
 
-    public function addresses()
+    public function syncStatus()
     {
-        return $this->morphMany(Address::class, 'addressable');
+        if ($this->status === UserStatus::BANNED) {
+            $this->is_active = false;
+            return;
+        }
+
+        $this->status = ($this->email_verified_at && $this->phone_verified_at)
+            ? UserStatus::VERIFIED
+            : UserStatus::PENDING;
     }
 
-    public function membershipUsers()
+    public function membershipCards()
     {
-        return $this->hasMany(MembershipUser::class);
-    }
-      // untuk akses cepat semua membership aktif
-    public function activeMemberships()
-    {
-        return $this->hasManyThrough(
-            Membership::class,
-            MembershipUser::class,
-            'user_id',             // Foreign key di membership_users → users.id
-            'membership_user_id',  // Foreign key di memberships → membership_users.id
-            'id',                  // Local key di users
-            'id'                   // Local key di membership_users
-        )->where('status', 'active');
-
+        return $this->hasMany(MembershipCard::class);
     }
 
     public function timeSlots()
     {
         return $this->belongsToMany(TimeSlot::class, 'carts')
-                    ->withPivot(['field_id', 'price']) // sesuaikan dengan kolom yang ada
-                    ->withTimestamps();
+            ->withPivot(['court_id', 'price'])
+            ->withTimestamps();
     }
 
     public function carts()
@@ -98,10 +93,5 @@ class User extends Authenticatable
     public function bookingCustomers()
     {
         return $this->hasMany(BookingCustomer::class, 'user_id', 'id');
-    }
-
-    public function notifications()
-    {
-        return $this->morphMany(Notification::class, 'notifiable');
     }
 }

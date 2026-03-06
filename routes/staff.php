@@ -4,10 +4,10 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TimeSlotController;
 use App\Http\Controllers\Merchant\MembershipController;
-use App\Http\Controllers\Merchant\FieldController;
+use App\Http\Controllers\Merchant\CourtController;
 use App\Http\Controllers\Merchant\VenueController;
-use App\Http\Controllers\Merchant\BookingController;
-use App\Http\Controllers\Merchant\ProfileController;
+use App\Http\Controllers\Merchant\VenueBookingController;
+use App\Http\Controllers\Merchant\StaffProfileController;
 use App\Http\Controllers\Staff\Auth\AuthenticatedSessionController;
 
 Route::middleware('guest:staff')->prefix('staff')->name('staff.')->group(function () {
@@ -22,48 +22,45 @@ Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(functi
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-// Profile
+    // Profile
     Route::prefix('profiles')->name('profile.')->group(function () {
-        Route::get('/', [ProfileController::class, 'index'])->name('index');
-        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
-        Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+        Route::get('/', [StaffProfileController::class, 'index'])->name('index');
+        Route::get('/edit', [StaffProfileController::class, 'edit'])->name('edit');
+        Route::get('/settings', [StaffProfileController::class, 'settings'])->name('settings');
     });
 
     // Akses venue milik merchant tertentu
     Route::prefix('{merchant:slug}')->name('merchant.')->group(function () {
         Route::prefix('venues/{venue:slug}')->name('venues.')->group(function () {
 
-            // hanya bisa lihat & edit/update
             Route::get('/', [VenueController::class, 'show'])->name('show');
             Route::get('/edit', [VenueController::class, 'edit'])->name('edit');
             Route::put('/update', [VenueController::class, 'update'])->name('update');
 
-            // Memberships (read only)
             Route::prefix('memberships')->name('memberships.')->group(function () {
                 Route::get('/', [MembershipController::class, 'index'])->name('index');
                 Route::get('/show', [MembershipController::class, 'show'])->name('show');
             });
 
-            // Bookings (operator butuh ini)
             Route::prefix('bookings')->name('bookings.')->group(function () {
-                Route::get('/', [BookingController::class, 'index'])->name('index');
-                Route::get('/create', [BookingController::class, 'create'])->name('create');
-                Route::get('/search-customer', [BookingController::class, 'searchCustomer'])->name('searchCustomer');
-                Route::post('/store', [BookingController::class, 'store'])->name('store');
+                Route::get('/', [VenueBookingController::class, 'index'])->name('index');
+                Route::get('/create', [VenueBookingController::class, 'create'])->name('create');
+                Route::get('/search-customer', [VenueBookingController::class, 'searchCustomer'])->name('searchCustomer');
+                Route::post('/store', [VenueBookingController::class, 'store'])->name('store');
                 Route::get('/timeslots', [TimeSlotController::class, 'getTimeslotsByVenue'])->name('getTimeslotsByVenue');
             });
 
-            // Fields
-            Route::prefix('fields')->name('fields.')->group(function () {
-                Route::get('/', [FieldController::class, 'index'])->name('index');
-                Route::get('/{field:slug}', [FieldController::class, 'show'])->name('show');
-                Route::get('/{field:slug}/edit', [FieldController::class, 'edit'])->name('edit');
-                Route::put('/{field:slug}/update', [FieldController::class, 'update'])->name('update');
+            // courts
+            Route::prefix('courts')->name('courts.')->group(function () {
+                Route::get('/', [CourtController::class, 'index'])->name('index');
+                Route::get('/{court:slug}', [CourtController::class, 'show'])->name('show');
+                Route::get('/{court:slug}/edit', [CourtController::class, 'edit'])->name('edit');
+                Route::put('/{court:slug}/update', [CourtController::class, 'update'])->name('update');
 
                 // Calendar & Timeslots
-                Route::get('/{field:slug}/calendar', [FieldController::class, 'calendar'])->name('calendar');
-                Route::get('/{field:slug}/timeslots', [TimeSlotController::class, 'getTimeslotsByField'])->name('getTimeslotsByField');
-                Route::post('/{field:slug}/update-slot-statuses', [TimeSlotController::class, 'updateTimeslotStatuses'])->name('updateTimeslotStatuses');
+                Route::get('/{court:slug}/calendar', [CourtController::class, 'calendar'])->name('calendar');
+                Route::get('/{court:slug}/timeslots', [TimeSlotController::class, 'getTimeslotsByCourt'])->name('getTimeslotsByCourt');
+                Route::post('/{court:slug}/update-slot-statuses', [TimeSlotController::class, 'updateTimeslotStatuses'])->name('updateTimeslotStatuses');
             });
         });
     });

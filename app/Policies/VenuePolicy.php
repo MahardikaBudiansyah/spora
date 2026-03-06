@@ -4,13 +4,13 @@ namespace App\Policies;
 
 use App\Models\Venue;
 use App\Models\Merchant;
-use Illuminate\Auth\Access\Response;
+use App\Enums\MerchantStatus;
 
 class VenuePolicy
 {
     public function viewAny(Merchant $merchant): bool
     {
-        return $merchant->status === 'active'; 
+        return true;
     }
 
     public function view(Merchant $merchant, Venue $venue): bool
@@ -30,6 +30,6 @@ class VenuePolicy
 
     public function create(Merchant $merchant): bool
     {
-        return $merchant->status === 'active';
+        return $merchant->status === MerchantStatus::APPROVED;
     }
 }

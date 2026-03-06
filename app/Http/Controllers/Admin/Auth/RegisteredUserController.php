@@ -5,14 +5,10 @@ namespace App\Http\Controllers\Admin\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Merchant;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
 use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Auth\Events\Registered;
-use App\Providers\RouteServiceProvider;
 use App\Http\Requests\Merchant\Auth\RegisterMerchantRequest;
 
 
@@ -67,11 +63,9 @@ class RegisteredUserController extends Controller
         session()->flash('registered_email', $email);
         session()->flash('registration_success', true);
 
-        return Inertia::render('Merchant/Auth/Login', [
+        return Inertia::render('Admin/Auth/Login', [
             'prefill' => ['email' => $email],
             'registration_success' => true,
         ]);
-
     }
-
 }

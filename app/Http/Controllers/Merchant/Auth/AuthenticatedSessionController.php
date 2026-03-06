@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Merchant\Auth;
 
-use Log;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -11,7 +10,8 @@ use App\Http\Requests\Merchant\Auth\LoginRequest;
 
 class AuthenticatedSessionController extends Controller
 {
-    public function create() {
+    public function create()
+    {
         return Inertia::render('Merchant/Auth/Login', [
             'prefill' => [
                 'email' => session('registered_email'),

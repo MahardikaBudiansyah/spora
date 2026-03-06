@@ -17,7 +17,6 @@ class EnsureUserProfileIsComplete
             return redirect()->route('login');
         }
 
-        // Pastikan profil minimal lengkap
         if (empty($user->email) || empty($user->phone_number) || empty($user->name)) {
             $currentRouteName = $request->route()->getName();
 

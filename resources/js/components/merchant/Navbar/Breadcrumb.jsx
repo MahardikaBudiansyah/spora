@@ -1,24 +1,57 @@
-import { usePage } from "@inertiajs/react";
-import { Link } from "@inertiajs/react";
-import { ChevronRight } from "lucide-react";
+import { usePage, Link } from "@inertiajs/react";
+import { ChevronRight, Home } from "lucide-react";
 import { route } from "ziggy-js";
 import { toTitleCase } from "@/utils/stringFormatter";
 
-export default function Breadcrumb() {
+export default function Breadcrumb({ className = "" }) {
     const { url } = usePage();
     const current = route().current();
     const params = route().params;
 
     const breadcrumbMap = {
         "merchant.dashboard": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
+        ],
+        "merchant.notifications.index": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
+            {
+                label: "Notifikasi",
+                href: route("merchant.notifications.index"),
+            },
+        ],
+        "merchant.notifications.archive": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
+            {
+                label: "Arsip Notifikasi",
+                href: route("merchant.notifications.archive"),
+            },
         ],
         "merchant.staff.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Staff", href: route("merchant.staff.index") },
         ],
         "merchant.staff.operator.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Staff", href: route("merchant.staff.index") },
             {
                 label: params.staff
@@ -38,29 +71,59 @@ export default function Breadcrumb() {
             },
         ],
         "merchant.memberships.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
-            { label: "Membership", href: route("merchant.memberships.index") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
         ],
         "merchant.memberships.packages.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             {
                 label: "Paket Membership",
                 href: route("merchant.memberships.packages.index"),
             },
         ],
+        "merchant.memberships.cards.index": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
+            {
+                label: "Member Aktif",
+                href: route("merchant.memberships.cards.index"),
+            },
+        ],
         "merchant.venues.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
         ],
         "merchant.venues.create": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: "Tambah",
             },
         ],
         "merchant.venues.show": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -75,7 +138,11 @@ export default function Breadcrumb() {
             },
         ],
         "merchant.venues.edit": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -89,8 +156,12 @@ export default function Breadcrumb() {
                 label: "Edit",
             },
         ],
-        "merchant.venues.fields.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+        "merchant.venues.courts.index": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -103,14 +174,18 @@ export default function Breadcrumb() {
             {
                 label: "Lapangan",
                 href: params.venue
-                    ? route("merchant.venues.fields.index", {
+                    ? route("merchant.venues.courts.index", {
                           venue: params.venue,
                       })
                     : "#",
             },
         ],
-        "merchant.venues.fields.create": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+        "merchant.venues.courts.create": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -123,7 +198,7 @@ export default function Breadcrumb() {
             {
                 label: "Lapangan",
                 href: params.venue
-                    ? route("merchant.venues.fields.index", {
+                    ? route("merchant.venues.courts.index", {
                           venue: params.venue,
                       })
                     : "#",
@@ -132,8 +207,12 @@ export default function Breadcrumb() {
                 label: "Tambah",
             },
         ],
-        "merchant.venues.fields.show": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+        "merchant.venues.courts.show": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -146,20 +225,20 @@ export default function Breadcrumb() {
             {
                 label: "Lapangan",
                 href: params.venue
-                    ? route("merchant.venues.fields.index", {
+                    ? route("merchant.venues.courts.index", {
                           venue: params.venue,
                       })
                     : "#",
             },
             {
-                label: params.field
-                    ? toTitleCase(params.field.replace(/-/g, " "))
+                label: params.court
+                    ? toTitleCase(params.court.replace(/-/g, " "))
                     : "Lapangan",
                 href:
-                    params.venue && params.field
-                        ? route("merchant.venues.fields.show", {
+                    params.venue && params.court
+                        ? route("merchant.venues.courts.show", {
                               venue: params.venue,
-                              field: params.field,
+                              court: params.court,
                           })
                         : "#",
             },
@@ -167,8 +246,12 @@ export default function Breadcrumb() {
                 label: "Detail Informasi",
             },
         ],
-        "merchant.venues.fields.edit": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+        "merchant.venues.courts.edit": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -181,20 +264,20 @@ export default function Breadcrumb() {
             {
                 label: "Lapangan",
                 href: params.venue
-                    ? route("merchant.venues.fields.index", {
+                    ? route("merchant.venues.courts.index", {
                           venue: params.venue,
                       })
                     : "#",
             },
             {
-                label: params.field
-                    ? toTitleCase(params.field.replace(/-/g, " "))
+                label: params.court
+                    ? toTitleCase(params.court.replace(/-/g, " "))
                     : "Lapangan",
                 href:
-                    params.venue && params.field
-                        ? route("merchant.venues.fields.show", {
+                    params.venue && params.court
+                        ? route("merchant.venues.courts.show", {
                               venue: params.venue,
-                              field: params.field,
+                              court: params.court,
                           })
                         : "#",
             },
@@ -203,8 +286,12 @@ export default function Breadcrumb() {
             },
         ],
 
-        "merchant.venues.fields.calendar": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+        "merchant.venues.courts.calendar": [
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -217,36 +304,36 @@ export default function Breadcrumb() {
             {
                 label: "Lapangan",
                 href: params.venue
-                    ? route("merchant.venues.fields.index", {
+                    ? route("merchant.venues.courts.index", {
                           venue: params.venue,
                       })
                     : "#",
             },
             {
-                label: params.field
-                    ? toTitleCase(params.field.replace(/-/g, " "))
+                label: params.court
+                    ? toTitleCase(params.court.replace(/-/g, " "))
                     : "Lapangan",
                 href:
-                    params.venue && params.field
-                        ? route("merchant.venues.fields.show", {
+                    params.venue && params.court
+                        ? route("merchant.venues.courts.show", {
                               venue: params.venue,
-                              field: params.field,
+                              court: params.court,
                           })
                         : "#",
             },
             {
                 label: "Jadwal",
                 href:
-                    params.venue && params.field
-                        ? route("merchant.venues.fields.calendar", {
+                    params.venue && params.court
+                        ? route("merchant.venues.courts.calendar", {
                               venue: params.venue,
-                              field: params.field,
+                              court: params.court,
                           })
                         : "#",
             },
         ],
         // "merchant.venues.memberships.index": [
-        //     { label: "Dashboard", href: route("merchant.dashboard") },
+        //     { label: "Dashboard", href: route("merchant.dashboard"),    Icon: Home, },
         //     { label: "Venue", href: route("merchant.venues.index") },
         //     {
         //         label: params.venue
@@ -266,7 +353,11 @@ export default function Breadcrumb() {
         //     },
         // ],
         "merchant.venues.bookings.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -286,7 +377,11 @@ export default function Breadcrumb() {
             },
         ],
         "merchant.venues.transactions.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Venue", href: route("merchant.venues.index") },
             {
                 label: params.venue
@@ -306,11 +401,15 @@ export default function Breadcrumb() {
             },
         ],
         "merchant.profile.index": [
-            { label: "Dashboard", href: route("merchant.dashboard") },
+            {
+                label: "Dashboard",
+                href: route("merchant.dashboard"),
+                Icon: Home,
+            },
             { label: "Profil", href: route("merchant.profile.index") },
         ],
         // "merchant.settings": [
-        //     { label: "Dashboard", href: route("merchant.dashboard") },
+        //     { label: "Dashboard", href: route("merchant.dashboard"),    Icon: Home, },
         //     { label: "Pengaturan", href: route("merchant.settings") },
         // ],
     };
@@ -318,25 +417,53 @@ export default function Breadcrumb() {
     const items = breadcrumbMap[current] || [];
 
     return (
-        <nav className="text-sm text-muted-foreground">
-            <ol className="flex items-center flex-wrap">
+        <nav className={`text-sm ${className}`} aria-label="Breadcrumb">
+            <ol className="flex items-center whitespace-nowrap overflow-hidden">
                 {items.map((item, index) => {
                     const isLast = index === items.length - 1;
+                    const IconComponent = item.Icon;
+
                     return (
                         <li key={index} className="flex items-center">
+                            {/* Pemisah (Separator) */}
                             {index > 0 && (
-                                <ChevronRight className="mx-1 w-4 h-4" />
+                                <ChevronRight className="mx-2 w-4 h-4 text-stone-400 shrink-0" />
                             )}
+
                             {isLast ? (
-                                <span className="font-semibold text-foreground">
-                                    {item.label}
-                                </span>
+                                // Item terakhir (Aktif)
+                                <div className="flex items-center gap-1.5 font-semibold text-stone-900 dark:text-white">
+                                    {IconComponent && (
+                                        <IconComponent
+                                            size={16}
+                                            className="shrink-0"
+                                        />
+                                    )}
+                                    <span className="truncate max-w-[150px] sm:max-w-none">
+                                        {item.label}
+                                    </span>
+                                </div>
                             ) : (
+                                // Link Navigasi (Bukan item terakhir)
                                 <Link
                                     href={item.href}
-                                    className="hover:underline"
+                                    className="flex items-center gap-1.5 text-stone-500 hover:text-stone-700 transition-colors"
                                 >
-                                    {item.label}
+                                    {IconComponent && (
+                                        <IconComponent
+                                            size={16}
+                                            className="shrink-0"
+                                        />
+                                    )}
+                                    <span
+                                        className={
+                                            index === 0
+                                                ? "hidden sm:inline"
+                                                : ""
+                                        }
+                                    >
+                                        {item.label}
+                                    </span>
                                 </Link>
                             )}
                         </li>

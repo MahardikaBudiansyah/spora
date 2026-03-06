@@ -15,19 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('merchant_id')->constrained()->cascadeOnDelete();
 
-            $table->string('nik')->nullable(); 
-            $table->string('full_name')->nullable();
-            $table->string('ktp_photo')->nullable();
-            $table->string('selfie_with_ktp')->nullable();
+            $table->string('business_name')->nullable();
+            $table->string('business_email')->nullable();
+            $table->string('business_phone_number')->nullable();
+            $table->enum('business_type', ['individual', 'entity'])->nullable();
+            $table->string('nib', 13)->nullable();
 
-            $table->string('bank_name')->nullable();
-            $table->string('bank_account_number')->nullable();
-            $table->string('bank_account_holder')->nullable();
+            $table->enum('status', ['draft', 'pending', 'approved', 'rejected'])->default('draft');
 
-            $table->enum('verification_status', ['pending', 'approved', 'rejected'])->default('pending');
-
-            $table->timestamp('verified_at')->nullable();
-            $table->text('rejection_reason')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

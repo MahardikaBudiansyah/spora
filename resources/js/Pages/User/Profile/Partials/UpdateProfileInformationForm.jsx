@@ -10,6 +10,11 @@ import TextInput from "@/components/common/TextInput";
 import PhoneInput from "@/components/Common/PhoneInput";
 import { formatTo08 } from "@/utils/numberPhone";
 import ProfileAvatar from "@/components/Common/ProfileAvatar";
+import {
+    getUserStatus,
+    getVerificationStatus,
+} from "@/utils/attributes/userAttribute";
+import { formatFullDateTime } from "@/utils/date";
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -18,6 +23,10 @@ export default function UpdateProfileInformation({
 }) {
     const user = usePage().props.auth.user;
     const [resetPreviewSignal, setResetPreviewSignal] = useState(false);
+
+    const userStatus = getUserStatus(user.status, user.status_verified_at);
+    const emailStatus = getVerificationStatus(user.email_verified_at);
+    const phoneStatus = getVerificationStatus(user.phone_verified_at);
 
     const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
@@ -44,20 +53,35 @@ export default function UpdateProfileInformation({
             {
                 forceFormData: true,
                 preserveScroll: true,
-                onSuccess: () => {
-                    setData("photo", null); // reset file yang dipilih
+                onSuccess: (page) => {
+                    setData("photo", null);
                     setResetPreviewSignal((prev) => !prev);
-                    toast.success("Profil berhasil diperbarui!");
+
+                    const updatedUser = page.props.auth.user;
+
+                    if (updatedUser.status === "active") {
+                        toast.success("Profil lengkap! Akun Anda kini Aktif.");
+                    } else {
+                        toast.success("Profil berhasil diperbarui!");
+                    }
                 },
                 onError: (errs) => console.error(errs),
-            }
+            },
         );
     };
 
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium">Informasi Profil</h2>
+                <div className="flex gap-2 items-center">
+                    <h2 className="text-lg font-medium">Informasi Profil</h2>
+                    <Badge
+                        color={userStatus.color}
+                        tooltip={userStatus.timestamp}
+                    >
+                        {userStatus.label}
+                    </Badge>
+                </div>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     Perbarui informasi profil akun dan alamat email Anda.
                 </p>
@@ -70,33 +94,33 @@ export default function UpdateProfileInformation({
                 <div className="space-y-6">
                     <ProfileAvatar
                         user={user}
-                        size="profile"
+                        size="2xl"
                         onChange={(file) => setData("photo", file)}
                         resetPreviewSignal={resetPreviewSignal}
                     />
                 </div>
                 <div className="space-y-6">
                     {/* Name */}
-                    <div>
+                    <div className="space-y-2">
                         <InputLabel htmlFor="name" value="Nama" />
                         <TextInput
                             id="name"
-                            className="mt-1 block w-full"
+                            className="w-full"
                             value={data.name}
                             onChange={(e) => setData("name", e.target.value)}
                             required
                             isFocused
                             autoComplete="name"
                         />
-                        <InputError className="mt-2" message={errors.name} />
+                        <InputError message={errors.name} />
                     </div>
 
                     {/* Username */}
-                    <div>
+                    <div className="space-y-2">
                         <InputLabel htmlFor="username" value="Username" />
                         <TextInput
                             id="username"
-                            className="mt-1 block w-full"
+                            className="w-full"
                             value={data.username}
                             onChange={(e) =>
                                 setData("username", e.target.value)
@@ -105,34 +129,35 @@ export default function UpdateProfileInformation({
                             required
                             autoComplete="username"
                         />
-                        <InputError
-                            className="mt-2"
-                            message={errors.username}
-                        />
+                        <InputError message={errors.username} />
                     </div>
 
-                    {/* Phone Number */}
-                    <div>
-                        <InputLabel
-                            htmlFor="phone_number"
-                            value="Nomor Handphone"
-                        />
+                    <div className="space-y-2">
+                        <div className="flex gap-2 items-center">
+                            <InputLabel
+                                htmlFor="phone_number"
+                                value="Nomor Handphone:"
+                            />
+                            <Badge
+                                color={phoneStatus?.color}
+                                tooltip={phoneStatus.timestamp}
+                            >
+                                {phoneStatus?.label}
+                            </Badge>
+                        </div>
                         <PhoneInput
                             id="phone_number"
-                            className="mt-1 block w-full"
+                            className="w-full"
                             value={formatTo08(data.phone_number) ?? ""}
                             onChange={(e) =>
                                 setData("phone_number", e.target.value)
                             }
-                            disabled={user.phone_number !== null} // Disable jika nomor sudah ada
+                            disabled={user.phone_number !== null}
                             autoComplete="tel"
                             placeholder="08XXXXXXXXXX"
-                            isFocused={true} // opsional, jika ingin auto fokus
+                            isFocused={true}
                         />
-                        <InputError
-                            className="mt-2"
-                            message={errors.phone_number}
-                        />
+                        <InputError message={errors.phone_number} />
                         {user.phone_number === null ? (
                             <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
                                 Anda belum menambahkan nomor handphone.
@@ -148,21 +173,28 @@ export default function UpdateProfileInformation({
                         )}
                     </div>
 
-                    {/* Email */}
-                    <div>
-                        <InputLabel htmlFor="email" value="Email" />
+                    <div className="space-y-2">
+                        <div className="flex gap-2 items-center">
+                            <InputLabel htmlFor="email" value="Email:" />
+                            <Badge
+                                color={emailStatus?.color}
+                                tooltip={emailStatus.timestamp}
+                            >
+                                {emailStatus?.label}
+                            </Badge>
+                        </div>
                         <TextInput
                             id="email"
                             type="email"
-                            className="mt-1 block w-full"
+                            className="w-full"
                             value={data.email ?? ""}
                             onChange={(e) => setData("email", e.target.value)}
-                            disabled={user.email !== null} // disable jika sudah ada
+                            disabled={user.email !== null}
                             autoComplete="email"
                         />
 
-                        <InputError className="mt-2" message={errors.email} />
-                        <div className="flex items-center gap-2 mt-2">
+                        <InputError message={errors.email} />
+                        <div className="flex items-center gap-2">
                             {user.email === null && (
                                 <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">
                                     Anda belum menambahkan email. Disarankan
@@ -170,26 +202,13 @@ export default function UpdateProfileInformation({
                                     akun.
                                 </p>
                             )}
-                            {user.email && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    {user.email_verified_at ? (
-                                        <Badge color="green">
-                                            Terverifikasi
-                                        </Badge>
-                                    ) : (
-                                        <Badge color="red">
-                                            Belum Terverifikasi
-                                        </Badge>
-                                    )}
-                                </div>
-                            )}
                         </div>
                     </div>
 
                     {/* Email Verification Notice */}
-                    {mustVerifyEmail && user.email_verified_at === null && (
-                        <div>
-                            <p className="text-sm mt-2 text-gray-800">
+                    {user.email_verified_at === null && (
+                        <div className="space-y-2">
+                            <p className="text-sm text-gray-800">
                                 Alamat email Anda belum diverifikasi.
                                 <Link
                                     href={route("verification.send")}
@@ -211,7 +230,6 @@ export default function UpdateProfileInformation({
                         </div>
                     )}
 
-                    {/* Submit */}
                     <div className="flex items-center gap-4">
                         <Button
                             type="submit"

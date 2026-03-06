@@ -7,21 +7,21 @@ use Illuminate\Support\Facades\DB;
 
 class CartService
 {
-    /**
-     * Hapus cart biasa (tanpa pindah ke history)
-     */
-    public function deleteCarts(array $cartIds): void
-    {
-        Cart::whereIn('id', $cartIds)->delete();
-    }
-
-    /**
-     * Tambahkan cart baru
-     */
     public function addCart(array $data): Cart
     {
         return Cart::create($data);
     }
 
-    // Bisa ditambahkan method lain: updateCart, getUserCart, dll
+    public function deleteCarts(array $cartIds, ?int $userId = null): void
+    {
+        $query = Cart::whereIn('id', $cartIds);
+        
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $query->delete();
+    }
+
+
 }

@@ -2,17 +2,18 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\PaymentController;
 
 use App\Http\Controllers\TimeSlotController;
+use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\VenueController;
 use App\Http\Controllers\User\BookingController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\DashboardController;
-use App\Http\Controllers\User\MembershipController;
+use App\Http\Controllers\XenditCallbackController;
+use App\Http\Controllers\GatewayRedirectController;
 use App\Http\Controllers\MidtransCallbackController;
+use App\Http\Controllers\CourtAvailabilityController;
+use App\Http\Controllers\User\MembershipOrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +30,12 @@ Route::get('/', function () {
     return Inertia::render('Home');
 })->name('home');
 
+
 Route::prefix('venues')->name('venues.')->group(function () {
     Route::get('/', [VenueController::class, 'index'])->name('index');
     Route::get('/{venue:slug}', [VenueController::class, 'show'])->name('show');
-    Route::get('/{venue:slug}/timeslots', [TimeSlotController::class, 'getTimeslotsByVenue'])
-        ->name('timeslots');
+    Route::get('/{venue:slug}/get-time-slot-by-venue', [TimeSlotController::class, 'getTimeSlotsByVenue'])->name('getTimeslotsByVenue');
+    Route::get('/{venue:slug}/availability', [CourtAvailabilityController::class, 'getTimeslots'])->name('availability');
 });
 
 Route::get('/about', function () {
@@ -50,10 +52,14 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/', [DashboardController::class, 'index'])->name('index');
+        Route::get('/memberships', [DashboardController::class, 'memberships'])->name('memberships');
+        Route::get('/bookings', [DashboardController::class, 'bookings'])->name('bookings');
+        Route::get('/notifications', [DashboardController::class, 'notifications'])->name('notifications');
+    });
 
-    
-    // Profile (boleh diakses kapan saja, supaya bisa melengkapi profil)
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -67,45 +73,38 @@ Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(fu
     });
 
     Route::prefix('memberships')->name('memberships.')->middleware(['ensure.profile.complete'])->group(function () {
-        Route::post('/selectPackages', [MembershipController::class, 'selectPackages'])->name('selectPackages');
-        Route::get('/create', [MembershipController::class, 'create'])->name('create');
-        Route::post('/store', [MembershipController::class, 'store'])->name('store');
-        
+        Route::post('/selectPackages', [MembershipOrderController::class, 'selectPackages'])->name('selectPackages');
+        Route::get('/create', [MembershipOrderController::class, 'create'])->name('create');
+        Route::post('/calculate', [MembershipOrderController::class, 'calculate'])->name('calculate');
+        Route::post('/store', [MembershipOrderController::class, 'store'])->name('store');
+        Route::post('/{membership:slug}/payment-token', [MembershipOrderController::class, 'getPaymentToken'])->name('payment_token');
     });
 
+    Route::prefix('bookings')->name('bookings.')->middleware(['ensure.profile.complete'])->group(function () {
+        Route::post('/prepareCheckout', [BookingController::class, 'prepareCheckout'])->name('prepareCheckout');
 
-    // Booking (butuh profil lengkap)
-    Route::prefix('bookings')->name('booking.')->middleware(['ensure.profile.complete'])->group(function () {
-        // Pastikan cart sudah dipilih
         Route::middleware(['ensure.booking.cart.selected'])->group(function () {
             Route::get('/create', [BookingController::class, 'create'])->name('create');
+            Route::post('/calculate', [BookingController::class, 'calculate'])->name('calculate');
             Route::post('/store', [BookingController::class, 'store'])->name('store');
         });
+
+        Route::post('/{booking:slug}/payment-token', [BookingController::class, 'getPaymentToken'])->name('payment_token');
     });
 
-    
-    
     Route::prefix('payments')->name('payment.')->group(function () {
-        Route::get('/success/{type}/{orderId}', [PaymentController::class, 'success'])
+        Route::get('/success/{type}/{orderId}', [GatewayRedirectController::class, 'success'])
             ->name('success')
             ->whereIn('type', ['booking', 'membership']);
 
-        Route::get('/failed', [PaymentController::class, 'failed'])
-            ->name('payment.failed');
+        Route::get('/failed', [GatewayRedirectController::class, 'failed'])
+            ->name('failed');
     });
-
 });
 
 
 Route::post('/midtrans/callback', [MidtransCallbackController::class, 'callback'])->name('midtrans.callback');
-
-// Route::middleware(['auth:web'])->prefix('user')->name('user')->group(function () {
-//     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-//     Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
-//     Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
-//     Route::post('/cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
-// });
+Route::post('/xendit/callback', [XenditCallbackController::class, 'callback'])->name('xendit.callback');
 
 
-
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

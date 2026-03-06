@@ -7,7 +7,7 @@ export default function LabelInput({
     ...props
 }) {
     const baseClass =
-        "block font-medium text-sm text-gray-700 dark:text-gray-100";
+        "block font-medium text-sm text-secondary-700 dark:text-secondary-200";
 
     return (
         <label {...props} className={twMerge(baseClass, className)}>

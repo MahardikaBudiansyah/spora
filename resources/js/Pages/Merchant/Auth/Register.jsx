@@ -1,5 +1,4 @@
-import { Link, Head, usePage, router } from "@inertiajs/react";
-import { useState } from "react";
+import { Link, Head, useForm } from "@inertiajs/react";
 import AuthMerchantLayout from "@/Layouts/AuthMerchantLayout";
 import InputLabel from "@/components/Common/LabelInput";
 import TextInput from "@/components/common/TextInput";
@@ -12,11 +11,11 @@ import {
     CardFooter,
 } from "@/components/common/Card";
 import { toast } from "react-toastify";
+import PhoneInput from "@/components/Common/PhoneInput";
+import ErrorInput from "@/components/Common/ErrorInput";
 
 export default function Register() {
-    const { errors } = usePage().props;
-
-    const [data, setData] = useState({
+    const { data, setData, post, processing, errors, reset } = useForm({
         name: "",
         phone_number: "",
         email: "",
@@ -24,27 +23,19 @@ export default function Register() {
         password_confirmation: "",
     });
 
-    const [processing, setProcessing] = useState(false);
-
-    const handleChange = (e) => {
-        setData({ ...data, [e.target.name]: e.target.value });
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        setProcessing(true);
 
-        router.post(route("merchant.register.store"), data, {
+        post(route("merchant.register.store"), {
             onSuccess: () => {
                 toast.success("Pendaftaran akun mitra berhasil!");
-                router.visit(route("merchant.login"));
             },
             onError: () => {
                 toast.error(
-                    "Pendaftaran gagal. Silakan periksa kembali data Anda."
+                    "Pendaftaran gagal. Silakan periksa kembali data Anda.",
                 );
             },
-            onFinish: () => setProcessing(false),
+            onFinish: () => reset("password", "password_confirmation"),
         });
     };
 
@@ -61,50 +52,49 @@ export default function Register() {
 
                     <form onSubmit={handleSubmit}>
                         <CardBody className="space-y-5">
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="name"
-                                    value="Nama Mitra:"
+                                    value="Nama Brand Mitra:"
                                     className="text-xs font-bold"
                                 />
                                 <TextInput
                                     id="name"
                                     name="name"
                                     value={data.name}
-                                    onChange={handleChange}
-                                    placeholder="Masukan nama dari mitra/ perusahan/ merchant"
-                                    className="mt-1 block w-full"
+                                    onChange={(e) =>
+                                        setData("name", e.target.value)
+                                    }
+                                    placeholder="Masukan nama Brand Mitra..."
+                                    className=" w-full"
                                     required
                                 />
                                 {errors.name && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        *{errors.name}
-                                    </p>
+                                    <ErrorInput message={errors.name} />
                                 )}
                             </div>
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="phone_number"
                                     value="Nomor Handphone:"
                                     className="text-xs font-bold"
                                 />
-                                <TextInput
+                                <PhoneInput
                                     id="phone_number"
                                     name="phone_number"
                                     value={data.phone_number}
-                                    onChange={handleChange}
-                                    placeholder="(Contoh: 08XXXXXXXXXX)"
-                                    className="mt-1 block w-full"
+                                    onChange={(e) =>
+                                        setData("phone_number", e.target.value)
+                                    }
+                                    className="w-full"
                                     required
                                 />
                                 {errors.phone_number && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        *{errors.phone_number}
-                                    </p>
+                                    <ErrorInput message={errors.phone_number} />
                                 )}
                             </div>
 
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="email"
                                     value="Email:"
@@ -115,19 +105,19 @@ export default function Register() {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    onChange={handleChange}
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
                                     placeholder="Masukan email mitra/ perusahaan/ merchant"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required
                                 />
                                 {errors.email && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        *{errors.email}
-                                    </p>
+                                    <ErrorInput message={errors.email} />
                                 )}
                             </div>
 
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="password"
                                     value="Kata Sandi:"
@@ -137,19 +127,19 @@ export default function Register() {
                                     id="password"
                                     name="password"
                                     value={data.password}
-                                    onChange={handleChange}
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
                                     placeholder="********"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required
                                 />
                                 {errors.password && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        *{errors.password}
-                                    </p>
+                                    <ErrorInput message={errors.password} />
                                 )}
                             </div>
 
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="password_confirmation"
                                     value="Konfirmasi Kata Sandi:"
@@ -159,22 +149,27 @@ export default function Register() {
                                     id="password_confirmation"
                                     name="password_confirmation"
                                     value={data.password_confirmation}
-                                    onChange={handleChange}
+                                    onChange={(e) =>
+                                        setData(
+                                            "password_confirmation",
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="********"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required
                                 />
                                 {errors.password_confirmation && (
-                                    <p className="mt-1 text-sm text-red-600">
-                                        *{errors.password_confirmation}
-                                    </p>
+                                    <ErrorInput
+                                        message={errors.password_confirmation}
+                                    />
                                 )}
                             </div>
 
                             <Button
                                 variant="primary"
                                 type="submit"
-                                size="lg"
+                                size="md"
                                 className="w-full text-md"
                                 disabled={processing}
                             >

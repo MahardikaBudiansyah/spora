@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers\Merchant\Auth;
 
-use Inertia\Inertia;
-use Inertia\Response;
-use App\Models\Merchant;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
+use App\Enums\MerchantOwnerStatus;
+use App\Enums\MerchantPayoutMethodStatus;
+use App\Enums\MerchantProfileStatus;
+use App\Enums\MerchantStatus;
 use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Auth\Events\Registered;
-use App\Providers\RouteServiceProvider;
 use App\Http\Requests\Merchant\Auth\RegisterMerchantRequest;
+use App\Models\Admin;
+use App\Models\Merchant;
+use App\Notifications\Admin\NewMerchantRegisteredNotification;
+use App\Notifications\Merchant\WelcomeMerchantNotification;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Inertia\Inertia;
+use Inertia\Response;
 
 
 class RegisteredUserController extends Controller
@@ -31,47 +36,69 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterMerchantRequest $request)
     {
-        $request->validated();
+        $validated = $request->validated();
 
-        $name = $request->name;
         $email = $request->email;
         $phone_number = NumberPhoneHelper::normalize($request->phone_number);
 
-        // Cek apakah email sudah pernah digunakan (termasuk yang soft deleted)
-        $merchant = Merchant::withTrashed()->where('email', $email)->first();
-
-        if ($merchant) {
-            if ($merchant->trashed()) {
-                return redirect()->route('merchant$merchant.recovery')->with([
+        $existingMerchant = Merchant::withTrashed()->where('email', $email)->first();
+        if ($existingMerchant) {
+            if ($existingMerchant->trashed()) {
+                return redirect()->route('merchant.recovery')->with([
                     'identifier' => $email,
-                    'name' => $merchant->name,
+                    'name' => $existingMerchant->name,
                     'status' => 'soft_deleted',
                 ]);
             }
-
-            return redirect()->back()->withErrors([
-                'email' => 'Email sudah terdaftar.',
-            ]);
+            return redirect()->back()->withErrors(['email' => 'Email sudah terdaftar.']);
         }
 
-        $merchant = Merchant::create([
-            'name' => $name,
-            'phone_number' => $phone_number,
-            'email' => $email,
-            'email_verified_at' => null,
-            'password' => Hash::make($request->password),
-        ]);
+        $admins = Admin::all();
 
-        event(new Registered($merchant));
+        try {
+            $merchant = DB::transaction(function () use ($validated, $phone_number, $email, $admins) {
+                $merchant = Merchant::create([
+                    'name' => $validated['name'],
+                    'phone_number' => $phone_number,
+                    'email' => $email,
+                    'password' => Hash::make($validated['password']),
+                    'email_verified_at' => now(),
+                    'phone_verified_at' => now(),
+                    'status' => MerchantStatus::DRAFT,
+                ]);
 
-        session()->flash('registered_email', $email);
-        session()->flash('registration_success', true);
+                $merchant->profileSubmission()->create(['status' => MerchantProfileStatus::DRAFT]);
+                $merchant->ownerSubmission()->create(['status' => MerchantOwnerStatus::DRAFT]);
 
-        return Inertia::render('Merchant/Auth/Login', [
-            'prefill' => ['email' => $email],
-            'registration_success' => true,
-        ]);
+                $merchant->payoutMethodSubmissions()->create([
+                    'type' => 'bank',
+                    'provider_name' => '',
+                    'account_number' => '',
+                    'account_holder_name' => '',
+                    'status' => MerchantPayoutMethodStatus::DRAFT,
+                    'is_primary' => true,
+                ]);
 
+                return $merchant;
+            });
+
+            event(new Registered($merchant));
+
+            $merchant->notify(new WelcomeMerchantNotification($merchant));
+            Notification::send($admins, new NewMerchantRegisteredNotification($merchant));
+
+            session()->flash('registered_email', $email);
+            session()->flash('registration_success', true);
+            session()->flash('success', 'Pendaftaran akun mitra berhasil!');
+
+            return redirect()->route('merchant.login')->with([
+                'prefill_email' => $email,
+                'registration_success' => true,
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors([
+                'email' => 'Terjadi kesalahan sistem saat mendaftar. Silakan coba lagi.'
+            ]);
+        }
     }
-
 }

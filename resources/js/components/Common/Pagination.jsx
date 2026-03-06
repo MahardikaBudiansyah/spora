@@ -6,7 +6,11 @@ export default function Pagination({
     meta = null,
     className = "",
 }) {
-    if (!links || links.length <= 3) return null;
+    const actualLinks = Array.isArray(links) ? links : meta?.links || [];
+
+    if (!actualLinks || actualLinks.length <= 3) return null;
+
+    const displayMeta = meta?.meta ? meta.meta : meta;
 
     return (
         <div
@@ -15,16 +19,18 @@ export default function Pagination({
                 className
             )}
         >
-            {meta && (
+            {displayMeta && (
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                    Menampilkan <span className="font-medium">{meta.from}</span>{" "}
-                    – <span className="font-medium">{meta.to}</span> dari{" "}
-                    <span className="font-medium">{meta.total}</span> data
+                    Menampilkan{" "}
+                    <span className="font-medium">{displayMeta.from}</span> –{" "}
+                    <span className="font-medium">{displayMeta.to}</span> dari{" "}
+                    <span className="font-medium">{displayMeta.total}</span>{" "}
+                    data
                 </div>
             )}
 
             <div className="flex flex-wrap gap-2">
-                {links.map((link, index) => (
+                {actualLinks.map((link, index) => (
                     <Link
                         key={index}
                         href={link.url || "#"}

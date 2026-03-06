@@ -16,7 +16,7 @@ export default function Table({
     rowKey,
     renderExpandRow,
     expandedRowKeys = [],
-    footer = null, // ✅ Tambahan untuk footer
+    footer = null,
 }) {
     const defaultWrapperClass =
         "overflow-x-auto overflow-y-auto bg-white border border-secondary-200 rounded-lg shadow dark:bg-secondary-900 dark:border-secondary-700";
@@ -36,7 +36,7 @@ export default function Table({
                                 scope="col"
                                 className={twMerge(
                                     "px-4 py-3 font-bold text-center uppercase",
-                                    col.headerClassName
+                                    col.headerClassName,
                                 )}
                             >
                                 {col.header}
@@ -67,68 +67,80 @@ export default function Table({
                         data.map((row, rowIndex) => {
                             const key = rowKey
                                 ? rowKey(row)
-                                : row.id ?? rowIndex;
+                                : (row.id ?? rowIndex);
 
                             const { className: trClassName, ...trProps } =
                                 getTrProps(row, rowIndex) || {};
 
                             return (
                                 <React.Fragment key={key}>
-                                    {/* Row utama */}
                                     <tr
                                         className={twMerge(
                                             "hover:bg-secondary-50 dark:hover:bg-secondary-600",
-                                            trClassName
+                                            trClassName,
                                         )}
                                         {...trProps}
                                     >
                                         {columns.map((col) => {
                                             const cellValue = row[col.key];
-                                            const cellClass =
-                                                typeof col.getTdClassName ===
-                                                "function"
-                                                    ? col.getTdClassName(
+
+                                            let content =
+                                                typeof col.render === "function"
+                                                    ? col.render(
                                                           cellValue,
-                                                          row
+                                                          row,
+                                                          rowIndex,
                                                       )
-                                                    : "";
+                                                    : typeof cellValue ===
+                                                            "object" &&
+                                                        cellValue !== null
+                                                      ? ""
+                                                      : cellValue;
+
+                                            const isEmpty =
+                                                content === null ||
+                                                content === undefined ||
+                                                content === "";
+
+                                            const forceCenter =
+                                                isEmpty &&
+                                                !col.className?.includes(
+                                                    "text-",
+                                                );
+
                                             const {
                                                 className: tdClassName,
                                                 ...tdProps
                                             } = getTdProps(col, row) || {};
 
+                                            const cellClass =
+                                                typeof col.getTdClassName ===
+                                                "function"
+                                                    ? col.getTdClassName(
+                                                          cellValue,
+                                                          row,
+                                                      )
+                                                    : "";
+
                                             return (
                                                 <td
                                                     key={col.key}
                                                     className={twMerge(
-                                                        "px-4 py-3 content-start",
-                                                        col.className,
-                                                        cellClass,
-                                                        tdClassName
+                                                        "px-4 py-3",
+                                                        col.className, // Alignment dari definisi kolom (misal: text-right)
+                                                        tdClassName, // Class dari props dinamis
+                                                        cellClass, // Class dari logic kolom
+                                                        forceCenter &&
+                                                            "text-center", // Override ke tengah hanya jika data kosong
                                                     )}
                                                     {...tdProps}
                                                 >
-                                                    {renderCell
-                                                        ? renderCell(col, row)
-                                                        : typeof col.render ===
-                                                          "function"
-                                                        ? col.render(
-                                                              cellValue,
-                                                              row,
-                                                              rowIndex
-                                                          )
-                                                        : typeof cellValue ===
-                                                          "object"
-                                                        ? JSON.stringify(
-                                                              cellValue
-                                                          )
-                                                        : cellValue}
+                                                    {isEmpty ? "-" : content}
                                                 </td>
                                             );
                                         })}
                                     </tr>
 
-                                    {/* Row expand */}
                                     {renderExpandRow &&
                                         expandedRowKeys.includes(key) && (
                                             <tr className="bg-gray-50 dark:bg-secondary-800">
@@ -139,7 +151,7 @@ export default function Table({
                                                     {renderExpandRow(
                                                         row,
                                                         rowIndex,
-                                                        true
+                                                        true,
                                                     )}
                                                 </td>
                                             </tr>
@@ -150,7 +162,6 @@ export default function Table({
                     )}
                 </tbody>
 
-                {/* ✅ FOOTER TABLE (opsional) */}
                 {footer && (
                     <tfoot className="bg-secondary-50 dark:bg-secondary-800 font-semibold text-sm">
                         {footer}

@@ -131,8 +131,8 @@ class BookingUserService extends BookingService
      */
     private function prepareDetail(array $detail, $user, $venue): array
     {
-        $field = $venue->fields()->findOrFail($detail['field_id']);
-        $basePrice = $detail['original_price'] ?? $field->price ?? 0;
+        $court = $venue->courts()->findOrFail($detail['court_id']);
+        $basePrice = $detail['original_price'] ?? $court->price ?? 0;
 
         $membership = $this->getActiveMembership($user, $venue->id);
         $discountAmount = 0;

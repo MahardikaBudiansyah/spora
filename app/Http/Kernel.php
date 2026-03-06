@@ -55,22 +55,30 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+
+        // Middleware Authenticate
         'auth.admin' => \App\Http\Middleware\AuthenticateAdmin::class,
         'superadmin' => \App\Http\Middleware\EnsureSuperAdmin::class,
         'auth.merchant' => \App\Http\Middleware\AuthenticateMerchant::class,
-        'ensure.profile.complete' => \App\Http\Middleware\EnsureUserProfileIsComplete::class,
         'auth.staff' => \App\Http\Middleware\AuthenticateStaff::class,
+
+        // Middleware Merchant
+        'merchant.active' => \App\Http\Middleware\Merchant\EnsureMerchantIsActive::class,
+
         'role' => \App\Http\Middleware\RoleMiddleware::class,
+        
+        'ensure.profile.complete' => \App\Http\Middleware\EnsureUserProfileIsComplete::class,
         'ensure.booking.cart.selected' => \App\Http\Middleware\EnsureBookingCartHasSelectedSlots::class,
     ];
 }

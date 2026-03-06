@@ -2,34 +2,39 @@
 
 namespace App\Models;
 
-use App\Models\Notification;
-use App\Traits\HasUniqueField;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
+use App\Enums\AdminStatus;
+use App\Models\AdminProfile;
+use App\Models\PlatformProfile;
+use App\Traits\HasNotifications;
+use App\Traits\HasPassword;
+use App\Traits\HasStatusHistory;
 use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Admin extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasUniqueField;
+    use HasFactory, Notifiable, Sluggable, HasPassword, SoftDeletes, HasStatusHistory, HasNotifications {
+        HasNotifications::notifications insteadof Notifiable;
+        HasNotifications::readNotifications insteadof Notifiable;
+        HasNotifications::unreadNotifications insteadof Notifiable;
+        Notifiable::notifications as laravelNotifications;
+        Notifiable::unreadNotifications as laravelUnreadNotifications;
+    }
 
     protected $guard = 'admin';
 
     protected $fillable = [
         'name',
-        'username',
-        'phone_number',
         'email',
         'password',
+        'avatar_path',
+        'role',
         'status',
-    ];
-
-    protected $guarded=[];
-
-    protected $uniqueFields = [
-        'username' => 'name',
+        'is_active',
+        'slug',
     ];
 
     protected $hidden = [
@@ -38,15 +43,33 @@ class Admin extends Authenticatable
     ];
 
     protected $casts = [
-        'password' => 'hashed',
+        'status' => AdminStatus::class,
+        'is_active' => 'boolean',
     ];
 
     protected $attributes = [
-        'status' => true, 
+        'status' => AdminStatus::ACTIVE,
+        'is_active' => true,
     ];
 
-    public function notifications()
+    public function sluggable(): array
     {
-        return $this->morphMany(Notification::class, 'notifiable');
+        return [
+            'slug' => [
+                'source' => 'name',
+                'separator' => '-',
+                'unique' => true,
+            ]
+        ];
+    }
+
+    public function profile()
+    {
+        return $this->hasOne(AdminProfile::class);
+    }
+
+    public function platformProfile()
+    {
+        return $this->hasOne(PlatformProfile::class);
     }
 }

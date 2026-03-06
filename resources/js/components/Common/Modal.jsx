@@ -10,7 +10,7 @@ export default function Modal({
     onClose = () => {},
     className = "",
     sidebarRight = false,
-    overflow = "hidden", // tambahkan prop ini
+    overflow = "auto",
 }) {
     const close = () => {
         if (closeable) {
@@ -36,52 +36,55 @@ export default function Modal({
             <Dialog
                 as="div"
                 id="modal"
-                className={twMerge(
-                    "fixed inset-0 flex overflow-y-auto px-4 py-6 sm:px-0 items-center justify-center z-50 transform transition-all"
-                )}
+                className="fixed inset-0 z-modal overflow-y-auto" // Hilangkan flex di sini
                 onClose={close}
             >
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
+                <div
+                    className={twMerge(
+                        "flex min-h-full px-4 py-6 sm:px-0 items-center justify-center", // items-center di sini tetap oke
+                        sidebarRight ? "p-0" : "p-4"
+                    )}
                 >
-                    <div
-                        className={twMerge(
-                            "absolute inset-0 bg-black/50",
-                            sidebarRight && "rounded-none"
-                        )}
-                    />
-                </Transition.Child>
-
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                    enterTo="opacity-100 translate-y-0 sm:scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                    leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                >
-                    <Dialog.Panel
-                        className={twMerge(
-                            `overflow-${overflow} mb-6 bg-white dark:bg-secondary-900 dark:border dark:border-secondary-600 rounded-xl shadow-xl transform transition-all sm:w-full sm:mx-auto`,
-                            maxWidthClass,
-                            sidebarRight
-                                ? "rounded-none h-full max-h-[calc(100vh)] fixed inset-y-0 right-0 overflow-y-auto custom-scrollbar"
-                                : "",
-                            className
-                        )}
+                    {/* Backdrop */}
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
                     >
-                        <div className="text-secondary-900 dark:text-secondary-100">
-                            {children}
-                        </div>
-                    </Dialog.Panel>
-                </Transition.Child>
+                        <div className="fixed inset-0 bg-black/50 transition-opacity" />
+                    </Transition.Child>
+
+                    {/* Modal Panel */}
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        enterTo="opacity-100 translate-y-0 sm:scale-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                        leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    >
+                        <Dialog.Panel
+                            className={twMerge(
+                                "relative bg-white dark:bg-secondary-900 dark:border dark:border-secondary-600 rounded-xl shadow-xl transform transition-all w-full sm:mx-auto text-left",
+
+                                sidebarRight
+                                    ? "fixed inset-y-0 right-0 h-full max-w-full rounded-none overflow-y-auto"
+                                    : `my-8 overflow-${overflow}`,
+                                maxWidthClass,
+                                className
+                            )}
+                        >
+                            <div className="text-secondary-900 dark:text-secondary-100">
+                                {children}
+                            </div>
+                        </Dialog.Panel>
+                    </Transition.Child>
+                </div>
             </Dialog>
         </Transition>
     );

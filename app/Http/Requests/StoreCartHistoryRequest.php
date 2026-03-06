@@ -25,7 +25,7 @@ class StoreCartHistoryRequest extends FormRequest
         return [
             'cart_id' => ['required', 'exists:carts,id'],
             'user_id' => ['required', 'exists:users,id'],
-            'field_id' => ['required', 'exists:fields,id'],
+            'court_id' => ['required', 'exists:courts,id'],
             'time_slot_id' => ['required', 'exists:time_slots,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'status' => ['required', Rule::in(['added', 'removed', 'booked', 'expired'])],

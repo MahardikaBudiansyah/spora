@@ -3,7 +3,7 @@ import SidenavLink from "@/components/Common/SidenavLink";
 import Avatar from "@/components/Common/Avatar";
 import { ChevronRight, LogOut, Settings, Users } from "lucide-react";
 
-export default function AccountSection({ user, role, isOpen, toggle }) {
+export default function AccountSection({ src, user, role, isOpen, toggle }) {
     const getInitials = (name) =>
         name
             ?.trim()
@@ -14,6 +14,16 @@ export default function AccountSection({ user, role, isOpen, toggle }) {
             .toUpperCase();
 
     const { url } = usePage();
+
+    const photoSrc = src
+        ? src.startsWith("/assets") ||
+          src.startsWith("http") ||
+          src.startsWith("blob:") ||
+          src.startsWith("/storage") ||
+          src.startsWith("storage")
+            ? src
+            : `/storage/${src}`
+        : null;
 
     const basePath =
         role === "merchant" ? "/merchant/profile" : "/staff/profile";
@@ -28,12 +38,13 @@ export default function AccountSection({ user, role, isOpen, toggle }) {
                 }`}
             >
                 <div className="flex gap-2 items-center">
-                    <Avatar
-                        src={user?.photo}
-                        fallback={getInitials(user?.name)}
-                        size="md"
-                        className="p-4"
-                    />
+                    <div>
+                        <Avatar
+                            src={photoSrc}
+                            fallback={getInitials(user?.name)}
+                            size="md"
+                        />
+                    </div>
                     <span>{user?.name}</span>
                 </div>
                 <ChevronRight
@@ -58,11 +69,9 @@ export default function AccountSection({ user, role, isOpen, toggle }) {
                                     : "staff.profile.index"
                             }
                             icon={Users}
-                            label="Profil Saya"
+                            label="Profil Mitra"
+                            className="text-xs"
                         />
-                    </li>
-                    <li>
-                        <SidenavLink icon={Settings} label="Pengaturan" />
                     </li>
                     <li>
                         <SidenavLink
@@ -80,7 +89,6 @@ export default function AccountSection({ user, role, isOpen, toggle }) {
                             label="Keluar"
                             method="post"
                             as="button"
-                            className="w-full"
                         />
                     </li>
                 </div>

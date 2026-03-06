@@ -14,6 +14,7 @@ export default function AppToast() {
             pauseOnHover
             draggable
             pauseOnFocusLoss
+            className="z-toast"
         />
     );
 }

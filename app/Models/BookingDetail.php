@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Field;
+use App\Models\Court;
 use App\Models\Booking;
 use App\Models\TimeSlot;
 use Illuminate\Database\Eloquent\Model;
@@ -16,8 +16,11 @@ class BookingDetail extends Model
 
     protected $fillable = [
         'booking_id',
-        'field_id',
+        'court_id',
         'time_slot_id',
+        'court_name_snapshot',
+        'time_slot_name_snapshot',
+        'day_type_snapshot',
         'original_price',
         'discount_amount',
         'final_price',
@@ -29,9 +32,9 @@ class BookingDetail extends Model
         return $this->belongsTo(Booking::class, 'booking_id', 'id');
     }
 
-    public function field()
+    public function court()
     {
-        return $this->belongsTo(Field::class, 'field_id', 'id');
+        return $this->belongsTo(Court::class, 'court_id', 'id');
     }
 
     public function timeSlot()

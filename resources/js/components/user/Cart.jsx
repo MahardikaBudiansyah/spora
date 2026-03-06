@@ -6,10 +6,12 @@ import Button from "@/components/common/Button";
 import IconButton from "@/components/Common/IconButton";
 import CloseButtonModal from "@/components/Common/CloseButtonModal";
 import Checkbox from "@/components/common/Checkbox";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import BannerAlert from "@/components/Common/BannerAlert";
 import { formatRupiah } from "@/utils/currency";
 import { formatFullDate } from "@/utils/date";
+import { getDayType } from "@/utils/attributes/courtAttribute";
+import Badge from "../Common/Badge";
 
 export default function Cart({ isOpen, onClose }) {
     const {
@@ -33,7 +35,7 @@ export default function Cart({ isOpen, onClose }) {
             onClose={onClose}
             closeable
             sidebarRight
-            className="w-[40vh] sm:max-w-sm md:max-w-sm lg:max-w-xs"
+            className="w-[75vw] sm:max-w-sm"
         >
             <Card className="relative px-2 rounded-none border-none shadow-none text-gray-700 dark:text-gray-100 text-xs">
                 <CloseButtonModal onClose={onClose} />
@@ -44,12 +46,17 @@ export default function Cart({ isOpen, onClose }) {
                 </CardHeader>
 
                 <CardBody>
-                    {loading && <p>Loading...</p>}
+                    {loading && (
+                        <p className="text-center font-semibold">
+                            Memuat keranjang...
+                        </p>
+                    )}
 
                     {!loading && carts.length === 0 && (
                         <BannerAlert
                             type="warning"
-                            className="text-center text-xs"
+                            size="xs"
+                            className="text-center text-xs font-semibold"
                         >
                             Tidak ada slot jadwal yang dipilih.
                         </BannerAlert>
@@ -60,63 +67,76 @@ export default function Cart({ isOpen, onClose }) {
                             selectedVenueId &&
                             venue.venue.id !== selectedVenueId;
 
-                        // Hitung selectedCount per venue
                         const selectedCount = venue.dates.reduce(
                             (acc, date) =>
                                 acc +
-                                date.fields.reduce(
-                                    (acc2, field) =>
+                                date.courts.reduce(
+                                    (acc2, court) =>
                                         acc2 +
-                                        field.timeslots.filter((slot) =>
-                                            selectedSlots.includes(slot.cart_id)
+                                        court.timeSlots.filter((slot) =>
+                                            selectedSlots.includes(
+                                                slot.cart_id,
+                                            ),
                                         ).length,
-                                    0
+                                    0,
                                 ),
-                            0
+                            0,
                         );
 
                         return (
                             <div key={venue.venue.id} className="mb-4">
-                                <h2 className="text-lg font-bold dark:text-white mb-2">
+                                <h2 className="text-base font-bold dark:text-white mb-2 dark:border-gray-700">
                                     {venue.venue.name}
                                 </h2>
 
                                 {venue.dates.map((date) => (
-                                    <div key={date.date} className="mb-3">
-                                        <div className="uppercase font-semibold dark:text-gray-400 mb-1">
-                                            {formatFullDate(date.date)}
+                                    <div key={date.date} className="mb-6">
+                                        <div className="flex gap-2 items-center border-b border-secondary-200 dark:border-secondary-700 pb-1 mb-3">
+                                            <div className="uppercase font-semibold text-primary-600 dark:text-primary-500 text-[11px]">
+                                                {formatFullDate(date.date)}
+                                            </div>
+
+                                            {date.day_type && (
+                                                <Badge
+                                                    color={
+                                                        getDayType(
+                                                            date.day_type,
+                                                        ).color
+                                                    }
+                                                    className="text-[9px] px-1.5 py-0.5 font-bold"
+                                                >
+                                                    {
+                                                        getDayType(
+                                                            date.day_type,
+                                                        ).label
+                                                    }
+                                                </Badge>
+                                            )}
                                         </div>
 
-                                        {date.fields.map((field) => (
-                                            <div
-                                                key={field.field.id}
-                                                className="mb-2"
-                                            >
-                                                <div className="font-semibold mb-1 text-sm dark:text-gray-300">
-                                                    {field.field.name}
-                                                </div>
-
-                                                {field.timeslots.map((slot) => (
+                                        {date.courts.map((court) => (
+                                            <div key={court.court.id}>
+                                                {court.timeSlots.map((slot) => (
                                                     <div
                                                         key={slot.cart_id}
-                                                        className={`px-4 py-2 flex justify-between items-center border-l-4 rounded-md mb-1
-                                                            ${
-                                                                disableVenue
-                                                                    ? "bg-primary-200 dark:bg-primary-800 border-primary-700 dark:border-primary-900 opacity-50 cursor-not-allowed"
-                                                                    : "bg-primary-200 dark:bg-primary-800 border-primary-700 dark:border-primary-900 hover:bg-primary-300 dark:hover:bg-primary-900"
-                                                            }`}
+                                                        className={`relative px-3 py-3 flex items-center border-l-4 rounded-md mb-2 transition-all
+                            ${
+                                disableVenue
+                                    ? "bg-gray-100 dark:bg-gray-800 border-gray-400 opacity-50 cursor-not-allowed"
+                                    : "bg-primary-50 dark:bg-primary-900/30 border-primary-600 hover:bg-primary-100"
+                            }`}
                                                     >
-                                                        <div className="flex flex-row gap-4 items-center">
+                                                        <div className="flex flex-row gap-3 items-center w-full">
                                                             <Checkbox
                                                                 checked={selectedSlots.includes(
-                                                                    slot.cart_id
+                                                                    slot.cart_id,
                                                                 )}
                                                                 onChange={() =>
                                                                     toggleSlot(
                                                                         slot.cart_id,
                                                                         venue
                                                                             .venue
-                                                                            .id
+                                                                            .id,
                                                                     )
                                                                 }
                                                                 disabled={
@@ -124,28 +144,49 @@ export default function Cart({ isOpen, onClose }) {
                                                                 }
                                                                 className="rounded"
                                                             />
-                                                            <div className="flex flex-col gap-1 dark:text-gray-200">
-                                                                <span>
-                                                                    {slot.name}
-                                                                </span>
-                                                                <span className="font-semibold">
+
+                                                            <div className="flex flex-col gap-0.5 dark:text-gray-200">
+                                                                <div className="flex flex-wrap items-baseline md:gap-1.5">
+                                                                    <span className="font-bold text-xs truncate">
+                                                                        {
+                                                                            court
+                                                                                .court
+                                                                                .name
+                                                                        }
+                                                                    </span>
+
+                                                                    <span className="font-medium text-xs text-gray-600 dark:text-gray-300">
+                                                                        {slot?.start_time?.substring(
+                                                                            0,
+                                                                            5,
+                                                                        )}{" "}
+                                                                        -{" "}
+                                                                        {slot?.end_time?.substring(
+                                                                            0,
+                                                                            5,
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+
+                                                                <span className="font-bold text-primary-600 dark:text-primary-500 text-[13px]">
                                                                     {formatRupiah(
-                                                                        slot.price
+                                                                        slot.price,
                                                                     )}
                                                                 </span>
                                                             </div>
                                                         </div>
+
                                                         {!disableVenue && (
-                                                            <IconButton
-                                                                tooltip="Hapus"
+                                                            <button
                                                                 onClick={() =>
                                                                     removeFromCart(
-                                                                        slot.cart_id
+                                                                        slot.cart_id,
                                                                     )
                                                                 }
+                                                                className="absolute top-2 right-2 text-secondary-400 hover:text-red-500 transition-colors"
                                                             >
-                                                                <Trash2 className="w-5 h-5 text-primary-700 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-400 cursor-pointer" />
-                                                            </IconButton>
+                                                                <X className="w-3.5 h-3.5" />
+                                                            </button>
                                                         )}
                                                     </div>
                                                 ))}
@@ -157,7 +198,7 @@ export default function Cart({ isOpen, onClose }) {
                                 <Button
                                     variant="primary"
                                     size="xs"
-                                    className="w-full rounded-md mt-2"
+                                    className="w-full rounded-md mt-2 shadow-sm"
                                     onClick={() =>
                                         checkoutVenue(venue.venue.id)
                                     }
@@ -165,7 +206,7 @@ export default function Cart({ isOpen, onClose }) {
                                         selectedCount === 0 || disableVenue
                                     }
                                 >
-                                    Pesan Venue Ini
+                                    Pesan Venue Ini ({selectedCount} Slot)
                                 </Button>
                             </div>
                         );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SelectInput from "@/components/Common/SelectInput";
 import axios from "axios";
 
@@ -8,78 +8,60 @@ export default function AddressSelectInput({ value = {}, onChange, ...props }) {
     const [districts, setDistricts] = useState([]);
     const [villages, setVillages] = useState([]);
 
-    // Fetch provinces
+    const fetchingRef = useRef(new Set());
+
+    const fetchLocation = async (url, setter, type) => {
+        try {
+            const res = await axios.get(url);
+            const mapped = res.data.map((item) => ({
+                value: item.code,
+                label: item.name,
+                code: item.code,
+            }));
+            setter(mapped);
+        } catch (error) {
+            console.error(`Error fetching ${type}:`, error);
+        }
+    };
+
     useEffect(() => {
-        axios.get("/api/indonesia/provinces").then((res) => {
-            setProvinces(
-                res.data.map((p) => ({
-                    value: p.code,
-                    label: p.name,
-                    code: p.code.padStart(2, "0"),
-                }))
-            );
-        });
+        fetchLocation("/api/indonesia/provinces", setProvinces, "provinces");
     }, []);
 
-    // Fetch cities when province changes
     useEffect(() => {
-        if (!value.province_code) return setCities([]);
+        if (value.province_code) {
+            const pCode = value.province_code.substring(0, 2);
+            fetchLocation(
+                `/api/indonesia/cities?province_code=${pCode}`,
+                setCities,
+                "cities"
+            );
+        } else {
+            setCities([]);
+        }
 
-        const province = provinces.find((p) => p.value === value.province_code);
-        if (!province) return;
+        if (value.city_code) {
+            const cCode = value.city_code.substring(0, 4);
+            fetchLocation(
+                `/api/indonesia/districts?city_code=${cCode}`,
+                setDistricts,
+                "districts"
+            );
+        } else {
+            setDistricts([]);
+        }
 
-        axios
-            .get(`/api/indonesia/cities?province_code=${province.code}`)
-            .then((res) => {
-                setCities(
-                    res.data.map((c) => ({
-                        value: c.code,
-                        label: c.name,
-                        code: c.code.padStart(4, "0"),
-                    }))
-                );
-            });
-    }, [value.province_code, provinces]);
-
-    // Fetch districts when city changes
-    useEffect(() => {
-        if (!value.city_code) return setDistricts([]);
-
-        const city = cities.find((c) => c.value === value.city_code);
-        if (!city) return;
-
-        axios
-            .get(`/api/indonesia/districts?city_code=${city.code}`)
-            .then((res) => {
-                setDistricts(
-                    res.data.map((d) => ({
-                        value: d.code,
-                        label: d.name,
-                        code: d.code, // tetap 7 karakter
-                    }))
-                );
-            });
-    }, [value.city_code, cities]);
-
-    // Fetch villages when district changes
-    useEffect(() => {
-        if (!value.district_code) return setVillages([]);
-
-        const district = districts.find((d) => d.value === value.district_code);
-        if (!district) return;
-
-        axios
-            .get(`/api/indonesia/villages?district_code=${district.code}`)
-            .then((res) => {
-                setVillages(
-                    res.data.map((v) => ({
-                        value: v.code,
-                        label: v.name,
-                        code: v.code.padStart(10, "0"), // format frontend agar 10 karakter
-                    }))
-                );
-            });
-    }, [value.district_code, districts]);
+        if (value.district_code) {
+            const dCode = value.district_code.substring(0, 7);
+            fetchLocation(
+                `/api/indonesia/villages?district_code=${dCode}`,
+                setVillages,
+                "villages"
+            );
+        } else {
+            setVillages([]);
+        }
+    }, [value.province_code, value.city_code, value.district_code]);
 
     return (
         <div className="space-y-2">
@@ -98,6 +80,7 @@ export default function AddressSelectInput({ value = {}, onChange, ...props }) {
                 placeholder="Pilih Provinsi..."
                 {...props}
             />
+
             <SelectInput
                 options={cities}
                 value={value.city_code || null}
@@ -109,10 +92,15 @@ export default function AddressSelectInput({ value = {}, onChange, ...props }) {
                         village_code: null,
                     })
                 }
-                placeholder="Pilih Kota/Kabupaten..."
+                placeholder={
+                    value.province_code
+                        ? "Pilih Kota/Kabupaten..."
+                        : "Pilih Provinsi Terlebih Dahulu"
+                }
                 isDisabled={!value.province_code}
                 {...props}
             />
+
             <SelectInput
                 options={districts}
                 value={value.district_code || null}
@@ -123,10 +111,15 @@ export default function AddressSelectInput({ value = {}, onChange, ...props }) {
                         village_code: null,
                     })
                 }
-                placeholder="Pilih Kecamatan..."
+                placeholder={
+                    value.city_code
+                        ? "Pilih Kecamatan..."
+                        : "Pilih Kota Terlebih Dahulu"
+                }
                 isDisabled={!value.city_code}
                 {...props}
             />
+
             <SelectInput
                 options={villages}
                 value={value.village_code || null}
@@ -136,7 +129,11 @@ export default function AddressSelectInput({ value = {}, onChange, ...props }) {
                         village_code: val,
                     })
                 }
-                placeholder="Pilih Desa/Kelurahan..."
+                placeholder={
+                    value.district_code
+                        ? "Pilih Desa/Kelurahan..."
+                        : "Pilih Kecamatan Terlebih Dahulu"
+                }
                 isDisabled={!value.district_code}
                 {...props}
             />

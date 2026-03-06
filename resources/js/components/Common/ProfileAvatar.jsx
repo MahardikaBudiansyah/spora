@@ -2,61 +2,111 @@ import { useEffect, useState, useRef } from "react";
 import { Camera } from "lucide-react";
 import Avatar from "@/components/common/Avatar";
 import { toast } from "react-toastify";
+import AvatarPicker from "@/components/Common/AvatarPicker";
 
 export default function ProfileAvatar({
+    src,
     user,
     resetPreviewSignal,
     onChange,
-    size = "profile", // default size: sm, md, lg, xl, profile
-    className = "", // tambahan class dari parent
+    isLoading,
+    size = "3xl",
+    className = "",
+    mode = "direct",
 }) {
     const [preview, setPreview] = useState(null);
+    const [showPicker, setShowPicker] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState(null);
     const fileInputRef = useRef();
 
-    const MAX_FILE_SIZE_MB = 5; // batas maksimal 5 MB
+    const MAX_FILE_SIZE_MB = 5;
+
+    useEffect(() => {
+        return () => {
+            if (preview && preview.startsWith("blob:")) {
+                URL.revokeObjectURL(preview);
+            }
+        };
+    }, [preview]);
+
+    useEffect(() => {
+        if (src) {
+            setPreview(null);
+        }
+    }, [src]);
+
+    const handleTriggerClick = () => {
+        if (mode === "direct") {
+            fileInputRef.current?.click();
+        } else {
+            setShowPicker(true);
+        }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // cek ukuran file
-        const sizeMB = file.size / (1024 * 1024);
-        if (sizeMB > MAX_FILE_SIZE_MB) {
+        if (file.size / (1024 * 1024) > MAX_FILE_SIZE_MB) {
             toast.warning(
-                `File terlalu besar! Maksimal ${MAX_FILE_SIZE_MB} MB.`
+                `File terlalu besar! Maksimal ${MAX_FILE_SIZE_MB} MB.`,
             );
-            e.target.value = null; // reset input
+            e.target.value = "";
             return;
         }
 
-        if (!["image/jpeg", "image/png"].includes(file.type)) {
-            toast.warning("Hanya file JPEG/PNG yang diperbolehkan.");
-            e.target.value = null;
+        if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+            toast.warning("Hanya file JPG/PNG yang diperbolehkan.");
+            e.target.value = "";
             return;
         }
 
-        // kalau lolos validasi
         const url = URL.createObjectURL(file);
-        setPreview(url);
-        onChange?.(file);
-        console.log("Selected file:", file);
+
+        if (mode === "direct") {
+            setPreview(url);
+            onChange?.({ type: "file", value: file });
+        } else {
+            setUploadedFile({ url, file });
+            setShowPicker(true);
+        }
+
+        e.target.value = "";
+    };
+
+    const handleSelectAvatar = (selectedData) => {
+        setPreview(selectedData.url);
+
+        if (selectedData.file) {
+            onChange?.({ type: "file", value: selectedData.file });
+        } else {
+            onChange?.({ type: "path", value: selectedData.url });
+        }
+
+        setShowPicker(false);
     };
 
     useEffect(() => {
-        if (!user?.photo) setPreview(null);
-    }, [user]);
-
-    useEffect(() => {
-        if (resetPreviewSignal) {
-            setPreview(null);
-        }
+        if (resetPreviewSignal) setPreview(null);
     }, [resetPreviewSignal]);
 
-    const photoSrc = preview || (user?.photo ? `/storage/${user.photo}` : null);
+    const photoSrc =
+        preview ||
+        (src
+            ? src.startsWith("/assets") ||
+              src.startsWith("http") ||
+              src.startsWith("blob:") ||
+              src.startsWith("/storage") ||
+              src.startsWith("storage")
+                ? src
+                : `/storage/${src}`
+            : null);
 
     const fallback = user?.name
         ? user.name
-              .split(" ")
+              .trim()
+              .split(/\s+/)
+              .slice(0, 2)
               .map((n) => n[0])
               .join("")
               .toUpperCase()
@@ -64,34 +114,49 @@ export default function ProfileAvatar({
 
     return (
         <div className={`relative flex flex-col items-center ${className}`}>
-            {/* Avatar dengan overlay kamera */}
-            <div className="relative group">
+            <div
+                className="relative group cursor-pointer"
+                onClick={handleTriggerClick}
+            >
                 <Avatar
                     src={photoSrc}
                     size={size}
                     rounded
                     fallback={fallback}
-                    className="transition-all duration-200"
+                    className="shadow-lg group-hover:scale-[1.02]"
                 />
-                {/* Tombol overlay */}
-                <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute inset-0 flex items-center justify-center rounded-full
-                               bg-black bg-opacity-30 text-white opacity-0 
-                               group-hover:opacity-100 transition-opacity"
-                    aria-label="Ganti foto profil"
-                >
-                    <Camera className="w-6 h-6 md:w-7 md:h-7" />
-                </button>
+
+                {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-full">
+                        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                )}
+                {!isLoading && (
+                    <div
+                        className="absolute inset-0 flex items-center justify-center rounded-full
+                               bg-black/40 text-white opacity-0 
+                               group-hover:opacity-100 transition-opacity duration-200"
+                    >
+                        <Camera className="w-1/4 h-1/4" />
+                    </div>
+                )}
             </div>
 
-            {/* Input file hidden */}
+            {mode === "picker" && (
+                <AvatarPicker
+                    show={showPicker}
+                    onClose={() => setShowPicker(false)}
+                    onSelect={handleSelectAvatar}
+                    onUploadClick={() => fileInputRef.current?.click()}
+                    uploadedFile={uploadedFile}
+                />
+            )}
+
             <input
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
+                accept="image/png, image/jpeg, image/jpg"
                 onChange={handleFileChange}
             />
         </div>

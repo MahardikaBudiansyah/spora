@@ -2,49 +2,52 @@
 
 namespace App\Http\Controllers\User\Auth;
 
-use App\Models\User;
-use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Http\Request;
 use App\Helpers\NumberPhoneHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Auth\RegisterRequest;
+use App\Models\Admin;
+use App\Models\User;
+use App\Notifications\Admin\NewUserRegisteredNotification;
+use App\Notifications\User\WelcomeUserNotification;
+use App\Providers\RouteServiceProvider;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Auth\Events\Registered;
-use App\Providers\RouteServiceProvider;
-use App\Http\Requests\User\Auth\RegisterRequest;
+use Illuminate\Support\Facades\Notification;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Show user registration page.
-     */
     public function create(): Response
     {
         return Inertia::render('User/Auth/Register');
     }
 
-    /**
-     * Handle user registration.
-     */
-    public function store(RegisterRequest $request): RedirectResponse
+    public function store(RegisterRequest $request)
     {
         $identifier = $request->identifier;
         $email = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? $identifier : null;
         $phone_number = $email ? null : NumberPhoneHelper::normalize($identifier);
 
-        // Cek apakah user sudah ada (dengan soft delete)
         $user = User::withTrashed()
             ->when($email, fn($q) => $q->where('email', $email))
             ->when($phone_number, fn($q) => $q->where('phone_number', $phone_number))
             ->first();
 
+        $verificationData = [
+            'email_verified_at' => $email ? now() : null,
+            'phone_verified_at' => $phone_number ? now() : null,
+        ];
+
+        $admins = Admin::all();
+
         if ($user) {
-            $updateData = [
+            $updateData = array_merge([
                 'name' => $request->name,
                 'password' => Hash::make($request->password),
-            ];
+            ], $verificationData);
 
             if ($user->trashed()) {
                 $user->restore();
@@ -52,26 +55,26 @@ class RegisteredUserController extends Controller
 
             $user->update($updateData);
         } else {
-            $user = User::create([
+            $user = User::create(array_merge([
                 'name' => $request->name,
                 'email' => $email,
                 'phone_number' => $phone_number,
                 'password' => Hash::make($request->password),
-            ]);
+            ], $verificationData));
+
+            event(new Registered($user));
+
+            $user->notify(new WelcomeUserNotification($user));
+            Notification::send($admins, new NewUserRegisteredNotification($user));
+
+            session()->flash('registered_identifier', $identifier);
+            session()->flash('registered_password', $request->password);
+            session()->flash('registration_success', true);
+
+            return redirect()->intended(RouteServiceProvider::HOME);
         }
-
-        event(new Registered($user));
-
-        session()->flash('registered_identifier', $identifier);
-        session()->flash('registered_password', $request->password);
-        session()->flash('registration_success', true);
-
-        return redirect()->intended(RouteServiceProvider::HOME);
     }
 
-    /**
-     * Check if email/phone already used.
-     */
     public function checkIdentifier(Request $request)
     {
         $request->validate([

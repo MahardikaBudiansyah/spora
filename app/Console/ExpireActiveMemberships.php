@@ -3,16 +3,16 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\Membership\MembershipService;
+use App\Services\Membership\MembershipOrderService;
 
-class ExpireActiveMemberships extends Command
+class ExpireActiveMemberships2 extends Command
 {
     protected $signature = 'membership:auto-expire';
     protected $description = 'Menandai membership yang sudah melewati end_date menjadi expired';
 
-    public function handle(MembershipService $membershipService)
+    public function handle(MembershipOrderService $membershipOrderService)
     {
-        $count = $membershipService->autoExpireMemberships();
+        $count = $membershipOrderService->autoExpireMemberships();
 
         $this->info("🕓 {$count} membership berhasil diubah menjadi expired.");
     }

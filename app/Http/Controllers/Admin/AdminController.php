@@ -15,7 +15,7 @@ class AdminController extends Controller
     public function index(Request $request)
     {
         $admins = Admin::query()
-            ->orderBy('created_at', 'asc') // atau oldest()
+            ->orderBy('created_at', 'asc') 
             ->paginate(10)
             ->withQueryString();
 
@@ -28,12 +28,11 @@ class AdminController extends Controller
                 'number' => ($currentPage - 1) * $perPage + $index + 1,
                 'id' => $admin->id,
                 'name' => $admin->name,
-                'username' => $admin->username,
                 'role' => $admin->role,
                 'email' => $admin->email,
-                'email_verified_at' => $admin->email_verified_at,
-                'phone_number' => $admin->phone_number,
-                'status' => $admin->status,
+                'password' => $admin->password,
+                'avatar_path' => $admin->avatar_path,
+                'is_active' => $admin->is_active,
                 'created_at' => $admin->created_at,
                 'updated_at' => $admin->updated_at,
             ];
@@ -49,10 +48,10 @@ class AdminController extends Controller
         $this->authorize('update', $admin);
 
         $request->validate([
-            'status' => ['required', 'boolean']
+            'is_active' => ['required', 'boolean']
         ]);
 
-        $admin->status = $request->status;
+        $admin->is_active = $request->is_active;
         $admin->save();
 
         return back()->with('success', 'Status data Admin diperbarui.');
@@ -62,7 +61,6 @@ class AdminController extends Controller
     {
         $this->authorize('create', Admin::class);
 
-        // Validasi input
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:20'],
@@ -70,19 +68,17 @@ class AdminController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-         // Normalisasi nomor HP jika ada
         $normalizedPhone = $validated['phone_number']
             ? NumberPhoneHelper::normalize($validated['phone_number'])
             : null;
 
-        // Simpan admin baru
         $admin = Admin::create([
             'name' => $validated['name'],
             'phone_number' => $normalizedPhone,
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
             'role' => 'admin',
-            'status' => 1, 
+            'is_active' => 1, 
         ]);
 
         return redirect()->route('admin.admins.index')
@@ -101,13 +97,12 @@ class AdminController extends Controller
 
         $admin->name = $validated['name'];
 
-         // Normalisasi nomor HP jika diberikan
         if (!empty($validated['phone_number'])) {
             $admin->phone_number = NumberPhoneHelper::normalize($validated['phone_number']);
         }
 
         if (!empty($validated['password'])) {
-            $admin->password = Hash::make($validated['password']);
+            $admin->password = $validated['password'];
         }
 
         $admin->save();

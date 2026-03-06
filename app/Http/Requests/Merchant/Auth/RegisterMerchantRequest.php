@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Merchant\Auth;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,7 +20,7 @@ class RegisterMerchantRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    
+
     public function rules(): array
     {
         return [
@@ -31,5 +30,4 @@ class RegisterMerchantRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }
-
 }

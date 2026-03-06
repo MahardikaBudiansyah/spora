@@ -1,23 +1,21 @@
+// useModal.jsx
 import { useState, useCallback } from "react";
 
 export default function useModal() {
     const [openModal, setOpenModal] = useState(null);
-    const [onCloseCallback, setOnCloseCallback] = useState(null);
+    const [data, setData] = useState(null);
 
-    const open = useCallback((name, callback = null) => {
+    const open = useCallback((name, payload = null) => {
         setOpenModal(name);
-        setOnCloseCallback(() => callback); // simpan callback jika ada
+        setData(payload);
     }, []);
 
     const close = useCallback(() => {
         setOpenModal(null);
-        if (onCloseCallback) {
-            onCloseCallback();
-            setOnCloseCallback(null); // reset callback setelah dipakai
-        }
-    }, [onCloseCallback]);
+        setData(null);
+    }, []);
 
     const isOpen = useCallback((name) => openModal === name, [openModal]);
 
-    return { isOpen, open, close };
+    return { isOpen, open, close, data };
 }

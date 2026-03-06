@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Merchant;
 
 use Inertia\Inertia;
-use App\Models\Field;
 use App\Models\Venue;
 use App\Models\Membership;
 use Illuminate\Http\Request;

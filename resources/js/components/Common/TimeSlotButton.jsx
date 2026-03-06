@@ -2,11 +2,26 @@ import { twMerge } from "tailwind-merge";
 import { NumericFormat } from "react-number-format";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function TimeSlotButton({ slot, selected, disabled, onClick }) {
+export default function TimeSlotButton({
+    slot,
+    selected,
+    disabled,
+    onClick,
+    readOnly = false,
+}) {
     const { user } = useAuth();
-    const role = user?.role ?? "guest"; // guest kalau belum login
+    const role = user?.role ?? "guest";
 
     const statusLabel = slot.status_label || slot.status || "Tersedia";
+
+    const displayTime =
+        slot.time ||
+        (slot.start_time && slot.end_time
+            ? `${slot.start_time.substring(0, 5)} - ${slot.end_time.substring(
+                  0,
+                  5
+              )}`
+            : "00:00");
 
     // Semua style per status
     const stylesByStatus = {
@@ -54,19 +69,23 @@ export default function TimeSlotButton({ slot, selected, disabled, onClick }) {
         baseStyle,
         statusStyles.base,
         selected && statusStyles.selected,
-        !disabled && statusStyles.hover,
-        disabled && "opacity-80 cursor-not-allowed"
+        !disabled && !readOnly && statusStyles.hover,
+        readOnly
+            ? "cursor-default"
+            : disabled
+            ? "opacity-80 cursor-not-allowed"
+            : "cursor-pointer"
     );
 
     return (
         <button
             type="button"
-            onClick={disabled ? undefined : onClick}
+            onClick={disabled || readOnly ? undefined : onClick}
             className={mergedClassName}
-            disabled={disabled}
+            disabled={disabled || readOnly}
             aria-pressed={selected}
         >
-            <span className="font-bold">{slot.time}</span>
+            <span className="font-bold text-xs">{displayTime}</span>
             <NumericFormat
                 value={slot.price ?? 0}
                 displayType="text"

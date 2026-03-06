@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use App\Models\Booking;
-use App\Models\Membership;
+use App\Models\Payment;
+use App\Enums\OrderType;
+use App\Enums\InvoiceStatus;
+use App\Enums\PaymentStatus;
+use App\Models\MembershipCard;
+use App\Models\MembershipOrder;
 use Illuminate\Database\Eloquent\Model;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,6 +21,8 @@ class Invoice extends Model
     protected $table = 'invoices';
 
     protected $fillable = [
+        'order_type',
+        'order_id',
         'invoice_no',
         'total_amount',
         'status',
@@ -23,8 +30,22 @@ class Invoice extends Model
         'slug',
     ];
 
+    protected $casts = [
+        'order_type' => OrderType::class,
+        'status' => InvoiceStatus::class,
+        'due_date' => 'datetime',
+        'total_amount' => 'decimal:2',
+    ];
+
+    protected $appends = [
+        'paid_amount', 
+        'remaining_amount', 
+        'customer_name', 
+        'order_type_label'
+    ];
+
     public function sluggable(): array
-    {
+{
         return [
             'slug' => [
                 'source' => 'invoice_no'
@@ -34,15 +55,12 @@ class Invoice extends Model
 
     public function getRouteKeyName()
     {
-        return 'invoice_no';
+        return 'slug';
     }
 
     public function order()
     {
-        return $this->morphTo()->morphWith([
-            Booking::class => ['venue', 'customer'],
-            Membership::class => ['membershipPackage.venue', 'membershipUser.user']
-        ]);
+        return $this->morphTo();
     }
 
     public function payments()
@@ -50,34 +68,31 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
-    protected $appends = ['customer_name', 'order_type_label'];
-
-    public function getCustomerNameAttribute()
+    public function getPaidAmountAttribute()
     {
-        if (!$this->order) return '-';
+        return $this->payments
+            ->where('payment_status', PaymentStatus::PAID)
+            ->sum('amount');
+    }
 
-        // Jika Booking
-        if ($this->order_type === Booking::class) {
-            return $this->order->customer->name 
-                ?? $this->order->customers->first()->name 
-                ?? '-';
-        }
-
-        // Jika Membership
-        if ($this->order_type === Membership::class) {
-            return $this->order->user->name
-                ?? $this->order->membershipUser->user->name
-                ?? '-';
-        }
-
-        return '-';
+    public function getRemainingAmountAttribute()
+    {
+        return max($this->total_amount - $this->paid_amount, 0);
     }
 
     public function getOrderTypeLabelAttribute()
     {
-        return class_basename($this->order_type);
+        return $this->order_type ? $this->order_type->label() : '-'; 
     }
 
+    public function getCustomerNameAttribute()
+    {
+        if (!$this->order) return 'Guest';
 
-
+        return match($this->order_type) {
+            OrderType::BOOKING => $this->order->customer_name_snapshot ?? 'N/A',
+            OrderType::MEMBERSHIP => $this->order->membershipCard->name ?? 'N/A',
+            default => 'N/A'
+        };
+    }
 }

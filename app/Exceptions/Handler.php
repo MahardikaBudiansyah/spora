@@ -82,10 +82,24 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $e)
     {
+        // 1. JANGAN tangkap ValidationException. 
+        // Biarkan Laravel menangani ini agar errors bisa tampil di form.
+        if ($e instanceof \Illuminate\Validation\ValidationException) {
+            return parent::render($request, $e);
+        }
+
+        // 2. Tentukan status code untuk error lainnya
         $status = ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException)
             ? $e->getStatusCode()
             : 500;
 
+        // 3. Jika sedang dalam mode APP_DEBUG=true, biarkan error asli muncul 
+        // agar kamu bisa melihat pesan error kodingan yang sebenarnya (bukan cuma 500)
+        if (config('app.debug') && $status === 500) {
+            return parent::render($request, $e);
+        }
+
+        // Sisanya baru gunakan logika custom Inertia kamu...
         $messages = [
             401 => 'Anda harus login untuk mengakses halaman ini.',
             403 => $e instanceof AuthorizationException 
@@ -100,7 +114,6 @@ class Handler extends ExceptionHandler
 
         $message = $messages[$status] ?? 'Terjadi kesalahan pada aplikasi.';
 
-        // Mapping status code → JSX component Inertia
         $statusToComponent = [
             401 => 'Error/Unauthorized401',
             403 => 'Error/Forbidden403',
@@ -120,22 +133,7 @@ class Handler extends ExceptionHandler
             ])->toResponse($request)->setStatusCode($status);
         }
 
-        // Blade fallback
-        $titles = [
-            401 => 'Unauthorized',
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            419 => 'Page Expired',
-            429 => 'Too Many Requests',
-            500 => 'Server Error',
-            503 => 'Service Unavailable',
-        ];
-
-        return response()->view('errors.error', [
-            'code' => $status,
-            'title' => $titles[$status] ?? 'Error',
-            'message' => $message,
-        ], $status);
+        return parent::render($request, $e);
     }
 
 

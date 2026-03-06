@@ -23,7 +23,10 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 return redirect(match ($guard) {
                     'merchant' => route('merchant.dashboard'),
-                    default   => route('user.dashboard'),
+                    'staff' => route('staff.dashboard'),
+                    'admin' => route('admin.dashboard'),
+                    'user' => route('user.dashboard.index'),
+                    default   => route('home'),
                 });
             }
         }

@@ -51,23 +51,18 @@ export default function AuthModal({
                     <X className="w-5 h-5" />
                 </button>
 
-                <CardHeader className="text-lg font-semibold border-none text-gray-800 dark:text-white">
+                <CardHeader className="py-2 text-lg font-semibold border-none">
                     {authMode === "login" ? "Masuk" : "Buat Akun Baru"}
                 </CardHeader>
 
-                <CardBody>
+                <CardBody className="py-2">
                     {authMode === "login" && showBanner && !dismissed && (
                         <BannerAlert
                             type="warning"
-                            className="py-3 my-0 mb-2 flex flex-row justify-between items-center"
+                            size="xs"
+                            className="mt-0 mb-4"
                         >
-                            <div className="flex flex-row gap-2 items-center">
-                                <Info className="w-5" />
-                                Login untuk melihat keranjang
-                            </div>
-                            <button onClick={() => setDismissed(true)}>
-                                <X className="w-4 h-4 cursor-pointer hover:text-yellow-700 " />
-                            </button>
+                            Login untuk melihat keranjang
                         </BannerAlert>
                     )}
                     {authMode === "login" ? (

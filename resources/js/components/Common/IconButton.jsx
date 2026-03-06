@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { twMerge } from "tailwind-merge";
-import Tippy from "@tippyjs/react";
+import Button from "@/components/Common/Button";
 
 const IconButton = forwardRef(
     (
@@ -9,38 +9,28 @@ const IconButton = forwardRef(
             children,
             tooltip,
             tooltipPlacement = "top",
+            variant = "primary",
+            size = "sm",
             ...props
         },
-        ref
+        ref,
     ) => {
-        const buttonEl = (
-            <button
+        return (
+            <Button
                 ref={ref}
-                type="button"
+                variant={variant}
+                size={size}
+                tooltip={tooltip}
                 className={twMerge(
-                    "inline-flex items-center justify-center focus:outline-none",
-                    className
+                    "p-2 aspect-square hover:ring-2 focus:ring-2",
+                    className,
                 )}
                 {...props}
             >
                 {children}
-            </button>
+            </Button>
         );
-
-        if (tooltip) {
-            return (
-                <Tippy
-                    content={tooltip}
-                    placement={tooltipPlacement}
-                    trigger="mouseenter focus"
-                >
-                    {buttonEl}
-                </Tippy>
-            );
-        }
-
-        return buttonEl;
-    }
+    },
 );
 
 IconButton.displayName = "IconButton";

@@ -6,21 +6,22 @@ use Log;
 use App\Models\User;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 use App\Http\Controllers\Admin\Controller;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::query()
-            ->withCount('bookingCustomers')
-            ->orderBy('created_at', 'asc') // atau oldest()
+        $users = User::withCount('bookingCustomers', 'membershipCards')
+            ->with('latestStatusHistory', )
+            ->orderBy('created_at', 'asc')
             ->paginate(10)
             ->withQueryString();
 
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => $users,
+            'users' => UserResource::collection($users),
         ]);
     }
 

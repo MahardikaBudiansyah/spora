@@ -9,7 +9,7 @@ import VenueSection from "@/Layouts/Merchant/Sidenav/VenueSection";
 import SidenavLink from "@/components/Common/SidenavLink";
 import { Archive, Bell, Book, Settings2 } from "lucide-react";
 
-export default function Sidenav({ className = "" }) {
+export default function Sidenav({ className = "", isOpen, onClose }) {
     const { auth } = usePage().props;
     const user = auth?.staff || auth?.merchant;
     const role = auth?.staff ? "staff" : "merchant";
@@ -20,16 +20,14 @@ export default function Sidenav({ className = "" }) {
         account: false,
         ...venues.reduce(
             (acc, v) => ({ ...acc, [`venue-${v.slug}`]: false }),
-            {}
+            {},
         ),
     });
 
     const sidebarRef = useRef(null);
 
-    // 🧠 Key unik untuk localStorage agar tidak bentrok antar role/merchant
     const STORAGE_KEY = `sidebar-scroll-${role}`;
 
-    // ✅ Restore posisi scroll saat komponen mount
     useEffect(() => {
         const sidebar = sidebarRef.current;
         if (!sidebar) return;
@@ -38,11 +36,10 @@ export default function Sidenav({ className = "" }) {
         if (savedScroll) {
             sidebar.scrollTo({
                 top: parseInt(savedScroll, 10),
-                behavior: "instant", // atau "auto" biar tidak terasa animasi
+                behavior: "instant",
             });
         }
 
-        // Saat user scroll → simpan ke localStorage (debounce agar efisien)
         let timeout;
         const handleScroll = () => {
             clearTimeout(timeout);
@@ -52,36 +49,42 @@ export default function Sidenav({ className = "" }) {
         };
         sidebar.addEventListener("scroll", handleScroll);
 
-        // Bersihkan event listener saat unmount
         return () => {
             sidebar.removeEventListener("scroll", handleScroll);
         };
     }, [STORAGE_KEY]);
 
     return (
-        <aside className={`fixed top-0 left-0 h-[98vh] w-64 ${className}`}>
+        <aside
+            className={`fixed top-0 left-0 h-[100vh] md:h-[98vh] w-64 z-sidenav transition-transform duration-300 ease-in-out
+            ${isOpen ? "translate-x-0" : "-translate-x-full"} 
+            ${className}`}
+        >
             <Card
                 ref={sidebarRef}
-                className="m-2 h-full rounded-lg shadow-none overflow-y-auto custom-scrollbar"
+                className="md:m-2 h-full rounded-none md:rounded-lg shadow-none overflow-y-auto custom-scrollbar "
             >
-                <CardHeader className="pt-4 flex flex-row gap-2 justify-center items-center border-none">
-                    <a href={route("home")} className="flex items-center ">
+                <CardHeader className="pt-4 flex flex-row gap-2 justify-center items-center border-none relative">
+                    <a
+                        href={route("home")}
+                        className="flex items-center outline-none"
+                    >
                         <AppLogo
                             variant="newlogo"
-                            className="w-40"
+                            className="w-40 dark:hidden"
+                            alt="Spora"
+                        />
+                        <AppLogo
+                            variant="newlogo3"
+                            className="w-40 hidden dark:block"
                             alt="Spora"
                         />
                     </a>
-                    {/* <div className="flex flex-col font-medium text-sm">
-                        <span className="mt-1">Spora</span>
-                        <span>Platform Web</span>
-                    </div> */}
                 </CardHeader>
-
                 <CardBody>
-                    {/* === Account Section === */}
                     <nav className="my-2">
                         <AccountSection
+                            src={user?.logo_path}
                             user={user}
                             role={role}
                             isOpen={menuToggles.isOpen("account")}
@@ -89,7 +92,6 @@ export default function Sidenav({ className = "" }) {
                         />
                     </nav>
 
-                    {/* === Dashboard Section === */}
                     <nav className="my-4">
                         <DashboardSection
                             role={role}
@@ -98,12 +100,11 @@ export default function Sidenav({ className = "" }) {
                         />
                     </nav>
 
-                    {/* === Venue Section === */}
                     <nav className="my-4">
-                        <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                        <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
                             Venue
                         </div>
-                        <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                        <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
                             <li>
                                 <SidenavLink
                                     href={route("merchant.venues.index")}
@@ -120,25 +121,24 @@ export default function Sidenav({ className = "" }) {
                                 venue={venue}
                                 toggle={menuToggles.toggle}
                                 isOpen={menuToggles.isOpen(
-                                    `venue-${venue.slug}`
+                                    `venue-${venue.slug}`,
                                 )}
-                                toggleField={menuToggles.toggle}
-                                fieldOpenMap={menuToggles.isOpen}
+                                toggleCourt={menuToggles.toggle}
+                                courtOpenMap={menuToggles.isOpen}
                             />
                         ))}
                     </nav>
 
-                    {/* === Membership Section (merchant only) === */}
                     {role === "merchant" && (
                         <nav className="my-4">
-                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                            <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
                                 Membership
                             </div>
-                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                            <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
                                 <li>
                                     <SidenavLink
                                         href={route(
-                                            "merchant.memberships.packages.index"
+                                            "merchant.memberships.packages.index",
                                         )}
                                         routeName="merchant.memberships.packages.index"
                                         label="Paket Membership"
@@ -148,10 +148,20 @@ export default function Sidenav({ className = "" }) {
                                 <li>
                                     <SidenavLink
                                         href={route(
-                                            "merchant.memberships.index"
+                                            "merchant.memberships.cards.index",
                                         )}
-                                        routeName="merchant.memberships.index"
-                                        label="Semua Member Aktif"
+                                        routeName="merchant.memberships.cards.index"
+                                        label="Kartu Member"
+                                        icon={Book}
+                                    />
+                                </li>
+                                <li>
+                                    <SidenavLink
+                                        href={route(
+                                            "merchant.memberships.orders.index",
+                                        )}
+                                        routeName="merchant.memberships.orders.index"
+                                        label="Order Membership"
                                         icon={Book}
                                     />
                                 </li>
@@ -159,13 +169,30 @@ export default function Sidenav({ className = "" }) {
                         </nav>
                     )}
 
-                    {/* === Staff Section (merchant only) === */}
                     {role === "merchant" && (
                         <nav className="my-4">
-                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                            <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
+                                Booking
+                            </div>
+                            <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
+                                <li>
+                                    <SidenavLink
+                                        href={route("merchant.bookings.index")}
+                                        routeName="merchant.bookings.index"
+                                        label="Booking"
+                                        icon={Book}
+                                    />
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
+
+                    {role === "merchant" && (
+                        <nav className="my-4">
+                            <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
                                 Staff
                             </div>
-                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                            <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
                                 <li>
                                     <SidenavLink
                                         href={route("merchant.staff.index")}
@@ -178,27 +205,26 @@ export default function Sidenav({ className = "" }) {
                         </nav>
                     )}
 
-                    {/* === Notification (merchant only) === */}
                     {role === "merchant" && (
                         <nav className="my-4">
-                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
+                            <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
                                 Pemberitahuan
                             </div>
-                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                            <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
                                 <li>
                                     <SidenavLink
                                         href={route(
-                                            "merchant.notifications.index"
+                                            "merchant.notifications.index",
                                         )}
                                         routeName="merchant.notifications.index"
-                                        label="Notifikasi Aktif"
+                                        label="Notifikasi"
                                         icon={Bell}
                                     />
                                 </li>
                                 <li>
                                     <SidenavLink
                                         href={route(
-                                            "merchant.notifications.archive"
+                                            "merchant.notifications.archive",
                                         )}
                                         routeName="merchant.notifications.archive"
                                         label="Arsip"
@@ -209,18 +235,19 @@ export default function Sidenav({ className = "" }) {
                         </nav>
                     )}
 
-                    {/* === Aplikasi Section (merchant only) === */}
                     {role === "merchant" && (
                         <nav className="my-4">
-                            <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
-                                Aplikasi
+                            <div className="my-2 font-bold text-xs text-dark dark:text-light uppercase">
+                                Pengaturan
                             </div>
-                            <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
+                            <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
                                 <li>
                                     <SidenavLink
-                                        href={route("merchant.settings.index")}
-                                        routeName="merchant.settings.index"
-                                        label="Pengaturan"
+                                        href={route(
+                                            "merchant.settings.payment-policy.index",
+                                        )}
+                                        routeName="merchant.settings.payment-policy.index"
+                                        label="Pembayaran"
                                         icon={Settings2}
                                     />
                                 </li>

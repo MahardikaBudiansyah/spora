@@ -1,4 +1,4 @@
-import { Link, Head, usePage, router } from "@inertiajs/react";
+import { Link, Head, useForm } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import AuthAdminLayout from "@/Layouts/AuthAdminLayout";
@@ -13,12 +13,18 @@ import {
 } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import BannerAlert from "@/components/common/BannerAlert";
+import Checkbox from "@/components/Common/Checkbox";
+import ErrorInput from "@/components/Common/ErrorInput";
 
-export default function Login() {
-    const { props } = usePage();
-    const errors = props.errors || {};
+export default function Login({ prefill = {}, registration_success }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        email: prefill?.email || "",
+        password: "",
+        remember: false,
+    });
 
-    const { prefill, registration_success } = usePage().props;
+    const [isRateLimited, setIsRateLimited] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
     useEffect(() => {
         if (registration_success) {
@@ -26,71 +32,43 @@ export default function Login() {
         }
     }, [registration_success]);
 
-    const [data, setData] = useState({
-        email: prefill.email || "",
-        password: "",
-    });
-
-    const [processing, setProcessing] = useState(false);
-
-    const [isRateLimited, setIsRateLimited] = useState(false);
-    const [countdown, setCountdown] = useState(0);
-
     const extractSeconds = (message) => {
         const match = message.match(/(\d+)\s*detik/i);
         return match ? parseInt(match[1], 10) : 60;
     };
 
-    const handleChange = (e) => {
-        setData({ ...data, [e.target.name]: e.target.value });
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        setProcessing(true);
 
-        router.post(
-            route("admin.login.attempt"),
-            {
-                email: data.email,
-                password: data.password,
+        post(route("admin.login.attempt"), {
+            onSuccess: () => {
+                toast.success("Login berhasil!");
             },
-            {
-                onSuccess: () => {
-                    toast.success("Login berhasil!");
-                },
-                onError: () => {
-                    const errors = router.page?.props?.errors;
+            onError: (err) => {
+                if (err.email && err.email.includes("coba lagi dalam")) {
+                    const seconds = extractSeconds(err.email);
+                    setCountdown(seconds);
+                    setIsRateLimited(true);
 
-                    if (errors?.email) {
-                        if (errors.email.includes("coba lagi dalam")) {
-                            const seconds = extractSeconds(errors.email);
-                            setCountdown(seconds);
-                            setIsRateLimited(true);
+                    const interval = setInterval(() => {
+                        setCountdown((prev) => {
+                            if (prev <= 1) {
+                                clearInterval(interval);
+                                setIsRateLimited(false);
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                }
 
-                            const interval = setInterval(() => {
-                                setCountdown((prev) => {
-                                    if (prev <= 1) {
-                                        clearInterval(interval);
-                                        setIsRateLimited(false);
-                                        return 0;
-                                    }
-                                    return prev - 1;
-                                });
-                            }, 1000);
-                        }
-                        toast.error(errors.email);
-                    } else if (errors?.password) {
-                        toast.error(errors.password);
-                    } else {
-                        toast.error(
-                            "Gagal masuk. Periksa kembali email dan kata sandi Anda."
-                        );
-                    }
-                },
-                onFinish: () => setProcessing(false),
-            }
-        );
+                const firstError = Object.values(err)[0];
+                toast.error(
+                    firstError || "Gagal masuk. Periksa kembali data Anda.",
+                );
+            },
+            onFinish: () => reset("password"),
+        });
     };
 
     return (
@@ -113,7 +91,7 @@ export default function Login() {
                         )}
 
                         <CardBody className="space-y-5">
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="email"
                                     value="Email:"
@@ -124,15 +102,20 @@ export default function Login() {
                                     type="email"
                                     name="email"
                                     value={data.email}
-                                    onChange={handleChange}
+                                    onChange={(e) =>
+                                        setData("email", e.target.value)
+                                    }
                                     placeholder="Masukan email admin"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required
                                     autoFocus
                                 />
+                                {errors.email && (
+                                    <ErrorInput message={errors.email} />
+                                )}
                             </div>
 
-                            <div>
+                            <div className="space-y-1">
                                 <InputLabel
                                     htmlFor="password"
                                     value="Kata Sandi:"
@@ -142,19 +125,28 @@ export default function Login() {
                                     id="password"
                                     name="password"
                                     value={data.password}
-                                    onChange={handleChange}
-                                    placeholder="********"
-                                    className="mt-1 block w-full"
+                                    onChange={(e) =>
+                                        setData("password", e.target.value)
+                                    }
+                                    className="w-full"
                                     required
                                 />
+                                {errors.password && (
+                                    <ErrorInput message={errors.password} />
+                                )}
                             </div>
 
                             <div className="flex items-center justify-between text-sm text-gray-700 dark:text-gray-300">
-                                <label className="flex items-center">
-                                    <input
-                                        type="checkbox"
+                                <label className="flex items-center gap-2">
+                                    <Checkbox
                                         name="remember"
-                                        className="mr-2 rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
+                                        checked={data.remember}
+                                        onChange={(e) =>
+                                            setData(
+                                                "remember",
+                                                e.target.checked,
+                                            )
+                                        }
                                     />
                                     Ingat saya
                                 </label>
@@ -176,8 +168,8 @@ export default function Login() {
                                 {processing
                                     ? "Memproses..."
                                     : isRateLimited
-                                    ? `Tunggu ${countdown} detik...`
-                                    : "Masuk"}
+                                      ? `Tunggu ${countdown} detik...`
+                                      : "Masuk"}
                             </Button>
                         </CardBody>
 

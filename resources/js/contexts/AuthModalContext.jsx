@@ -15,7 +15,7 @@ export function AuthModalProvider({ children }) {
     const openModal = (type = "login", banner = false) => {
         setModalType(type);
         setIsModalVisible(true);
-        setShowBanner(banner); // banner true/false
+        setShowBanner(banner);
         setModalLoginDefault({ identifier: "", password: "" });
     };
 
@@ -46,7 +46,6 @@ export function AuthModalProvider({ children }) {
     );
 }
 
-// Hook supaya gampang pake context ini di komponen manapun
 export function useAuthModal() {
     return useContext(AuthModalContext);
 }

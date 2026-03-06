@@ -1,21 +1,48 @@
 import { useEffect, useState } from "react";
 import { usePage, router } from "@inertiajs/react";
 import { route } from "ziggy-js";
-import Breadcrumb from "@/components/admin/Navbar/Breadcrumb";
+import Breadcrumb from "@/components/Admin/Navbar/Breadcrumb";
 import SearchInput from "@/components/Common/SearchInput";
 import NotificationDropdown from "@/components/Common/NotificationDropdown";
 import UserAvatarDropdown from "@/components/Common/UserAvatarDropdown";
 import ThemeToggle from "@/components/Common/ThemeToggle";
 import { Card } from "@/components/Common/Card";
-import { LayoutDashboard, User, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, User, Settings, LogOut, Search } from "lucide-react";
+import HamburgerButton from "@/components/Common/HamburgerButton";
+import IconButton from "@/components/Common/IconButton";
+import DevelopmentPlaceholder from "@/components/Common/DevelopmentPlaceholder";
 
-export default function Navbar() {
-    const [scrolled, setScrolled] = useState(false);
+export default function Navbar({ onMenuClick, isSidebarOpen }) {
+    const { auth, notifications } = usePage().props;
 
-    const { auth } = usePage().props;
     const admin = auth?.admin;
 
-    // Menu universal berdasarkan role
+    const [scrolled, setScrolled] = useState(false);
+    const [showDevModal, setShowDevModal] = useState(false);
+
+    const handleNotificationClick = (id) => {
+        router.post(
+            route("admin.notifications.markAsRead", id),
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
+    };
+
+    const handleMarkAllRead = () => {
+        router.post(
+            route("admin.notifications.markAllRead"),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    console.log("Semua notifikasi ditandai dibaca");
+                },
+            },
+        );
+    };
+
     const menuItems = [
         {
             label: "Dashboard",
@@ -42,85 +69,69 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Dummy notifications
-    const [notifications, setNotifications] = useState([
-        {
-            title: "Booking Baru",
-            message: "Ada booking baru di lapangan A",
-            time: "21-11-2025 19:00",
-            isRead: false,
-            onDelete: () => console.log("Hapus notif 1"),
-        },
-        {
-            title: "Update Profil",
-            message: "Profil merchant Anda sudah diverifikasi",
-            time: "20-11-2025 15:30",
-            isRead: true,
-            onDelete: () => console.log("Hapus notif 2"),
-        },
-        {
-            title: "Maintenance",
-            message: "Lapangan B sedang dalam pemeliharaan",
-            time: "19-11-2025 09:00",
-            isRead: false,
-            onDelete: () => console.log("Hapus notif 3"),
-        },
-        {
-            title: "Update Profil",
-            message: "Profil merchant Anda sudah diverifikasi",
-            time: "20-11-2025 15:30",
-            isRead: true,
-            onDelete: () => console.log("Hapus notif 2"),
-        },
-        {
-            title: "Update Profil",
-            message: "Profil merchant Anda sudah diverifikasi",
-            time: "20-11-2025 15:30",
-            isRead: true,
-            onDelete: () => console.log("Hapus notif 2"),
-        },
-        {
-            title: "Update Profil",
-            message: "Profil merchant Anda sudah diverifikasi",
-            time: "20-11-2025 15:30",
-            isRead: true,
-            onDelete: () => console.log("Hapus notif 2"),
-        },
-        {
-            title: "Update Profil",
-            message: "Profil merchant Anda sudah diverifikasi",
-            time: "20-11-2025 15:30",
-            isRead: true,
-            onDelete: () => console.log("Hapus notif 2"),
-        },
-    ]);
-
     return (
-        <nav className="fixed m-4 md:m-2 top-0 left-0 md:left-64 right-0 h-24 z-50">
+        <nav
+            className={`fixed top-0 right-0 h-24 z-navbar ${
+                isSidebarOpen ? "left-0 lg:left-64" : "left-0"
+            }`}
+        >
             <Card
-                className={`flex flex-col md:flex-row gap-2 justify-between px-4 py-4 border rounded-lg shadow-sm overflow-visible transition ${
+                className={`flex flex-row items-center justify-between px-4 py-3 md:py-4 md:m-2 h-full border-none md:border rounded-none md:rounded-lg overflow-visible ${
                     scrolled
-                        ? "bg-white dark:bg-stone-900 shadow-sm border-stone-200 dark:border-stone-700"
-                        : "bg-transparent dark:bg-transparent border-0 shadow-none"
+                        ? "bg-white/90 dark:bg-secondary-900/80 backdrop-blur-md shadow-sm border-secondary-200 dark:border-secondary-700"
+                        : "bg-transparent dark:bg-transparent border-transparent shadow-none"
                 }`}
             >
-                {/* Kiri: Breadcrumb */}
-                <div className="flex items-center space-x-4">
-                    <Breadcrumb />
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
+                        <HamburgerButton
+                            isOpen={isSidebarOpen}
+                            onClick={onMenuClick}
+                            className="block"
+                        />
+                        <Breadcrumb className="hidden sm:block" />
+                    </div>
                 </div>
 
-                {/* Kanan: Theme, Notification, Account */}
                 <div className="flex flex-row justify-between items-center space-x-4">
-                    <SearchInput />
+                    <div className="hidden sm:block">
+                        <SearchInput
+                            readOnly={true}
+                            onClick={() => setShowDevModal(true)}
+                        />
+                    </div>
+
                     <div className="flex space-x-4">
-                        <NotificationDropdown notifications={notifications} />
+                        <IconButton
+                            variant="light"
+                            tooltip="Cari"
+                            onClick={() => setShowDevModal(true)}
+                            className="sm:hidden rounded-full border-none bg-secondary-100 dark:bg-secondary-700 "
+                        >
+                            <Search className="w-5 h-4" />
+                        </IconButton>
+                        <NotificationDropdown
+                            notifications={notifications.list.data || []}
+                            unreadCount={notifications.unread_count}
+                            onNotificationClick={handleNotificationClick}
+                            onMarkAllRead={handleMarkAllRead}
+                            viewAllNotification={route(
+                                "admin.notifications.index",
+                            )}
+                        />
                         <UserAvatarDropdown
+                            src={admin?.avatar_path}
                             user={admin}
                             menuItems={menuItems}
                         />
                         <ThemeToggle />
                     </div>
                 </div>
+                <DevelopmentPlaceholder
+                    title="Pencarian Global"
+                    show={showDevModal}
+                    onClose={() => setShowDevModal(false)}
+                />
             </Card>
         </nav>
     );

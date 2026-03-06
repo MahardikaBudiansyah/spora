@@ -20,6 +20,8 @@ class MembershipUser extends Model
         'member_no',
         'user_id',
         'venue_id',
+        'name',
+        'phone_number',
         'is_active',
         'notes',
         'slug',

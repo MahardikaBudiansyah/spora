@@ -14,13 +14,15 @@ class OrderHelper
      * @param int $userId
      * @return string
      */
-    public static function generateOrderNo(string $prefix = 'ORD', int $venueId, int $userId): string
+    public static function generateOrderNo(string $prefix = 'ORD', int $venueId, ?int $userId = null): string
     {
         $prefix = strtoupper($prefix);
         $date   = now()->format('Ymd');
         $random = strtoupper(substr(uniqid(), -6));
 
-        return "{$prefix}-{$date}-V{$venueId}U{$userId}{$random}";
+        $userPart = $userId !== null ? "U{$userId}" : "X";
+
+        return "{$prefix}-{$date}-V{$venueId}{$userPart}{$random}";
     }
 
     /**

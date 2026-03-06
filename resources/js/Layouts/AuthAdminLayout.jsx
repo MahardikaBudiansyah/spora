@@ -1,5 +1,4 @@
 import { Link } from "@inertiajs/react";
-import { ToastContainer } from "react-toastify";
 import HeroCarouselSection from "@/components/merchant/HeroCarouselSection";
 import AppLogo from "@/components/common/AppLogo";
 import ThemeToggle from "@/components/common/ThemeToggle";
@@ -18,14 +17,37 @@ export default function AuthMerchantLayout({ children }) {
                     </Link>
                     <ThemeToggle />
                 </header>
-                <main className="max-w-md w-full mx-auto">{children}</main>
-                <ToastContainer position="top-right" autoClose={3000} />
-                <footer className="absolute bottom-4 right-8 text-xs text-gray-400 dark:text-gray-300">
-                    © 2025{" "}
-                    <a href="#" className="hover:underline">
-                        Spora™
-                    </a>
-                    . All Rights Reserved.
+                <main className="md:m-6 mt-20 md:mt-16 flex-1">{children}</main>
+                <footer className="mt-auto py-2 px-8 border-t border-secondary-100 dark:border-secondary-800">
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-2">
+                        <span className="text-xs text-secondary-400 dark:text-secondary-500">
+                            © {new Date().getFullYear()}{" "}
+                            <a
+                                href="/"
+                                className="hover:underline font-medium text-primary-600 dark:text-primary-400"
+                            >
+                                Spora™
+                            </a>
+                            . All Rights Reserved.
+                        </span>
+                        <span className="hidden md:inline text-secondary-300">
+                            |
+                        </span>
+                        <div className="flex gap-4">
+                            <a
+                                href="#"
+                                className="text-[10px] uppercase tracking-wider text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300"
+                            >
+                                Bantuan
+                            </a>
+                            <a
+                                href="#"
+                                className="text-[10px] uppercase tracking-wider text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300"
+                            >
+                                Kebijakan
+                            </a>
+                        </div>
+                    </div>
                 </footer>
             </div>
             <div className="hidden lg:block w-1/2">

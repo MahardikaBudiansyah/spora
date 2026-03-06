@@ -16,8 +16,8 @@ import Badge from "@/components/Common/Badge";
 import { formatTo08 } from "@/utils/numberPhone";
 import { formatFullDateTime } from "@/utils/date";
 import { formatRupiah } from "@/utils/currency";
-import { getBookingStatus } from "@/utils/bookingAttribute";
-import { getInvoiceStatus } from "@/utils/invoiceAttribute";
+import { getBookingStatus } from "@/utils/attributes/bookingAttribute";
+import { getInvoiceStatus } from "@/utils/attributes/invoiceAttribute";
 
 export default function Index() {
     const { bookings = [] } = usePage().props;

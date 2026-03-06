@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('username')->unique()->nullable();
-            $table->string('email')->unique()->nullable(); 
+            $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone_number')->unique()->nullable();
             $table->timestamp('phone_verified_at')->nullable();
-            $table->string('photo')->nullable();
-            $table->enum('status', ['pending', 'active', 'rejected'])->default('pending');
+            $table->string('avatar_path')->nullable();
+            $table->enum('status', ['pending', 'verified', 'banned', 'deactivation_requested'])->default('pending');
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->softDeletes();

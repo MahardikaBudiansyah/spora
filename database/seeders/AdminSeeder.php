@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AdminStatus;
 use Carbon\Carbon;
 use App\Models\Admin;
 use Illuminate\Database\Seeder;
@@ -16,25 +17,23 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            [   'name' => 'Superadmin',
-                'username' => 'superadmin',
+            [
+                'name' => 'Spora Official',
                 'role' => 'superadmin',
-                'email' => 'superadmin@gmail.com',
-                'email_verified_at' => now(),
-                'password' => Hash::make('superadmin1234'),
-                'phone_number' => null,
-                'status' => true,
+                'email' => 'spora.official@gmail.com',
+                'password' => Hash::make('spora1234'),
+                'status' => AdminStatus::ACTIVE,
+                'is_active' => true,
             ],
-            [   'name' => 'Admin',
-                'username' => 'admin',
+            [
+                'name' => 'Admin',
                 'role' => 'admin',
                 'email' => 'admin@gmail.com',
-                'email_verified_at' => now(),
                 'password' => Hash::make('admin1234'),
-                'phone_number' => null,
-                'status' => true,
+                'status' => AdminStatus::ACTIVE,
+                'is_active' => true,
             ],
-            
+
         ];
 
         foreach ($data as $value) {

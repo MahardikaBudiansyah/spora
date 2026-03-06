@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ImageZoomModal({
@@ -11,8 +12,21 @@ export default function ImageZoomModal({
 }) {
     const [show, setShow] = useState(false);
 
+    const touchStart = useRef(null);
+    const touchEnd = useRef(null);
+
+    const minSwipeDistance = 50;
+
     useEffect(() => {
-        setShow(open);
+        if (open) {
+            const timer = setTimeout(() => setShow(true), 10);
+            // Mencegah background scroll saat modal buka
+            document.body.style.overflow = "hidden";
+            return () => clearTimeout(timer);
+        } else {
+            setShow(false);
+            document.body.style.overflow = "unset";
+        }
     }, [open]);
 
     useEffect(() => {
@@ -26,52 +40,76 @@ export default function ImageZoomModal({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [open, onClose, onPrev, onNext]);
 
+    const onTouchStart = (e) => {
+        touchEnd.current = null;
+        touchStart.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchMove = (e) => {
+        touchEnd.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart.current || !touchEnd.current) return;
+        const distance = touchStart.current - touchEnd.current;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe && onNext) {
+            onNext();
+        } else if (isRightSwipe && onPrev) {
+            onPrev();
+        }
+    };
+
     if (!open) return null;
 
-    return (
+    return createPortal(
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${
+            className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-sm transition-opacity duration-300 ${
                 show ? "opacity-100" : "opacity-0"
             }`}
             onClick={onClose}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
         >
-            {/* Tombol Close */}
             <button
-                className="absolute top-4 right-4 text-white hover:text-gray-300 transition"
-                onClick={onClose}
+                className="absolute top-6 right-6 z-[10001] text-white p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                }}
             >
-                <X size={28} />
+                <X size={24} />
             </button>
 
-            {/* Tombol Prev */}
             {onPrev && (
                 <button
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition"
+                    className="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition z-[10001]"
                     onClick={(e) => {
                         e.stopPropagation();
                         onPrev();
                     }}
                 >
-                    <ChevronLeft size={36} />
+                    <ChevronLeft size={48} />
                 </button>
             )}
 
-            {/* Tombol Next */}
             {onNext && (
                 <button
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition"
+                    className="hidden md:block absolute right-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition z-[10001]"
                     onClick={(e) => {
                         e.stopPropagation();
                         onNext();
                     }}
                 >
-                    <ChevronRight size={36} />
+                    <ChevronRight size={48} />
                 </button>
             )}
 
-            {/* Gambar */}
             <div
-                className={`relative max-w-4xl w-full p-4 transform transition-all duration-300 ${
+                className={`relative max-w-[95vw] md:max-w-5xl transition-all duration-300 ease-out ${
                     show ? "scale-100 opacity-100" : "scale-95 opacity-0"
                 }`}
                 onClick={(e) => e.stopPropagation()}
@@ -79,9 +117,15 @@ export default function ImageZoomModal({
                 <img
                     src={image}
                     alt={alt}
-                    className="w-full max-h-[90vh] object-contain rounded-lg shadow-lg bg-white"
+                    className="w-auto h-auto max-w-full max-h-[85vh] md:max-h-[90vh] object-contain rounded-md shadow-2xl select-none"
+                    draggable="false"
                 />
             </div>
-        </div>
+
+            <div className="absolute bottom-10 text-white/40 text-[10px] tracking-widest uppercase md:hidden pointer-events-none">
+                Geser untuk navigasi
+            </div>
+        </div>,
+        document.body
     );
 }

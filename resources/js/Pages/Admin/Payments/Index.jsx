@@ -20,7 +20,7 @@ import {
     getPaymentStatus,
     getPaymentMethod,
     getPaymentType,
-} from "@/utils/paymentAttribute";
+} from "@/utils/attributes/paymentAttribute";
 
 export default function Index() {
     const { payments = [] } = usePage().props;

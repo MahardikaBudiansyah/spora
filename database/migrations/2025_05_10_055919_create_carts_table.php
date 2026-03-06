@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('carts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('venue_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('field_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('time_slot_id')->constrained()->cascadeOnDelete();
-            $table->decimal('price', 10, 2);
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('venue_id')->constrained('venues')->cascadeOnDelete();
+            $table->foreignId('court_id')->constrained('courts')->cascadeOnDelete();
+            $table->foreignId('time_slot_id')->constrained('time_slots')->cascadeOnDelete();
+            $table->decimal('price', 12, 2);
+            $table->string('day_type');
             $table->date('date');
             $table->timestamps();
         });
