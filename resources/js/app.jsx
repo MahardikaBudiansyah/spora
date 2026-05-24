@@ -21,7 +21,7 @@ createInertiaApp({
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
-            import.meta.glob("./Pages/**/*.jsx")
+            import.meta.glob("./Pages/**/*.jsx"),
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);
@@ -40,11 +40,11 @@ createInertiaApp({
                         </CartProvider>
                     </AuthProvider>
                 </AuthModalProvider>
-            </ThemeProvider>
+            </ThemeProvider>,
         );
     },
     progress: {
-        delay: 250, // Progress bar muncul hanya jika loading lebih dari 250ms
+        delay: 250,
         color: "#29d",
         includeCSS: true,
         showSpinner: false,

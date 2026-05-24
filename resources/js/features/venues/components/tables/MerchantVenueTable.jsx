@@ -31,10 +31,13 @@ export default function MerchantVenueTable({
     handleDelete,
 }) {
     const canRequestVerification = (row) => {
-        const isDraftOrRejected = ["draft", "rejected"].includes(row.status);
+        const isNeedsAction =
+            ["draft", "rejected"].includes(row.status) ||
+            row.is_reverification_required;
         const isDataComplete =
             row.name && row.phone_number && row?.address?.full_address;
-        return isDraftOrRejected && isDataComplete;
+
+        return isNeedsAction && isDataComplete;
     };
 
     const columns = useMemo(() => {
@@ -42,7 +45,7 @@ export default function MerchantVenueTable({
             {
                 key: "number",
                 header: "#",
-                className: "stext-center content-start",
+                className: "text-center content-start",
                 render: (_, __, index) => {
                     const currentPage =
                         venues.current_page || venues.meta?.current_page || 1;
@@ -79,7 +82,7 @@ export default function MerchantVenueTable({
             },
             {
                 key: "courts",
-                header: "Court",
+                header: "Lapangan",
                 className: "content-start whitespace-nowrap",
                 render: (val, row) =>
                     row.courts && row.courts.length > 0 ? (
@@ -149,7 +152,7 @@ export default function MerchantVenueTable({
                 header: "Aksi",
                 className: "w-[750px] content-start items-start",
                 render: (val, row) => (
-                    <div className="flex flex-wrap gap-2 w-[480px]">
+                    <div className="flex flex-wrap gap-2 w-[350px]">
                         <ButtonToggle
                             active={row.is_active}
                             onClick={() => handleToggleActive(row)}
@@ -159,14 +162,16 @@ export default function MerchantVenueTable({
                             inactiveVariant="danger"
                             size="sm"
                         />
-                        <Button
-                            variant="warning"
-                            size="xs"
-                            onClick={() => handleVerification(row)}
-                            disabled={!canRequestVerification(row)}
-                        >
-                            Verifikasi
-                        </Button>
+                        {["draft", "rejected"].includes(row.status) && (
+                            <Button
+                                variant="warning"
+                                size="xs"
+                                onClick={() => handleVerification(row)}
+                                disabled={!canRequestVerification(row)}
+                            >
+                                Verifikasi
+                            </Button>
+                        )}
                         <Button
                             variant="info"
                             size="xs"

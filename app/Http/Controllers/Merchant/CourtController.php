@@ -2,33 +2,29 @@
 
 namespace App\Http\Controllers\Merchant;
 
-use Inertia\Inertia;
-use App\Models\Court;
-use App\Models\Venue;
-use App\Models\Schedule;
-use App\Models\TimeSlot;
-use Carbon\CarbonPeriod;
-use Illuminate\Support\Str;
-use App\Models\CourtSurface;
-use Illuminate\Http\Request;
-use App\Models\CourtCategory;
-use Illuminate\Support\Carbon;
-use App\Models\CourtStatusType;
-use App\Helpers\UploadImageHelper;
-use Illuminate\Support\Facades\Log;
-use App\Services\Court\CourtService;
-use App\Events\TimeSlotStatusUpdated;
-use Illuminate\Support\Facades\Storage;
-use App\Services\Court\CourtFlowService;
 use App\Http\Controllers\Merchant\Controller;
-use App\Http\Resources\courtResource;
 use App\Http\Requests\Merchant\CourtStoreRequest;
 use App\Http\Requests\Merchant\CourtUpdateRequest;
+use App\Http\Resources\CourtResource;
+use App\Models\Court;
+use App\Models\CourtCategory;
+use App\Models\CourtStatusType;
+use App\Models\CourtSurface;
+use App\Models\Schedule;
+use App\Models\TimeSlot;
+use App\Models\Venue;
+use App\Services\Court\CourtFlowService;
+use App\Services\Court\CourtService;
+use Carbon\CarbonPeriod;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class CourtController extends Controller
 {
     protected $courtService;
-    protected $courtFlowService; 
+    protected $courtFlowService;
 
     public function __construct(CourtService $courtService, CourtFlowService $courtFlowService)
     {
@@ -100,10 +96,10 @@ class CourtController extends Controller
         $this->authorize('view', $court);
 
         $court->load([
-            'timeSlots', 
-            'surface', 
+            'timeSlots',
+            'surface',
             'categories',
-            'images', 
+            'images',
         ]);
 
         return Inertia::render('Merchant/Venue/Courts/Show', [
@@ -119,11 +115,11 @@ class CourtController extends Controller
         $this->ensureCourtInVenue($court, $venue);
 
         $court->load([
-            'venue',  
+            'venue',
             'categories',
             'surface',
-            'timeSlots', 
-            'images' => fn ($q) => $q->orderBy('order')
+            'timeSlots',
+            'images' => fn($q) => $q->orderBy('order')
         ]);
 
         return Inertia::render('Merchant/Venue/Courts/Edit', [
@@ -170,9 +166,9 @@ class CourtController extends Controller
 
         return Inertia::render('Merchant/Venue/Courts/Partials/CourtCalendar', [
             'venue' => $venue,
-            'court' => new CourtResource($court), 
+            'court' => new CourtResource($court),
             'surfaces' => CourtSurface::all(['id', 'name']),
-            'statusType' => CourtStatusType::all(['id', 'name','label']),
+            'statusType' => CourtStatusType::all(['id', 'name', 'label']),
             'timeSlots' => TimeSlot::orderBy('id')->get(['id', 'start_time', 'end_time'])
         ]);
     }
@@ -189,7 +185,7 @@ class CourtController extends Controller
             $end = $request->query('end');
 
             $slotDefinitions = $court->timeSlots()
-                ->selectRaw('LOWER(day_type) as day_type, count(*) as total') 
+                ->selectRaw('LOWER(day_type) as day_type, count(*) as total')
                 ->groupBy('day_type')
                 ->pluck('total', 'day_type')
                 ->toArray();
@@ -204,7 +200,8 @@ class CourtController extends Controller
             if ($view === 'month' || $view === 'dayGridMonth') {
                 $schedules = $court->schedules()
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date, 
+                    ->selectRaw(
+                        'date, 
                         SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
                         SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
                         SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
@@ -219,17 +216,17 @@ class CourtController extends Controller
 
                 foreach ($period as $date) {
                     $dateStr = $date->toDateString();
-                    
+
                     $dayTypeForMatch = $date->isWeekend() ? 'weekend' : 'weekday';
                     $displayDayType = $date->isWeekend() ? 'Weekend' : 'Weekday';
-                    
+
                     $maxSlots = $slotDefinitions[$dayTypeForMatch] ?? 0;
 
                     $dayData = $schedules->get($dateStr);
                     $b = $dayData ? (int)$dayData->booked : 0;
                     $e = $dayData ? (int)$dayData->event : 0;
                     $m = $dayData ? (int)$dayData->maintenance : 0;
-                    
+
                     $occupied = $b + $e + $m;
 
                     $summary[] = [
@@ -239,7 +236,7 @@ class CourtController extends Controller
                         'event'       => $e,
                         'maintenance' => $m,
                         'available'   => max($maxSlots - $occupied, 0),
-                        'total_max'   => $maxSlots, 
+                        'total_max'   => $maxSlots,
                     ];
                 }
 
@@ -249,7 +246,7 @@ class CourtController extends Controller
             // ================= WEEK / DAY VIEW (Detail Per Jam) =================
             if ($view === 'week' || $view === 'day') {
                 $court->load(['timeSlots']);
-                
+
                 $schedules = $court->schedules()
                     ->whereBetween('date', [$startDate, $endDate])
                     ->with(['statusType'])
@@ -267,7 +264,8 @@ class CourtController extends Controller
                     $relevantSlots = $court->timeSlots->where('day_type', $dayType);
 
                     foreach ($relevantSlots as $timeslot) {
-                        $status = $schedules->first(fn ($s) => 
+                        $status = $schedules->first(
+                            fn($s) =>
                             $s->date === $dateString && $s->time_slot_id === $timeslot->id
                         );
 
@@ -297,7 +295,6 @@ class CourtController extends Controller
             }
 
             return response()->json(['view' => $view, 'summary' => [], 'slots' => []]);
-
         } catch (\Throwable $e) {
             Log::error("getCalendarData error: " . $e->getMessage());
             return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
@@ -313,14 +310,15 @@ class CourtController extends Controller
         $slotDefinitions = $court->timeSlots()
             ->selectRaw('day_type, count(*) as total')
             ->groupBy('day_type')
-            ->pluck('total', 'day_type'); 
+            ->pluck('total', 'day_type');
 
         $start = Carbon::parse($request->query('start', now()->startOfMonth()->toDateString()))->toDateString();
         $end   = Carbon::parse($request->query('end', now()->endOfMonth()->toDateString()))->toDateString();
 
         $dbSummary = $court->schedules()
             ->whereBetween('date', [$start, $end])
-            ->selectRaw('date, 
+            ->selectRaw(
+                'date, 
                 SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as booked,
                 SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as event,
                 SUM(CASE WHEN status_id = ? THEN 1 ELSE 0 END) as maintenance',
@@ -341,9 +339,9 @@ class CourtController extends Controller
         foreach ($period as $date) {
             $d = $date->format('Y-m-d');
             $carbonDate = Carbon::instance($date);
-            
+
             $dayType = $carbonDate->isWeekend() ? 'Weekend' : 'Weekday';
-            
+
             $maxSlotsForThisDay = $slotDefinitions[$dayType] ?? 0;
 
             $day = $dbSummary->get($d);
@@ -353,7 +351,7 @@ class CourtController extends Controller
 
             $summary->push([
                 'date'        => $d,
-                'day_type'    => $dayType, 
+                'day_type'    => $dayType,
                 'booked'      => $booked,
                 'event'       => $event,
                 'maintenance' => $maint,
@@ -379,7 +377,7 @@ class CourtController extends Controller
 
         $court->load([
             'timeSlots',
-            'schedules' => fn ($q) => $q
+            'schedules' => fn($q) => $q
                 ->whereBetween('date', [$start, $end])
                 ->with(['statusType']),
         ]);
@@ -398,9 +396,9 @@ class CourtController extends Controller
 
             foreach ($court->timeSlots as $timeslot) {
                 $status = $court->schedules
-                    ->first(fn ($s) => $s->date === $dateStr && $s->time_slot_id === $timeslot->id);
+                    ->first(fn($s) => $s->date === $dateStr && $s->time_slot_id === $timeslot->id);
 
-                $startTime = $timeslot->start_time; 
+                $startTime = $timeslot->start_time;
                 $endTime   = $timeslot->end_time;
 
                 $startDateTime = Carbon::parse($dateStr . ' ' . $startTime, $timezone);
@@ -439,5 +437,4 @@ class CourtController extends Controller
 
         $court->timeSlots()->sync($syncData);
     }
-
 }

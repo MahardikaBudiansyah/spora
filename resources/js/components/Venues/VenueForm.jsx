@@ -61,7 +61,7 @@ export default function VenueForm({
                             </div>
 
                             {mode === "create" && (
-                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                                <div className="text-sm text-secondary-500 dark:text-secondary-400 font-medium">
                                     <div>
                                         <span>Mitra </span>
                                         <span>{merchant?.name}</span>
@@ -69,16 +69,16 @@ export default function VenueForm({
                                 </div>
                             )}
                             {mode === "edit" && venue && (
-                                <div className="text-xs text-secondary-500">
+                                <div className="text-xs text-secondary-500 dark:text-secondary-400 font-medium">
                                     <div>
                                         <span>Ditambahkan: </span>
-                                        <span className="font-medium">
+                                        <span className="font-bold">
                                             {formatFullDate(venue.created_at)}
                                         </span>
                                     </div>
                                     <div>
                                         <span>Terakhir diperbarui: </span>
-                                        <span className="font-medium">
+                                        <span className="font-bold">
                                             {formatFullDate(venue.updated_at)}
                                         </span>
                                     </div>
@@ -296,7 +296,7 @@ export default function VenueForm({
                                     onChange={(allFiles, mainIndex) => {
                                         setData((prev) => ({
                                             ...prev,
-                                            images: allFiles, // Biarkan ImageInput yang menentukan isExisting
+                                            images: allFiles,
                                             main_image_index: mainIndex,
                                         }));
                                     }}
@@ -338,12 +338,10 @@ export default function VenueForm({
                     >
                         {mode === "edit" ? (
                             <>
-                                <Save className="w-4 h-4" />
                                 <span>Perbarui</span>
                             </>
                         ) : (
                             <>
-                                <PlusCircle className="w-4 h-4" />
                                 <span>Tambah</span>
                             </>
                         )}

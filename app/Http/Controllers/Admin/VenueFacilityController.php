@@ -2,29 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Inertia\Inertia;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\Controller;
+use App\Models\VenueFacility;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class VenueFacilityController extends Controller
 {
     public function index(Request $request)
     {
-        // Buat query builder
-        $query = FieldCategory::query();
+        $query = VenueFacility::query();
 
-        // Opsional: filter search
         if ($request->search) {
             $query->where('label', 'like', "%{$request->search}%");
         }
 
-        // Ambil data dengan pagination
-        $field_categories = $query->orderBy('created_at', 'desc')
-                                  ->paginate(10)
-                                  ->withQueryString();
+        $venue_facilities = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
-        return Inertia::render('Admin/MasterData/FieldCategory/Index', [
-            'field_categories' => $field_categories,
+        return Inertia::render('Admin/MasterData/VenueFacility/Index', [
+            'venue_facilities' => $venue_facilities,
         ]);
     }
 
@@ -35,7 +33,7 @@ class VenueFacilityController extends Controller
             'label' => 'nullable|string|max:255',
         ]);
 
-        $category = FieldCategory::create($validated);
+        $category = VenueFacility::create($validated);
 
         return response()->json($category);
     }
@@ -43,7 +41,7 @@ class VenueFacilityController extends Controller
 
     public function inlineUpdate(Request $request, $id)
     {
-        $category = FieldCategory::findOrFail($id);
+        $category = VenueFacility::findOrFail($id);
 
         // Validasi field yang akan di-update
         $validated = $request->validate([
@@ -63,7 +61,7 @@ class VenueFacilityController extends Controller
 
     public function destroy($id)
     {
-        $category = FieldCategory::findOrFail($id);
+        $category = VenueFacility::findOrFail($id);
 
         if ($category->fields()->exists()) {
             return back()->with([
@@ -72,7 +70,7 @@ class VenueFacilityController extends Controller
             ]);
         }
 
-      
+
         $category->fields()->detach();
 
         // Baru hapus kategori

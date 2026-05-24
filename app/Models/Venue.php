@@ -2,30 +2,31 @@
 
 namespace App\Models;
 
-use App\Models\Cart;
-use App\Models\Court;
-use App\Models\Review;
-use App\Models\Booking;
 use App\Enums\OrderType;
 use App\Enums\VenueStatus;
+use App\Models\Booking;
+use App\Models\Cart;
+use App\Models\Court;
+use App\Models\MembershipCard;
+use App\Models\MembershipOrder;
+use App\Models\MembershipPackage;
+use App\Models\MembershipUser;
 use App\Models\Merchant;
-use App\Models\VenueImage;
-use App\Traits\HasAddress;
-use App\Models\Subscription;
 use App\Models\OperatorVenue;
+use App\Models\Review;
+use App\Models\Subscription;
 use App\Models\VenueCategory;
 use App\Models\VenueFacility;
-use App\Models\MembershipCard;
-use App\Models\MembershipUser;
-use App\Traits\HasSocialMedia;
-use App\Models\MembershipOrder;
-use App\Traits\HasStatusHistory;
-use App\Models\MembershipPackage;
+use App\Models\VenueImage;
 use App\Models\VenuePaymentPolicy;
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasAddress;
+use App\Traits\HasSocialMedia;
+use App\Traits\HasStatusHistory;
 use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Venue extends Model
 {
@@ -155,5 +156,11 @@ class Venue extends Model
         }
 
         return $this->paymentPolicies()->where('order_type', $type)->first();
+    }
+
+    public function scopeActiveAndApproved(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->where('status', VenueStatus::APPROVED);
     }
 }

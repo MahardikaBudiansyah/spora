@@ -341,7 +341,6 @@ export const checkSectionCompletion = (merchant, section) => {
                 profile?.business_email &&
                 profile?.business_phone_number &&
                 profile?.business_type &&
-                profile?.nib &&
                 isProfileAddressComplete
             );
         case "owner":

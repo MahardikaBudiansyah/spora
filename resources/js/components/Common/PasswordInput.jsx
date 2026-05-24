@@ -60,7 +60,7 @@ const PasswordInput = forwardRef(
                     className={twMerge(
                         "absolute inset-y-0 right-1 my-auto h-full flex items-center justify-center",
                         "bg-transparent border-none ring-0 outline-none shadow-none",
-                        "hover:bg-transparent dark:hover:bg-transparent active:bg-transparent focus:ring-0 focus:outline-none",
+                        "hover:bg-transparent dark:hover:bg-transparent active:bg-transparent hover:ring-0 focus:ring-0 focus:outline-none",
                         isError
                             ? "text-red-400"
                             : "text-secondary-400 hover:text-secondary-500",

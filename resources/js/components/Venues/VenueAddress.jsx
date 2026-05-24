@@ -7,13 +7,13 @@ export default function VenueAddress({ address, showLabel = false }) {
         <div
             className={twMerge(
                 "my-4 py-4 border-y",
-                "border-secondary-300 dark:border-secondary-700"
+                "border-secondary-300 dark:border-secondary-700",
             )}
         >
             <div
                 className={twMerge(
                     "p-4 rounded-md",
-                    "bg-secondary-100 dark:bg-secondary-900"
+                    "bg-secondary-100 dark:bg-secondary-900",
                 )}
             >
                 {showLabel && (

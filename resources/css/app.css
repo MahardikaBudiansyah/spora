@@ -2,18 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1. GLOBAL BROWSER CONFIG */
 :root {
     color-scheme: light;
 }
 
 .dark {
     color-scheme: dark;
-    /* Memberitahu browser untuk mengubah scrollbar utama & elemen sistem ke mode gelap */
 }
 
 @layer base {
-    /* Konfigurasi Global Scrollbar (Stone Theme) */
+    html {
+        scrollbar-gutter: stable;
+    }
+
+    body.modal-open {
+        overflow: hidden;
+        height: 100vh;
+    }
+
     ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -24,24 +30,22 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: #d6d3d1; /* stone-300 */
+        background-color: #d6d3d1;
         border-radius: 20px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background-color: #a8a29e; /* stone-400 */
+        background-color: #a8a29e;
     }
 
-    /* Webkit Dark Mode */
     .dark ::-webkit-scrollbar-thumb {
-        background-color: #44403c; /* stone-700 */
+        background-color: #44403c;
     }
 
     .dark ::-webkit-scrollbar-thumb:hover {
-        background-color: #57534e; /* stone-600 */
+        background-color: #57534e;
     }
 
-    /* Firefox Support */
     * {
         scrollbar-width: thin;
         scrollbar-color: #d6d3d1 transparent;
@@ -53,7 +57,6 @@
 }
 
 @layer components {
-    /* --- CUSTOM CALENDAR (React Big Calendar) --- */
     .custom-calendar .rbc-month-view,
     .custom-calendar .rbc-month-header .rbc-header,
     .custom-calendar .rbc-month-view .rbc-month-row,
@@ -65,7 +68,6 @@
         @apply h-28 pr-0;
     }
 
-    /* --- REACT CALENDAR (Standard) --- */
     .react-calendar {
         @apply text-sm rounded-md border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800;
     }
@@ -83,9 +85,6 @@
     }
 }
 
-/* 2. LIBRARY OVERRIDES (Non-Tailwind) */
-
-/* Scrollbar Hide Utility */
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -94,30 +93,26 @@
     display: none;
 }
 
-/* FullCalendar Custom Borders */
 .fc .fc-daygrid-day,
 .fc .fc-col-header-cell,
 .fc .fc-scrollgrid {
-    border-color: #d1d5db !important; /* light mode */
+    border-color: #d1d5db !important;
 }
 
 .dark .fc .fc-daygrid-day,
 .dark .fc .fc-col-header-cell,
 .dark .fc .fc-scrollgrid {
-    border-color: #374151 !important; /* dark mode */
+    border-color: #374151 !important;
 }
 
-/* Styling Judul (Title) */
 .fc .fc-toolbar-title {
     @apply text-lg md:text-xl font-bold text-slate-800 dark:text-slate-200 capitalize;
 }
 
-/* Styling Tombol (prev, next, today) */
 .fc .fc-button {
     @apply text-sm font-medium px-2 py-1 rounded-md;
 }
 
-/* Menghilangkan fungsi dan tooltip ikon bawaan browser */
 input[type="time"]::-webkit-calendar-picker-indicator {
     display: none;
     -webkit-appearance: none;

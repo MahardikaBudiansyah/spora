@@ -28,6 +28,8 @@ export function CartProvider({ children }) {
     const [selectedSlots, setSelectedSlots] = useState([]);
     const [selectedVenueId, setSelectedVenueId] = useState(null);
 
+    console.log("carts: ", carts);
+
     useEffect(() => {
         const savedSlots = localStorage.getItem(LOCAL_STORAGE_KEY);
         const savedVenue = localStorage.getItem(`${LOCAL_STORAGE_KEY}_venue`);
@@ -54,6 +56,29 @@ export function CartProvider({ children }) {
 
         setIsReady(true);
     }, [LOCAL_STORAGE_KEY]);
+
+    useEffect(() => {
+        if (selectedSlots.length > 0 && carts.length > 0) {
+            let detectedVenueId = null;
+
+            for (const venue of carts) {
+                for (const date of venue.dates) {
+                    for (const court of date.courts) {
+                        for (const slot of court.timeSlots) {
+                            if (selectedSlots.includes(slot.cart_id)) {
+                                detectedVenueId = venue.venue.id;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (detectedVenueId && detectedVenueId !== selectedVenueId) {
+                setSelectedVenueId(detectedVenueId);
+            }
+        }
+    }, [selectedSlots, carts]);
 
     useEffect(() => {
         if (isReady) {

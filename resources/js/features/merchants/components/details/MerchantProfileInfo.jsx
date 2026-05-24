@@ -49,7 +49,6 @@ export default function MerchantProfileInfo({ merchant, onEdit }) {
             profile.business_email,
             profile.business_phone_number,
             profile.business_type,
-            profile.nib,
             profile.address,
         ];
 

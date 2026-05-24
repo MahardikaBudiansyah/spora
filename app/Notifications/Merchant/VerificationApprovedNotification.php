@@ -2,6 +2,8 @@
 
 namespace App\Notifications\Merchant;
 
+use App\Enums\NotificationCategory;
+use App\Enums\NotificationSource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -30,12 +32,14 @@ class VerificationApprovedNotification extends Notification
     public function toDatabase($notifiable): array
     {
         return [
+            'type' => 'verification_approved',
+            'source' => NotificationSource::ADMIN,
+            'category' => NotificationCategory::ACCOUNT,
             'title' => "Verifikasi {$this->section} Disetujui",
             'message' => "Data {$this->section} Anda disetujui. {$this->reason}",
             'section' => $this->section,
             'reason' => $this->reason,
             'action_url' => route('merchant.profile.index'),
-            'type' => 'verification_approved'
         ];
     }
 }

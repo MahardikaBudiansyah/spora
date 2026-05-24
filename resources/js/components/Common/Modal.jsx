@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { twMerge } from "tailwind-merge";
+import { useEffect } from "react";
 
 export default function Modal({
     children,
@@ -31,21 +32,32 @@ export default function Modal({
         "6xl": "sm:max-w-6xl",
     }[maxWidth];
 
+    useEffect(() => {
+        if (show) {
+            document.body.classList.add("modal-open");
+        } else {
+            document.body.classList.remove("modal-open");
+        }
+
+        return () => {
+            document.body.classList.remove("modal-open");
+        };
+    });
+
     return (
         <Transition show={show} as={Fragment} leave="duration-200">
             <Dialog
                 as="div"
                 id="modal"
-                className="fixed inset-0 z-modal overflow-y-auto" // Hilangkan flex di sini
+                className="fixed inset-0 z-modal overflow-y-auto"
                 onClose={close}
             >
                 <div
                     className={twMerge(
-                        "flex min-h-full px-4 py-6 sm:px-0 items-center justify-center", // items-center di sini tetap oke
-                        sidebarRight ? "p-0" : "p-4"
+                        "flex min-h-full px-4 py-6 sm:px-0 items-center justify-center",
+                        sidebarRight ? "p-0" : "p-4",
                     )}
                 >
-                    {/* Backdrop */}
                     <Transition.Child
                         as={Fragment}
                         enter="ease-out duration-300"
@@ -58,7 +70,6 @@ export default function Modal({
                         <div className="fixed inset-0 bg-black/50 transition-opacity" />
                     </Transition.Child>
 
-                    {/* Modal Panel */}
                     <Transition.Child
                         as={Fragment}
                         enter="ease-out duration-300"
@@ -76,7 +87,7 @@ export default function Modal({
                                     ? "fixed inset-y-0 right-0 h-full max-w-full rounded-none overflow-y-auto"
                                     : `my-8 overflow-${overflow}`,
                                 maxWidthClass,
-                                className
+                                className,
                             )}
                         >
                             <div className="text-secondary-900 dark:text-secondary-100">

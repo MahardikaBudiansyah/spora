@@ -14,7 +14,7 @@ export default function RegisterForm({ onSuccess }) {
     const [isChecking, setIsChecking] = useState(false);
 
     const [form, setForm] = useState({
-        identifier: "", // email atau no hp
+        identifier: "",
         name: "",
         password: "",
         password_confirmation: "",
@@ -27,25 +27,21 @@ export default function RegisterForm({ onSuccess }) {
         const { name, value } = e.target;
 
         if (name === "identifier") {
-            // deteksi apakah input kemungkinan nomor telepon (bukan email)
             const isPhone = /^[0-9+]/.test(value);
 
-            // tampilkan dalam format 08… jika terdeteksi nomor HP
             const displayValue = isPhone ? formatTo08(value) : value;
 
             setForm((prev) => ({
                 ...prev,
                 identifier: displayValue,
-                name: "", // reset nama kalau ubah identifier
+                name: "",
             }));
 
-            // reset mode recovery saat ubah identifier
             setIsRecovery(false);
             setRecoveryName("");
-            return; // penting: keluar agar tidak lanjut ke logika default
+            return;
         }
 
-        // handle input lain seperti name/password
         setForm((prev) => ({
             ...prev,
             [name]: value,
@@ -85,7 +81,7 @@ export default function RegisterForm({ onSuccess }) {
 
             if (response.data.status === "soft_deleted") {
                 toast.info(
-                    "Akun Anda sebelumnya terhapus. Silakan pulihkan akun."
+                    "Akun Anda sebelumnya terhapus. Silakan pulihkan akun.",
                 );
                 setIsRecovery(true);
                 setRecoveryName(response.data.name);
@@ -99,14 +95,14 @@ export default function RegisterForm({ onSuccess }) {
         } catch (error) {
             if (!error.response) {
                 toast.error(
-                    "Tidak ada koneksi ke server. Silakan coba lagi nanti."
+                    "Tidak ada koneksi ke server. Silakan coba lagi nanti.",
                 );
             } else if (error.response.status === 409) {
                 toast.error("Akun sudah terdaftar. Silakan masuk.");
             } else {
                 toast.error(
                     error.response.data?.message ||
-                        "Terjadi kesalahan saat memeriksa akun."
+                        "Terjadi kesalahan saat memeriksa akun.",
                 );
             }
         } finally {
@@ -152,11 +148,11 @@ export default function RegisterForm({ onSuccess }) {
                 },
                 onError: () => {
                     toast.error(
-                        "Pendaftaran gagal. Periksa kembali isian Anda."
+                        "Pendaftaran gagal. Periksa kembali isian Anda.",
                     );
                     setIsSubmitting(false);
                 },
-            }
+            },
         );
     };
 
@@ -291,8 +287,8 @@ export default function RegisterForm({ onSuccess }) {
                             {isSubmitting
                                 ? "Memproses..."
                                 : isRecovery
-                                ? "Pulihkan Akun"
-                                : "Daftar"}
+                                  ? "Pulihkan Akun"
+                                  : "Daftar"}
                         </Button>
                     </div>
                 </>

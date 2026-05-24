@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { useForm } from "@inertiajs/react"; // Menghapus 'router' karena tidak digunakan langsung
-import { formatWithPattern, formatFullDate } from "@/utils/date";
+import { useForm } from "@inertiajs/react";
+import { formatFullDate } from "@/utils/date";
 import Button from "@/components/Common/Button";
 import {
     Card,
@@ -8,7 +8,6 @@ import {
     CardFooter,
     CardHeader,
 } from "@/components/Common/Card";
-import InputLabel from "@/components/Common/LabelInput";
 import Table from "@/components/Common/Table";
 import Checkbox from "@/components/Common/Checkbox";
 import Modal from "@/components/Common/Modal";
@@ -16,10 +15,7 @@ import CloseButtonModal from "@/components/common/CloseButtonModal";
 import SelectInput from "@/components/Common/SelectInput";
 import DatePickerInput from "@/components/Common/DatePickerInput";
 import { toast } from "react-toastify";
-import { SaveAll, Undo2 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import LabelInput from "@/components/Common/LabelInput";
-import DescriptionItem from "@/components/Common/DescriptionItem";
 import BannerAlert from "@/components/Common/BannerAlert";
 
 export default function CourtScheduleFormModal({
@@ -33,28 +29,24 @@ export default function CourtScheduleFormModal({
     timeslots = [],
     refreshTimeslots,
 }) {
-    // State Utama menggunakan Inertia useForm
     const { data, setData, post, processing, reset } = useForm({
         date: selectedDate,
         status_id: "",
         timeslot_ids: [],
     });
 
-    // State Lokal untuk UI Checkbox (sinkronkan dengan data.timeslot_ids)
     const [selectedSlots, setSelectedSlots] = useState([]);
 
-    const [showBanner, setShowBanner] = useState(true); // State untuk banner
+    const [showBanner, setShowBanner] = useState(true);
 
     useEffect(() => {
         if (isOpen) setShowBanner(true);
     }, [isOpen]);
 
-    // 1. Sync Date jika prop selectedDate berubah
     useEffect(() => {
         setData("date", selectedDate);
     }, [selectedDate]);
 
-    // 2. Set Default Status ke "Tersedia" saat modal dibuka
     useEffect(() => {
         if (isOpen && statusType.length > 0) {
             const availableStatus = statusType.find(
@@ -66,10 +58,14 @@ export default function CourtScheduleFormModal({
         }
     }, [isOpen, statusType]);
 
-    // Logic Handle Pilihan Jam (Checkbox)
+    useEffect(() => {
+        setSelectedSlots([]);
+        setData("timeslot_ids", []);
+    }, [selectedDate]);
+
     const handleSelect = useCallback(
         (id) => {
-            const slot = timeslots.find((s) => s.timeslot_id === id);
+            const slot = timeslots.find((s) => s.id === id);
             if (!slot) return;
 
             const isBooked = ["dipesan", "booked"].includes(
@@ -82,15 +78,14 @@ export default function CourtScheduleFormModal({
             }
 
             setSelectedSlots((prev) => {
-                const isExisting = prev.some((s) => s.timeslot_id === id);
+                const isExisting = prev.some((s) => s.id === id);
                 const newSlots = isExisting
-                    ? prev.filter((s) => s.timeslot_id !== id)
+                    ? prev.filter((s) => s.id !== id)
                     : [...prev, slot];
 
-                // Langsung sinkronkan ke data useForm
                 setData(
                     "timeslot_ids",
-                    newSlots.map((s) => s.timeslot_id),
+                    newSlots.map((s) => s.id),
                 );
                 return newSlots;
             });
@@ -98,7 +93,12 @@ export default function CourtScheduleFormModal({
         [timeslots, setData],
     );
 
-    // Form Submission
+    useEffect(() => {
+        setSelectedSlots((prev) =>
+            prev.filter((s) => timeslots.some((t) => t.id === s.id)),
+        );
+    }, [timeslots]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -116,8 +116,8 @@ export default function CourtScheduleFormModal({
                 preserveState: true,
                 onSuccess: () => {
                     toast.success("Status berhasil diperbarui.");
-                    setSelectedSlots([]); // Reset local state
-                    reset(); // Reset Inertia form
+                    setSelectedSlots([]);
+                    reset();
                     onClose();
                     refreshTimeslots?.();
                 },
@@ -125,7 +125,6 @@ export default function CourtScheduleFormModal({
         );
     };
 
-    // Data Transformasi untuk Tabel
     const tableData = timeslots.map((slot) => ({
         ...slot,
         timeSlots:
@@ -176,7 +175,7 @@ export default function CourtScheduleFormModal({
                             <BannerAlert
                                 title="Petunjuk & Catatan"
                                 type="warning"
-                                showIcon={false} // Icon membantu menarik perhatian pada catatan penting
+                                showIcon={false}
                                 closable={true}
                                 onClose={() => setShowBanner(false)}
                                 titleClassName="text-xs"
@@ -197,7 +196,6 @@ export default function CourtScheduleFormModal({
                     </CardHeader>
 
                     <CardBody className="py-4 overflow-visible flex flex-col gap-3">
-                        {/* Informasi Lapangan */}
                         <div className="flex flex-col text-sm space-y-2">
                             <div className="font-bold normal-case">
                                 Informasi Lapangan
@@ -206,7 +204,7 @@ export default function CourtScheduleFormModal({
                             <div className="flex items-center">
                                 <label className="w-1/4 font-bold">Venue</label>
                                 <span className="mr-2">:</span>
-                                <span>{court?.venue_name}</span>
+                                <span>{court?.venue.name}</span>
                             </div>
 
                             <div className="flex items-center">
@@ -257,6 +255,7 @@ export default function CourtScheduleFormModal({
                                                 status.label.toLowerCase(),
                                             ),
                                         }))}
+                                        isSearchable={false}
                                         isClearable={false}
                                         placeholder="Pilih Status"
                                         className="w-full py-1 px-3 text-xs"
@@ -265,7 +264,6 @@ export default function CourtScheduleFormModal({
                             </div>
                         </div>
 
-                        {/* Bagian Tabel Slot */}
                         <div className="flex flex-col gap-2 uppercase">
                             <div className="pb-1 font-bold normal-case text-sm">
                                 Pilih Slot Jam
@@ -276,28 +274,28 @@ export default function CourtScheduleFormModal({
                                     data={tableData}
                                     renderCell={(col, row) => {
                                         const currentStatus = (
-                                            row.status_label ||
-                                            row.status ||
-                                            "Tersedia"
+                                            row.status || "Tersedia"
                                         ).toLowerCase();
                                         const isBooked = [
                                             "dipesan",
                                             "booked",
                                         ].includes(currentStatus);
 
+                                        const selectedIds = new Set(
+                                            selectedSlots.map((s) => s.id),
+                                        );
+
+                                        console.log("row id:", row.id);
+
                                         switch (col.key) {
                                             case "checkbox":
                                                 return (
                                                     <Checkbox
-                                                        checked={selectedSlots.some(
-                                                            (s) =>
-                                                                s.timeslot_id ===
-                                                                row.timeslot_id,
+                                                        checked={selectedIds.has(
+                                                            row.id,
                                                         )}
                                                         onChange={() =>
-                                                            handleSelect(
-                                                                row.timeslot_id,
-                                                            )
+                                                            handleSelect(row.id)
                                                         }
                                                         disabled={isBooked}
                                                     />
@@ -305,18 +303,16 @@ export default function CourtScheduleFormModal({
                                             case "status":
                                                 return (
                                                     <span className="font-bold min-w-max">
-                                                        {row.status_label ||
+                                                        {row.status ||
                                                             "Tersedia"}
                                                     </span>
                                                 );
                                             case "updated_at":
                                                 return (
-                                                    <span className="text-[10px]">
+                                                    <span className="text-[11px]">
                                                         {row.updated_at &&
                                                         row.updated_at !== "-"
-                                                            ? formatFullDate(
-                                                                  row.updated_at,
-                                                              )
+                                                            ? row.updated_at
                                                             : "-"}
                                                     </span>
                                                 );
@@ -327,14 +323,12 @@ export default function CourtScheduleFormModal({
                                                     </span>
                                                 );
                                             default:
-                                                return row[col.key] || "-";
+                                                return row[col.key];
                                         }
                                     }}
                                     getTrProps={(row) => {
                                         const status = (
-                                            row.status_label ||
-                                            row.status ||
-                                            "Tersedia"
+                                            row.status || "Tersedia"
                                         ).toLowerCase();
                                         let bgClass =
                                             "bg-white dark:bg-secondary-800";

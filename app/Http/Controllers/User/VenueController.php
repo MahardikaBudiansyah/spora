@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers\User;
 
-use Inertia\Inertia;
-use App\Models\Venue;
-use Illuminate\Http\Request;
-use App\Models\SlotStatusLabel;
+use App\Enums\VenueStatus;
 use App\Http\Controllers\User\Controller;
 use App\Http\Resources\VenueResource;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Venue;
+use Inertia\Inertia;
 
 class VenueController extends Controller
 {
     public function index()
     {
-        $venues = Venue::with(['featuredImage', 'addresses.district', 'addresses.city', 'categories', 'courts.categories'])
+        $venues = Venue::activeAndApproved()
+            ->with(['featuredImage', 'addresses.district', 'addresses.city', 'categories', 'courts.categories'])
             ->withAvg('reviews', 'venue_rating')
             ->withCount('reviews')
             ->paginate(12);
@@ -24,24 +23,31 @@ class VenueController extends Controller
         ]);
     }
 
-    public function show(Venue $venue) 
+    public function show(Venue $venue)
     {
+        if (!$venue->is_active || $venue->status !== VenueStatus::APPROVED) {
+            abort(404);
+        }
+
         $venue->load([
-            'images', 
-            'facilities', 
-            'categories', 
-            'socialMedia', 
-            'courts.surface', 
-            'courts.categories', 
-            'courts.featuredImage', 
-            'courts.timeSlots', 
-            'addresses.province', 
-            'addresses.city', 
-            'addresses.district', 
+            'images',
+            'facilities',
+            'categories',
+            'socialMedia',
+            'courts.surface',
+            'courts.categories',
+            'courts.featuredImage',
+            'courts.timeSlots',
+            'addresses.province',
+            'addresses.city',
+            'addresses.district',
             'addresses.village',
-            'membershipPackages.discounts', 
-            'membershipPackages.others', 
-            'paymentPolicies'
+            'membershipPackages.discounts',
+            'membershipPackages.others',
+            'paymentPolicies' => function ($query) {
+                $query->where('order_type', 'booking')
+                    ->where('is_active', true);
+            }
         ])->loadAvg('reviews', 'venue_rating')->loadCount('reviews');
 
         return Inertia::render('User/Venues/Show', [

@@ -115,8 +115,13 @@ export const useUserBooking = (selectedItems, user, pricing, venueId) => {
             return;
         }
 
+        console.log("📦 SUBMIT DATA:", form.data);
+
         form.post(route("user.bookings.store"), {
             preserveState: true,
+            onFinish: (page) => {
+                console.log("🏁 REQUEST FINISHED");
+            },
             onSuccess: (page) => {
                 const gatewayData = page.props.flash?.gateway_data;
                 const orderType = page.props.flash?.order_type || "booking";
@@ -158,8 +163,21 @@ export const useUserBooking = (selectedItems, user, pricing, venueId) => {
                 }
             },
             onError: (err) => {
-                const firstError = Object.values(err)[0];
-                toast.error(firstError || "Gagal membuat pesanan.");
+                console.log("🔥 FULL BACKEND ERROR:", err);
+
+                // tampilkan semua error ke console
+                Object.keys(err).forEach((key) => {
+                    console.log(`${key}:`, err[key]);
+                });
+
+                // tampilkan semua error ke toast juga (biar kelihatan di UI)
+                const messages = Object.values(err).flat();
+
+                if (messages.length > 0) {
+                    messages.forEach((msg) => toast.error(msg));
+                } else {
+                    toast.error("Gagal membuat pesanan (unknown error)");
+                }
             },
         });
     };

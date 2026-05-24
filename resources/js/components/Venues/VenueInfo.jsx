@@ -135,7 +135,7 @@ export default function VenueInfo({
                             "leading-relaxed text-sm",
                             description
                                 ? "text-secondary-600 dark:text-secondary-400"
-                                : "text-secondary-400"
+                                : "text-secondary-400",
                         )}
                     >
                         {description || "Belum ada deskripsi"}
@@ -144,14 +144,6 @@ export default function VenueInfo({
             )}
 
             <div className="space-y-2">
-                {showLabel && (
-                    <span className="font-semibold block text-sm text-gray-700 dark:text-gray-200">
-                        {isInternal
-                            ? "Data Kontak"
-                            : "Nomor Telepon / WhatsApp"}
-                    </span>
-                )}
-
                 <div className="flex items-center gap-3">
                     {isInternal ? (
                         <div className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -167,7 +159,7 @@ export default function VenueInfo({
                                 onClick={() => {
                                     if (phone_number) {
                                         navigator.clipboard.writeText(
-                                            phone_number
+                                            phone_number,
                                         );
                                         toast.success(
                                             "Nomor Telepon berhasil disalin ke clipboard",
@@ -176,7 +168,7 @@ export default function VenueInfo({
                                                 autoClose: 3000,
                                                 hideProgressBar: true,
                                                 theme: "colored",
-                                            }
+                                            },
                                         );
                                     }
                                 }}
@@ -188,7 +180,7 @@ export default function VenueInfo({
                     ) : (
                         <a
                             href={`https://wa.me/${String(
-                                phone_number || ""
+                                phone_number || "",
                             ).replace(/\D/g, "")}`}
                             target="_blank"
                             rel="noopener noreferrer"

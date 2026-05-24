@@ -12,7 +12,7 @@ import Table from "@/components/Common/Table";
 import Button from "@/components/Common/Button";
 import Pagination from "@/components/common/Pagination";
 import DeleteModal from "@/components/common/DeleteModal";
-import { formatFullDate } from "@/utils/date";
+import { formatFullDate, formatFullDateTime } from "@/utils/date";
 import useInlineEditing from "@/hooks/useInlineEditing";
 import InlineEditingCell from "@/components/Common/InlineEditingCell";
 import axios from "axios";
@@ -27,9 +27,6 @@ export default function Index() {
     const [selectedCourtCategory, setSelectedCourtCategory] = useState(null);
     const [savingNew, setSavingNew] = useState(false);
 
-    // -----------------------------
-    // INLINE EDITING HOOK
-    // -----------------------------
     const {
         tempValues,
         handleChange,
@@ -43,9 +40,8 @@ export default function Index() {
         debounce: 400,
     });
 
-    // -----------------------------
-    // DELETE
-    // -----------------------------
+    const handleEdit = () => {};
+
     const handleDelete = (row) => {
         setSelectedCourtCategory(row);
         setShowModal(true);
@@ -66,18 +62,15 @@ export default function Index() {
 
                     // 🔥 Hapus dari state `rows`
                     setRows((prev) =>
-                        prev.filter((r) => r.id !== selectedCourtCategory.id)
+                        prev.filter((r) => r.id !== selectedCourtCategory.id),
                     );
 
                     setSelectedCourtCategory(null);
                 },
-            }
+            },
         );
     };
 
-    // -----------------------------
-    // AUTO SAVE ROW BARU
-    // -----------------------------
     const saveNewRow = async (row) => {
         if (savingNew) return;
         setSavingNew(true);
@@ -85,7 +78,7 @@ export default function Index() {
         try {
             const response = await axios.post(
                 route("admin.master-data.court-categories.store"),
-                { name: row.name, label: row.label }
+                { name: row.name, label: row.label },
             );
 
             const saved = response.data;
@@ -100,8 +93,8 @@ export default function Index() {
                               created_at: saved.created_at,
                               updated_at: saved.updated_at,
                           }
-                        : r
-                )
+                        : r,
+                ),
             );
         } catch (err) {
             console.error(err);
@@ -113,7 +106,7 @@ export default function Index() {
     const handleNewRowChange = (rowId, court, value) => {
         setRows((prev) => {
             const updated = prev.map((r) =>
-                r.id === rowId ? { ...r, [court]: value } : r
+                r.id === rowId ? { ...r, [court]: value } : r,
             );
             const newRow = updated.find((r) => r.id === rowId);
 
@@ -132,35 +125,70 @@ export default function Index() {
     // TABLE COLUMNS
     // -----------------------------
     const columns = [
-        { key: "index", header: "#", className: "text-center content-center" },
+        {
+            key: "number",
+            header: "#",
+            className: "text-center content-center",
+            render: (_, __, index) => {
+                const currentPage =
+                    court_categories.current_page ||
+                    court_categories.meta?.current_page ||
+                    1;
+                const perPage =
+                    court_categories.per_page ||
+                    court_categories.meta?.per_page ||
+                    10;
+                return (currentPage - 1) * perPage + index + 1;
+            },
+        },
         {
             key: "name",
-            header: "Nama Kategori",
+            header: "Kategori",
             editable: true,
             inputType: "text",
-            className: "text-center content-center",
+            className: "text-left content-center",
         },
         {
             key: "label",
-            header: "Label Kategori",
+            header: "Label",
             editable: true,
             inputType: "text",
-            className: "text-center content-center",
+            className: "text-left content-center",
         },
         {
             key: "created_at",
             header: "Tanggal Ditambahkan",
+            render: (val, row) => formatFullDateTime(row.created_at) || "-",
             className: "text-center content-center",
         },
         {
             key: "updated_at",
             header: "Tanggal Diperbarui",
+            render: (val, row) => formatFullDateTime(row.updated_at) || "-",
             className: "text-center content-center",
         },
         {
             key: "action",
             header: "Aksi",
             className: "text-center content-center",
+            render: (val, row) => (
+                <div className="flex gap-2 justify-center">
+                    <Button
+                        variant="success"
+                        size="xs"
+                        onClick={() => handleEdit(row)}
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        variant="danger"
+                        size="xs"
+                        onClick={() => handleDelete(row)}
+                    >
+                        Hapus
+                    </Button>
+                </div>
+            ),
         },
     ];
 
@@ -168,11 +196,16 @@ export default function Index() {
         <AdminLayout>
             <Head title="Kelola Kategori Lapangan" />
 
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
-                <CardHeader>
-                    <div className="flex flex-row justify-between items-center p-4">
-                        <div className="font-bold uppercase text-lg">
-                            Kelola Kategori Lapangan
+            <Card className="flex flex-col h-full rounded-md shadow-none">
+                <CardHeader className="p-4 md:p-6">
+                    <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
+                        <div className="flex flex-col md:gap-1 md:text-left">
+                            <div className="flex flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
+                                <span>Kelola</span>
+                                <span className="text-primary-600 dark:text-primary-500">
+                                    Kategori Lapangan
+                                </span>
+                            </div>
                         </div>
                         <div className="flex gap-2">
                             <Button
@@ -198,93 +231,93 @@ export default function Index() {
                     </div>
                 </CardHeader>
 
-                <CardBody className="px-0 pb-8">
-                    <Table
-                        columns={columns}
-                        data={rows}
-                        wrapperClassName="border-none rounded-none shadow-none"
-                        tableClassName="text-xs"
-                        renderCell={(col, row, rowIndex) => {
-                            // 1️⃣ KOLOM INDEX
-                            if (col.key === "index") {
-                                const from = Number(
-                                    court_categories?.from ?? 0
-                                );
-                                const indexValue = from + rowIndex; // ✅ hapus +1
-                                return String(indexValue);
+                <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                    <div className="py-2 flex-1 overflow-visible overflow-x-auto">
+                        <Table
+                            columns={columns}
+                            data={rows}
+                            wrapperClassName="border-none rounded-none shadow-none"
+                            tableClassName="text-xs"
+                            renderCell={(col, row, rowIndex) => {
+                                if (col.key === "index") {
+                                    const from = Number(
+                                        court_categories?.from ?? 0,
+                                    );
+                                    const indexValue = from + rowIndex;
+                                    return String(indexValue);
+                                }
+
+                                if (
+                                    col.key === "created_at" ||
+                                    col.key === "updated_at"
+                                ) {
+                                    return formatFullDate(row[col.key]) || "-";
+                                }
+
+                                if (col.key === "action") {
+                                    return (
+                                        <div className="flex gap-2 justify-center">
+                                            <Button
+                                                type="button"
+                                                variant="danger"
+                                                size="xs"
+                                                onClick={() =>
+                                                    handleDelete(row)
+                                                }
+                                            >
+                                                Hapus
+                                            </Button>
+                                        </div>
+                                    );
+                                }
+
+                                if (col.editable) {
+                                    const value =
+                                        tempValues[`${row.id}-${col.key}`] ??
+                                        row[col.key] ??
+                                        "";
+                                    return (
+                                        <InlineEditingCell
+                                            value={value}
+                                            col={col}
+                                            row={row}
+                                            rowIndex={rowIndex}
+                                            handleChange={(id, key, val) => {
+                                                if (row.isNew)
+                                                    handleNewRowChange(
+                                                        id,
+                                                        key,
+                                                        val,
+                                                    );
+                                                else handleChange(id, key, val);
+                                            }}
+                                            handleBlur={handleBlur}
+                                            focusedField={focusedCourt}
+                                            setFocusedField={setFocusedCourt}
+                                            savingCell={savingCell}
+                                            successCell={successCell}
+                                            errorCell={errorCell}
+                                        />
+                                    );
+                                }
+
+                                return row[col.key] ?? "";
+                            }}
+                            emptyState={
+                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                                    Tidak ada data Kategori Lapangan.
+                                </div>
                             }
+                        />
 
-                            // 2️⃣ KOLOM CREATED/UPDATED
-                            if (
-                                col.key === "created_at" ||
-                                col.key === "updated_at"
-                            ) {
-                                return formatFullDate(row[col.key]) || "-";
-                            }
-
-                            // 3️⃣ KOLOM ACTION
-                            if (col.key === "action") {
-                                return (
-                                    <div className="flex gap-2 justify-center">
-                                        <Button
-                                            type="button"
-                                            variant="danger"
-                                            size="xs"
-                                            onClick={() => handleDelete(row)}
-                                        >
-                                            Hapus
-                                        </Button>
-                                    </div>
-                                );
-                            }
-
-                            // 4️⃣ KOLOM EDITABLE
-                            if (col.editable) {
-                                const value =
-                                    tempValues[`${row.id}-${col.key}`] ??
-                                    row[col.key] ??
-                                    "";
-                                return (
-                                    <InlineEditingCell
-                                        value={value}
-                                        col={col}
-                                        row={row}
-                                        rowIndex={rowIndex}
-                                        handleChange={(id, key, val) => {
-                                            if (row.isNew)
-                                                handleNewRowChange(
-                                                    id,
-                                                    key,
-                                                    val
-                                                );
-                                            else handleChange(id, key, val);
-                                        }}
-                                        handleBlur={handleBlur}
-                                        focusedField={focusedCourt}
-                                        setFocusedField={setFocusedCourt}
-                                        savingCell={savingCell}
-                                        successCell={successCell}
-                                        errorCell={errorCell}
-                                    />
-                                );
-                            }
-
-                            // 5️⃣ DEFAULT
-                            return row[col.key] ?? "";
-                        }}
-                        emptyState={
-                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                Tidak ada data Kategori Lapangan.
-                            </div>
-                        }
-                    />
-
-                    <Pagination
-                        links={court_categories.links}
-                        meta={court_categories}
-                        className="p-6 my-2"
-                    />
+                        <Pagination
+                            links={court_categories.links}
+                            meta={court_categories}
+                            className="p-6 my-2"
+                        />
+                    </div>
                 </CardBody>
+                <CardFooter className="p-6 md:p-8 flex gap-2 justify-end"></CardFooter>
 
                 {showModal && selectedCourtCategory && (
                     <DeleteModal

@@ -46,15 +46,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
-            AdminProfileSeeder::class,
-            PlatformProfileSeeder::class,
-            PlatformPayoutMethodSeeder::class,
-            UserSeeder::class,
+            // AdminProfileSeeder::class,
+            // PlatformProfileSeeder::class,
+            // PlatformPayoutMethodSeeder::class,
+            // UserSeeder::class,
 
-            MerchantSeeder::class,
-            MerchantOwnerSubmissionSeeder::class,
-            MerchantProfileSubmissionSeeder::class,
-            MerchantPayoutMethodSubmissionSeeder::class,
+            // MerchantSeeder::class,
+            // MerchantOwnerSubmissionSeeder::class,
+            // MerchantProfileSubmissionSeeder::class,
+            // MerchantPayoutMethodSubmissionSeeder::class,
 
             // MerchantOwnerSeeder::class,
             // MerchantProfileSeeder::class,
@@ -62,29 +62,29 @@ class DatabaseSeeder extends Seeder
 
 
             StaffRoleSeeder::class,
-            MerchantStaffRoleSeeder::class,
-            StaffSeeder::class,
+            // MerchantStaffRoleSeeder::class,
+            // StaffSeeder::class,
 
-            VenueSeeder::class,
-            VenueImageSeeder::class,
-            AddressSeeder::class,
+            // VenueSeeder::class,
+            // VenueImageSeeder::class,
+            // AddressSeeder::class,
             VenueFacilitySeeder::class,
             VenueCategorySeeder::class,
-            SocialMediaSeeder::class,
+            // SocialMediaSeeder::class,
 
             CourtSurfaceSeeder::class,
-            CourtSeeder::class,
+            // CourtSeeder::class,
             CourtCategorySeeder::class,
-            CourtImageSeeder::class,
+            // CourtImageSeeder::class,
             TimeSlotSeeder::class,
-            CourtTimeSlotSeeder::class,
+            // CourtTimeSlotSeeder::class,
             CourtStatusTypeSeeder::class,
 
-            SubscriptionPackageSeeder::class,
+            // SubscriptionPackageSeeder::class,
 
-            MembershipPackageSeeder::class,
-            MembershipBenefitDiscountSeeder::class,
-            MembershipBenefitOtherSeeder::class,
+            // MembershipPackageSeeder::class,
+            // MembershipBenefitDiscountSeeder::class,
+            // MembershipBenefitOtherSeeder::class,
         ]);
     }
 }

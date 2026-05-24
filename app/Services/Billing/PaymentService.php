@@ -26,29 +26,29 @@ class PaymentService
     protected PaymentGatewayService $gatewayService;
 
     public function __construct(
-        BookingService $bookingService, 
+        BookingService $bookingService,
         PaymentGatewayService $gatewayService
-    ){
+    ) {
         $this->bookingService = $bookingService;
         $this->gatewayService = $gatewayService;
     }
-    
+
     public function createPayment(Invoice $invoice, array $paymentData): Payment
     {
         Log::info('[BILLING][PAYMENT_DATA_RECEIVED]', ['invoice_id' => $invoice->id, 'data' => $paymentData]);
 
         $methodInput = $paymentData['payment_method'] ?? 'cash';
-        $paymentMethod = $methodInput instanceof PaymentMethod 
-            ? $methodInput 
+        $paymentMethod = $methodInput instanceof PaymentMethod
+            ? $methodInput
             : PaymentMethod::from($methodInput);
-        
+
         $isManualByMerchant = $paymentData['is_merchant_input'] ?? false;
 
         if ($isManualByMerchant) {
             $initialStatus = PaymentStatus::PAID;
         } else {
-            $initialStatus = ($paymentMethod === PaymentMethod::CASH) 
-                ? PaymentStatus::PAID 
+            $initialStatus = ($paymentMethod === PaymentMethod::CASH)
+                ? PaymentStatus::PAID
                 : PaymentStatus::PENDING;
         }
 
@@ -79,7 +79,7 @@ class PaymentService
             Log::info('[BILLING][PAYMENT_CREATED]', ['payment_id' => $payment->id, 'status' => $initialStatus]);
 
             if ($initialStatus->isSuccess()) {
-                $this->updateInvoiceStatus($invoice); 
+                $this->updateInvoiceStatus($invoice);
             }
 
             return $payment;
@@ -89,18 +89,18 @@ class PaymentService
     public function createOnlineTransaction(Invoice $invoice, array $userData, ?string $gatewayName = null): array
     {
         $activeGateway = $gatewayName ?? $this->gatewayService->getDefaultGatewayName();
-        
+
         Log::info('[BILLING][DEBUG_START]', [
             'input_gateway_name' => $gatewayName,
             'resolved_active_gateway' => $activeGateway,
             'invoice_no' => $invoice->invoice_no
         ]);
 
-        $gatewayOrderId = PaymentHelper::generatePaymentNo('PAY'); 
-        
+        $gatewayOrderId = PaymentHelper::generatePaymentNo('PAY');
+
         $gatewayResponse = $this->gatewayService->createTransaction(
-            $invoice, 
-            $userData, 
+            $invoice,
+            $userData,
             $gatewayOrderId,
             $activeGateway
         );
@@ -115,17 +115,17 @@ class PaymentService
         $checkoutUrl = $gatewayResponse['redirect_url'] ?? null;
 
         $payment = $this->createInitialGatewayPayment(
-            $invoice, 
+            $invoice,
             $gatewayOrderId,
             $checkoutUrl,
         );
-        
+
         return [
             'token' => $gatewayResponse['snap_token'] ?? null,
             'redirect_url' => $checkoutUrl,
             'invoice_id' => $invoice->id,
             'payment_id' => $payment->id,
-            'gateway' => $activeGateway 
+            'gateway' => $activeGateway
         ];
     }
 
@@ -145,11 +145,11 @@ class PaymentService
     public function handleGatewayCallback(Request $request, string $gatewayName): Payment
     {
         $notification = $this->gatewayService->handleNotification($request, $gatewayName);
-        $rawContent = $request->getContent(); 
+        $rawContent = $request->getContent();
 
-        $orderId = $notification->order_id; 
+        $orderId = $notification->order_id;
         $transactionStatus = $notification->transaction_status;
-        $grossAmount = (float) $notification->gross_amount; 
+        $grossAmount = (float) $notification->gross_amount;
 
         $payment = Payment::with(['invoice.order'])
             ->where('gateway_order_id', $orderId)
@@ -157,7 +157,7 @@ class PaymentService
 
         if (!$payment) {
             Log::warning('[BILLING][CALLBACK_SKIP]', [
-                'order_id' => $orderId, 
+                'order_id' => $orderId,
                 'reason' => 'Payment record not found in database'
             ]);
             throw new \Exception("Payment with Gateway ID '{$orderId}' not found.");
@@ -166,59 +166,56 @@ class PaymentService
         $requiredAmount = (float) $payment->invoice->total_amount;
         if (round($grossAmount, 2) !== round($requiredAmount, 2)) {
             Log::error('[BILLING][AMOUNT_MISMATCH]', [
-                'order_id' => $orderId, 
-                'midtrans_amount' => $grossAmount, 
+                'order_id' => $orderId,
+                'midtrans_amount' => $grossAmount,
                 'required_amount' => $requiredAmount
             ]);
-            throw new \Exception("Amount mismatch for order '{$orderId}'."); 
+            throw new \Exception("Amount mismatch for order '{$orderId}'.");
         }
-        
+
         $newStatus = match (strtolower($transactionStatus)) {
             'capture', 'settlement', 'paid', 'settled' => PaymentStatus::PAID,
             'deny', 'expire', 'cancel', 'failed'      => PaymentStatus::FAILED,
             'pending'                                  => PaymentStatus::PENDING,
-            default                                    => PaymentStatus::PENDING, 
+            default                                    => PaymentStatus::PENDING,
         };
 
-        return DB::transaction(function () use ($payment, $newStatus, $notification, $rawContent, $gatewayName) 
-        {
+        return DB::transaction(function () use ($payment, $newStatus, $notification, $rawContent, $gatewayName) {
             if ($payment->payment_status !== $newStatus) {
                 $payment->update([
                     'payment_status' => $newStatus,
                 ]);
             }
-            
+
             PaymentDetail::updateOrCreate(
                 ['payment_id' => $payment->id],
                 [
-                    'payment_provider' => $gatewayName, 
+                    'payment_provider' => $gatewayName,
                     'payment_channel'  => $notification->payment_type ?? $notification->payment_method ?? 'unknown',
                     'reference_no'     => $notification->transaction_id ?? $notification->payment_id ?? null,
                     'payment_date'     => now(),
-                    'raw_response'     => $rawContent, 
+                    'raw_response'     => $rawContent,
                 ]
             );
-            
+
             Log::info("[BILLING][GATEWAY_CALLBACK_UPDATE]", [
-                'payment_id' => $payment->id, 
+                'payment_id' => $payment->id,
                 'new_status' => $newStatus->value,
-                'payment_provider' => $gatewayName, 
+                'payment_provider' => $gatewayName,
                 'payment_channel'  => $notification->payment_type ?? $notification->payment_method ?? 'unknown',
                 'reference_no'     => $notification->transaction_id ?? $notification->payment_id ?? null,
                 'payment_date'     => now(),
-                'raw_response'     => $rawContent, 
+                'raw_response'     => $rawContent,
             ]);
-            
+
             if ($newStatus === PaymentStatus::PAID) {
                 $this->updateInvoiceStatus($payment->invoice);
-            } 
-            elseif ($newStatus === PaymentStatus::FAILED) {
+            } elseif ($newStatus === PaymentStatus::FAILED) {
                 $order = $payment->invoice->order;
-                
+
                 if ($order instanceof Booking) {
                     $this->bookingService->handleExpiredBooking($order);
-                } 
-                elseif ($order instanceof MembershipOrder) {
+                } elseif ($order instanceof MembershipOrder) {
                     $order->update(['status' => MembershipOrderStatus::CANCELLED]);
                 }
 
@@ -226,7 +223,7 @@ class PaymentService
                     'type'           => $order instanceof Booking ? 'BOOKING' : 'MEMBERSHIP',
                     'order_no'       => $order->order_no ?? 'N/A',
                     'payment_status' => $newStatus->value,
-                    'gateway_status' => $transactionStatus, 
+                    'gateway_status' => $transactionStatus,
                     'description'    => "Order otomatis dibatalkan karena pembayaran gagal atau kadaluarsa."
                 ]);
             }
@@ -234,7 +231,7 @@ class PaymentService
             return $payment;
         });
     }
-    
+
     public function updateInvoiceStatus(Invoice $invoice): Invoice
     {
         $totalPaid = $invoice->payments()
@@ -242,7 +239,7 @@ class PaymentService
             ->sum('amount');
 
         $totalRequired = $invoice->total_amount;
-        
+
         if ($totalPaid >= $totalRequired) {
             $newStatus = InvoiceStatus::PAID;
         } elseif ($totalPaid > 0) {
@@ -253,12 +250,12 @@ class PaymentService
 
         if ($invoice->status !== $newStatus) {
             $invoice->update(['status' => $newStatus]);
-            
+
             if ($newStatus === InvoiceStatus::PAID) {
-                $this->activateOrder($invoice); 
+                $this->activateOrder($invoice);
             }
         }
-        
+
         return $invoice;
     }
 
@@ -274,8 +271,8 @@ class PaymentService
                     ->where('id', '!=', $order->id)
                     ->exists();
 
-                $newStatus = $hasActiveOther 
-                    ? MembershipOrderStatus::QUEUED 
+                $newStatus = $hasActiveOther
+                    ? MembershipOrderStatus::QUEUED
                     : MembershipOrderStatus::ACTIVE;
 
                 $order->update(['status' => $newStatus]);
@@ -284,17 +281,16 @@ class PaymentService
                     'order_no'    => $order->order_no,
                     'invoice_no'  => $invoice->invoice_no,
                     'prev_status' => 'pending',
-                    'new_status'  => $newStatus->value, 
+                    'new_status'  => $newStatus->value,
                     'is_renewal'  => $hasActiveOther,
                     'start_date'  => $order->start_date
                 ]);
-                
             }
         } elseif ($order instanceof Booking) {
             $totalPaid = $invoice->payments()
                 ->where('payment_status', PaymentStatus::PAID)
                 ->sum('amount');
-                
+
             $this->bookingService->updateStatusAfterPayment($order, $totalPaid);
 
             Log::info("[BOOKING][STATUS_UPDATED]", [
@@ -312,7 +308,7 @@ class PaymentService
 
         try {
             return UploadFileHelper::handleInvoiceFile(
-                $paymentData['proof_of_payment'], 
+                $paymentData['proof_of_payment'],
                 $invoice->id,
                 'payment-proof'
             );
@@ -338,7 +334,7 @@ class PaymentService
                     [
                         'payment_provider' => $provider,
                         'reference_no'     => $status->transaction_id ?? $status->id ?? null,
-                        'raw_response'     => json_encode($status) 
+                        'raw_response'     => json_encode($status)
                     ]
                 );
                 $this->updateInvoiceStatus($payment->invoice);

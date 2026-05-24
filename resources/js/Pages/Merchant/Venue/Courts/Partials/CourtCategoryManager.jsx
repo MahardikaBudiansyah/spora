@@ -24,7 +24,7 @@ export default function CourtCategoryManager({
             id: categoryData.id,
             name: categoryData.name,
             label: categoryData.label,
-            is_primary: selectedCategories.length === 0,
+            is_primary: selectedCategories.length === 0 ? 1 : 0,
             notes: "",
             order: selectedCategories.length + 1,
         };
@@ -62,7 +62,9 @@ export default function CourtCategoryManager({
                     options={categories
                         .filter(
                             (cat) =>
-                                !selectedCategories.find((s) => s.id === cat.id)
+                                !selectedCategories.find(
+                                    (s) => s.id === cat.id,
+                                ),
                         )
                         .map((cat) => ({ label: cat.label, value: cat.id }))}
                     onChange={handleAddCategory}
@@ -81,7 +83,7 @@ export default function CourtCategoryManager({
                                 <span className="font-semibold text-sm">
                                     {item.label}
                                 </span>
-                                {item.is_primary && (
+                                {Boolean(item.is_primary) && (
                                     <Badge color="green" className="flex gap-1">
                                         <Star className="w-3 h-3 fill-current" />
                                         Utama
@@ -104,7 +106,7 @@ export default function CourtCategoryManager({
                                     handleUpdateCourt(
                                         item.id,
                                         "is_primary",
-                                        true
+                                        true,
                                     )
                                 }
                             />
@@ -124,7 +126,7 @@ export default function CourtCategoryManager({
                                     handleUpdateCourt(
                                         item.id,
                                         "notes",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
                             />

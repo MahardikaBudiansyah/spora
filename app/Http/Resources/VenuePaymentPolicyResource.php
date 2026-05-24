@@ -17,7 +17,7 @@ class VenuePaymentPolicyResource extends JsonResource
         return [
             'id' => $this->id,
             'order_type' => $this->order_type->value,
-            
+
             'enable_dp' => (bool) $this->enable_dp,
             'dp_type' => $this->dp_type,
             'dp_value' => (float) $this->dp_value,
@@ -27,7 +27,8 @@ class VenuePaymentPolicyResource extends JsonResource
 
             'enable_refund' => (bool) $this->enable_refund,
             'refund_percentage' => (float) $this->refund_percentage,
-            
+
+            'is_active' => (bool) $this->is_active,
         ];
     }
 }

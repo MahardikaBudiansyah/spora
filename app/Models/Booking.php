@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-use App\Models\Staff;
-use App\Models\Venue;
-use App\Models\Review;
-use App\Models\Invoice;
-use App\Models\Payment;
 use App\Enums\BookingStatus;
-use App\Models\BookingDetail;
-use App\Models\OperatorVenue;
 use App\Models\BookingCustomer;
+use App\Models\BookingDetail;
+use App\Models\Court;
+use App\Models\Invoice;
 use App\Models\OperatorAssignment;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Payment;
+use App\Models\Review;
+use App\Models\Venue;
 use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
@@ -27,7 +26,7 @@ class Booking extends Model
         'order_no',
         'venue_id',
         'venue_payment_policy_id',
-        'operator_assignment_id',   
+        'operator_assignment_id',
         'total_original_price',
         'total_discount',
         'total_price',
@@ -35,7 +34,7 @@ class Booking extends Model
         'slug',
         'venue_name_snapshot',
         'operator_name_snapshot',
-        'member_no_snapshot', 
+        'member_no_snapshot',
         'customer_name_snapshot',
         'customer_phone_number_snapshot',
         'customer_email_snapshot',
@@ -47,16 +46,16 @@ class Booking extends Model
 
     protected $casts = [
         'status' => BookingStatus::class,
-        
+
         'total_original_price' => 'decimal:2',
         'total_discount'       => 'decimal:2',
         'total_price'          => 'decimal:2',
-        
+
         'dp_enabled_snapshot' => 'boolean',
         'dp_value_snapshot'   => 'decimal:2',
-        
+
         'full_payment_days_before_snapshot' => 'integer',
-        
+
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -90,19 +89,20 @@ class Booking extends Model
         return $this->hasOneThrough(
             Payment::class,
             Invoice::class,
-            'order_id',   // Foreign key on invoices
-            'invoice_id', // Foreign key on payments
-            'id',         // Local key on bookings
-            'id'          // Local key on invoices
+            'order_id',
+            'invoice_id',
+            'id',
+            'id'
         )->where('invoices.order_type', self::class)
-        ->latestOfMany(); // ambil payment terakhir
+            ->latestOfMany();
     }
 
 
-    public function getOrderLabelAttribute() { 
-        return "Booking"; 
+    public function getOrderLabelAttribute()
+    {
+        return "Booking";
     }
-    
+
     public function details()
     {
         return $this->hasMany(BookingDetail::class);
@@ -134,5 +134,4 @@ class Booking extends Model
     {
         return $this->operatorAssignment?->operatorVenue?->staff;
     }
-
 }

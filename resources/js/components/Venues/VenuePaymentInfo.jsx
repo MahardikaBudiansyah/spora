@@ -5,18 +5,21 @@ import { formatRupiah } from "@/utils/currency";
 import { Card } from "@/components/Common/Card";
 import Button from "@/components/Common/Button";
 
-const VenuePaymentInfo = ({ paymentType, venueSlug }) => {
+const VenuePaymentInfo = ({ paymentPolicies, venueSlug }) => {
     const { auth } = usePage().props;
     const isMerchant = auth?.merchant;
 
-    if (!paymentType || !paymentType.is_active) return null;
+    const policy = Array.isArray(paymentPolicies)
+        ? paymentPolicies.find((p) => p.order_type === "booking")
+        : paymentPolicies;
 
-    const { enable_dp, dp_type, dp_value, full_payment_days_before } =
-        paymentType;
+    if (!policy || !policy.is_active) return null;
+
+    const { enable_dp, dp_type, dp_value, full_payment_days_before } = policy;
 
     const handleSettingsClick = () => {
         router.get(
-            route("merchant.venues.settings.payment", { venue: venueSlug })
+            route("merchant.venues.settings.payment", { venue: venueSlug }),
         );
     };
 
@@ -40,8 +43,8 @@ const VenuePaymentInfo = ({ paymentType, venueSlug }) => {
                     <Wallet className="w-4 h-4" />
                 </span>
                 {enable_dp ? (
-                    <div className="flex flex-col items-start">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex flex-col items-start text-sm">
+                        <div className=" text-gray-600 dark:text-gray-400">
                             Bisa bayar DP sebesar{" "}
                             <span className="text-secondary-700 dark:text-secondary-300 font-semibold">
                                 {dp_type === "fixed"

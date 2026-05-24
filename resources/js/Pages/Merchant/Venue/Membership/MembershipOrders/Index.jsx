@@ -31,18 +31,18 @@ export default function Index() {
 
     return (
         <MerchantLayout>
-            <Head title={`Order Membership - ${venue.name}`} />
+            <Head title={`Kelola Order Membership - ${venue.name}`} />
             <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
                     <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
                         <div className="flex flex-col md:gap-1 md:text-left">
                             <div className="flex flex-wrap flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
-                                <span>Order</span>
+                                <span>Kelola</span>
                                 <span className="text-primary-600 dark:text-primary-500">
-                                    Membership
+                                    Order Membership
                                 </span>
                             </div>
-                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                            <div className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
                                 <span>Venue </span>
                                 <span>{venue.name}</span>
                             </div>
@@ -53,7 +53,7 @@ export default function Index() {
                 <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
                     <div className="py-2 flex-1 overflow-x-auto">
                         <div className="flex flex-row gap-2 justify-between px-8">
-                            <div className="flex flex-row gap-2">
+                            {/* <div className="flex flex-row gap-2">
                                 <SearchInput className="hidden md:flex" />
                                 <IconButton className="block md:hidden">
                                     <Search className="w-4 h-4" />
@@ -74,7 +74,7 @@ export default function Index() {
                                     Semua Status Transaksi
                                     <ChevronDown className="w-4 h-4" />
                                 </Button>
-                            </div>
+                            </div> */}
                             <div className="flex flex-row gap-2">
                                 <Button
                                     variant="primary"
@@ -101,7 +101,7 @@ export default function Index() {
                                 </Button>
                             </div>
                         </div>
-                        <div className="py-4 px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+                        {/* <div className="py-4 px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
                             <StatCard
                                 variant="minimal"
                                 title="Total Order"
@@ -142,11 +142,13 @@ export default function Index() {
                                 iconBgColor="bg-orange-50"
                                 iconColor="text-orange-600"
                             />
+                        </div> */}
+                        <div className="py-2">
+                            <MembershipOrderTable
+                                membershipOrders={membershipOrders}
+                                isVenueLevel={true}
+                            />
                         </div>
-                        <MembershipOrderTable
-                            membershipOrders={membershipOrders}
-                            isVenueLevel={true}
-                        />
                     </div>
                 </CardBody>
 

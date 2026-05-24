@@ -41,7 +41,9 @@ export default function Create() {
             forceFormData: true,
             onSuccess: () => toast.success("Venue berhasil ditambahkan"),
             onError: (err) => {
-                toast.error("Mohon periksa kembali formulit input.");
+                toast.error(
+                    "Mohon periksa kembali formulir tambah venue olahraga.",
+                );
             },
         });
     };

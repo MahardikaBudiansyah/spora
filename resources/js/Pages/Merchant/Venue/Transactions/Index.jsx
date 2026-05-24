@@ -52,18 +52,17 @@ export default function Index() {
         },
         {
             key: "customer",
-            header: "Pelanggan",
-            // Kamu bisa menambahkan data customer di order_detail Resource
-            render: (val, row) => (
-                <div className="text-left">
-                    <p className="font-medium">
-                        {row.order_detail?.customer_name ?? "-"}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        {row.order_detail?.customer_phone ?? "-"}
-                    </p>
-                </div>
-            ),
+            header: "Konsumen",
+            render: (val, row) => {
+                if (!row?.order) return "-";
+
+                if (row.order_type === "booking") {
+                    return row.order.customer_name_snapshot || "-";
+                } else if (row.order_type === "membership") {
+                    return row.order.member_name_snapshot || "-";
+                }
+                return "-";
+            },
             className: "content-center",
         },
         {
@@ -123,15 +122,18 @@ export default function Index() {
 
     return (
         <MerchantLayout>
-            <Head title={`Daftar Transaksi - ${venue.name}`} />
+            <Head title={`Kelola Transaksi - ${venue.name}`} />
             <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
                     <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
-                        <div className="flex flex-col md:gap-1 justify-center text-center md:text-left">
-                            <div className="flex flex-col md:flex-row font-bold text-2xl">
-                                <span>Daftar Transaksi</span>
+                        <div className="flex flex-col md:gap-1 md:text-left">
+                            <div className="flex flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
+                                <span>Kelola</span>
+                                <span className="text-primary-600 dark:text-primary-500">
+                                    Transaksi
+                                </span>
                             </div>
-                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                            <div className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
                                 <span>Venue </span>
                                 <span>{venue.name}</span>
                             </div>
@@ -140,8 +142,8 @@ export default function Index() {
                 </CardHeader>
                 <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
                     <div className="py-2 flex-1 overflow-x-auto">
-                        <div className="flex flex-row gap-2 justify-between px-8">
-                            <div className="flex flex-row gap-2">
+                        <div className="flex flex-row gap-2 justify-between px-8 pb-2">
+                            {/* <div className="flex flex-row gap-2">
                                 <SearchInput className="hidden md:flex" />
                                 <IconButton className="block md:hidden">
                                     <Search className="w-4 h-4" />
@@ -162,7 +164,7 @@ export default function Index() {
                                     Semua Status Transaksi
                                     <ChevronDown className="w-4 h-4" />
                                 </Button>
-                            </div>
+                            </div> */}
                             <div className="flex flex-row gap-2">
                                 <Button
                                     variant="outline"
@@ -175,7 +177,7 @@ export default function Index() {
                                 </Button>
                             </div>
                         </div>
-                        <div className="py-4 px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+                        {/* <div className="py-4 px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
                             <StatCard
                                 variant="minimal"
                                 title="Total Booking"
@@ -216,7 +218,7 @@ export default function Index() {
                                 iconBgColor="bg-orange-50"
                                 iconColor="text-orange-600"
                             />
-                        </div>
+                        </div> */}
                         <Table
                             columns={columns}
                             data={transactions}
@@ -228,11 +230,11 @@ export default function Index() {
                                 </div>
                             }
                         />
-                        <Pagination
+                        {/* <Pagination
                             links={transactions}
                             meta={transactions}
                             className="p-6 my-2"
-                        />
+                        /> */}
                     </div>
                 </CardBody>
 

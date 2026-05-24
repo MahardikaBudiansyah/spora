@@ -13,8 +13,6 @@ import { getCourtCategory } from "@/utils/attributes/courtAttribute";
 export default function Index() {
     const { venues } = usePage().props;
 
-    console.log(venues);
-
     return (
         <UserLayout>
             <Head title="Venue" />
@@ -63,7 +61,7 @@ export default function Index() {
                                     {venue.court_categories?.map(
                                         (cat, index) => {
                                             const catAttr = getCourtCategory(
-                                                cat.name
+                                                cat.name,
                                             );
                                             return (
                                                 <Badge
@@ -81,7 +79,7 @@ export default function Index() {
                                                     {catAttr.label}
                                                 </Badge>
                                             );
-                                        }
+                                        },
                                     )}
                                 </div>
                             </div>
@@ -103,7 +101,7 @@ export default function Index() {
                                         >
                                             {Number(venue.rating) > 0
                                                 ? Number(venue.rating).toFixed(
-                                                      1
+                                                      1,
                                                   )
                                                 : "0.0"}
                                         </span>
@@ -125,7 +123,7 @@ export default function Index() {
                                                     venue.address?.city
                                                         ?.replace(
                                                             /KABUPATEN|KOTA/gi,
-                                                            ""
+                                                            "",
                                                         )
                                                         ?.trim(),
                                                 ]

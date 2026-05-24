@@ -39,7 +39,7 @@ class MerchantProfileSubmission extends Model
 
     public function isComplete()
     {
-        $requiredProfileSubmissions = ['business_email', 'business_phone_number', 'business_type', 'nib'];
+        $requiredProfileSubmissions = ['business_email', 'business_phone_number', 'business_type'];
 
         foreach ($requiredProfileSubmissions as $submission) {
             if (blank($this->$submission)) return false;

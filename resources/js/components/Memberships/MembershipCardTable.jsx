@@ -145,7 +145,7 @@ export default function MembershipCardTable({
     const columns = baseColumns.concat(commonColumns);
 
     return (
-        <div className="flex flex-col">
+        <div className="py-2 flex-1 overflow-visible overflow-x-auto">
             <Table
                 columns={columns}
                 data={membershipCards.data}

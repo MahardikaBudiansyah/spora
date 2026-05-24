@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardBody } from "@/components/common/Card";
 import Avatar from "@/components/Common/Avatar";
 import { formatTo08 } from "@/utils/numberPhone";
-import { getMembershipCard } from "@/utils/attributes/membershipAttribute";
+import { getMembershipCardInfo } from "@/utils/attributes/membershipAttribute";
 import Badge from "@/components/Common/Badge";
 import { formatShortDate } from "@/utils/date";
 import { ChevronRight } from "lucide-react";
@@ -43,10 +43,10 @@ export default function CustomerData({ user, card, activeOrders = [] }) {
                                 Nomor Member:{" "}
                             </span>
                             <Badge
-                                color={getMembershipCard(card).color}
+                                color={getMembershipCardInfo(card).color}
                                 className=""
                             >
-                                {getMembershipCard(card).label}
+                                {getMembershipCardInfo(card).label}
                             </Badge>
                         </div>
                         <div>
@@ -80,11 +80,11 @@ export default function CustomerData({ user, card, activeOrders = [] }) {
                                             <div className="flex items-center gap-2">
                                                 <span>
                                                     {formatShortDate(
-                                                        order.start_date
+                                                        order.start_date,
                                                     )}{" "}
                                                     -{" "}
                                                     {formatShortDate(
-                                                        order.end_date
+                                                        order.end_date,
                                                     )}
                                                 </span>
 
@@ -100,9 +100,9 @@ export default function CustomerData({ user, card, activeOrders = [] }) {
                                                     {order.status === "active"
                                                         ? "Aktif"
                                                         : order.status ===
-                                                          "queued"
-                                                        ? "Dalam Antrian"
-                                                        : order.status}
+                                                            "queued"
+                                                          ? "Dalam Antrian"
+                                                          : order.status}
                                                 </Badge>
                                             </div>
                                         </div>

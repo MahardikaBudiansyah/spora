@@ -32,7 +32,6 @@ class NotificationController extends Controller
 
     public function bulkAction(Request $request)
     {
-        // Log info awal untuk memantau request masuk
         Log::info('🔔 Notification Bulk Action Started', [
             'user_id' => $request->user()->id,
             'action'  => $request->action,
@@ -52,7 +51,7 @@ class NotificationController extends Controller
             match ($request->action) {
                 'read'      => $query->update(['read_at' => now()]),
                 'unread'    => $query->update(['read_at' => null]),
-                'archive'   => $query->update(['is_archived' => 1]), // Gunakan 1/0 jika true/false masih gagal
+                'archive'   => $query->update(['is_archived' => 1]),
                 'unarchive' => $query->update(['is_archived' => 0]),
                 'pin'       => $query->update(['is_pinned' => 1]),
                 'unpin'     => $query->update(['is_pinned' => 0]),
@@ -66,7 +65,6 @@ class NotificationController extends Controller
 
             return back()->with('success', 'Perubahan berhasil diterapkan.');
         } catch (\Exception $e) {
-            // Log jika terjadi error (sangat berguna untuk debugging database)
             Log::error('❌ Notification Bulk Action Failed', [
                 'message' => $e->getMessage(),
                 'action' => $request->action,

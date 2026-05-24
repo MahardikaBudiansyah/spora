@@ -11,6 +11,7 @@ import GalleryImage from "@/components/Common/GalleryImage";
 import CourtInfo from "@/components/Courts/CourtInfo";
 import { formatFullDate } from "@/utils/date";
 import { ArrowLeft, Calendar, Edit } from "lucide-react";
+import CourtTimeSlotDisplay from "@/components/Courts/CourtTimeSlotDisplay";
 
 export default function Show() {
     const {
@@ -20,7 +21,7 @@ export default function Show() {
 
     return (
         <MerchantLayout>
-            <Head title={`Detail - ${courtData?.name}`} />
+            <Head title={`Detail ${courtData?.name}`} />
 
             <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
@@ -32,16 +33,16 @@ export default function Show() {
                                     {courtData.name}
                                 </span>
                             </div>
-                            <div className="text-xs text-secondary-600 dark:text-secondary-400">
+                            <div className="text-xs text-secondary-500 dark:text-secondary-400 font-medium">
                                 <div>
                                     <span>Ditambahkan: </span>
-                                    <span>
+                                    <span className="font-bold">
                                         {formatFullDate(courtData.created_at)}
                                     </span>
                                 </div>
                                 <div>
                                     <span>Terakhir diperbarui: </span>
-                                    <span>
+                                    <span className="font-bold">
                                         {formatFullDate(courtData.updated_at)}
                                     </span>
                                 </div>
@@ -83,17 +84,23 @@ export default function Show() {
                                 images={courtData.images}
                                 pathKey="url"
                             />
-                            <div className="flex flex-col gap-2 w-full lg:w-6/12">
+                            <div className="flex flex-col gap-6 w-full lg:w-6/12">
                                 <CourtInfo
                                     name={courtData.name}
                                     court_surface={courtData.court_surface}
-                                    rating={Number(
-                                        courtData.rating ?? 0
-                                    ).toFixed(1)}
+                                    // rating={Number(
+                                    //     courtData.rating ?? 0,
+                                    // ).toFixed(1)}
                                     description={courtData.description}
                                     showLabel={true}
                                 />
+
+                                <CourtTimeSlotDisplay
+                                    timeSlots={courtData.timeSlots}
+                                    showLabel={true}
+                                />
                             </div>
+                            <div></div>
                         </div>
                     </div>
                 </CardBody>
@@ -105,7 +112,7 @@ export default function Show() {
                             router.get(
                                 route("merchant.venues.courts.index", {
                                     venue: venue.slug,
-                                })
+                                }),
                             )
                         }
                         className="flex gap-2"

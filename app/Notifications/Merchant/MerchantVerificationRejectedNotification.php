@@ -2,6 +2,8 @@
 
 namespace App\Notifications\Merchant;
 
+use App\Enums\NotificationCategory;
+use App\Enums\NotificationSource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -32,11 +34,13 @@ class MerchantVerificationRejectedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
+            'type' => 'merchant_verification_rejected',
+            'source' => NotificationSource::ADMIN,
+            'category' => NotificationCategory::ACCOUNT,
             'title' => 'Verifikasi Mitra Ditolak!',
             'message' => "Mohon Maaf verifikasi data Mitra '{$this->merchant->name}' telah ditolak. Mohon lengkapi kembali data Mitra yang diperlukan!",
             'status' => $this->merchant->status,
             'action_url' => route('merchant.profile.index'),
-            'type' => 'merchant_verification_rejected'
         ];
     }
 }

@@ -34,7 +34,6 @@ export default function MerchantProfileForm({
     onOpenDiscard,
     onClose,
 }) {
-    console.log("merchant: ", merchant);
     const showReset =
         merchant.status === "approved" && profile?.status === "draft";
 

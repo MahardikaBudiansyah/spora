@@ -37,7 +37,7 @@ class BookingPricingService
         if ($policy && $policy->enable_dp) {
             $dates = collect($details)->pluck('booking_date')->map(fn($d) => Carbon::parse($d));
             $earliestDate = $dates->min();
-            
+
             $daysBeforePlay = now()->startOfDay()->diffInDays($earliestDate->startOfDay(), false);
             $minDaysRequired = $policy->full_payment_days_before ?? 1;
 
@@ -46,7 +46,7 @@ class BookingPricingService
 
         // 3. Logika Penentuan Nominal (Force Full Payment jika DP tidak tersedia)
         $finalSelectedType = ($isDpAvailable && $paymentType === 'down_payment') ? 'down_payment' : 'full_payment';
-        
+
         if ($finalSelectedType === 'down_payment') {
             if ($policy->dp_type === 'percentage') {
                 $minAmountToPay = round($totalFinal * ($policy->dp_value / 100));
@@ -68,7 +68,8 @@ class BookingPricingService
         ]);
     }
 
-    protected function formatPolicy($policy) {
+    protected function formatPolicy($policy)
+    {
         return [
             'id' => $policy->id,
             'full_payment_days_before' => $policy->full_payment_days_before,
@@ -89,10 +90,10 @@ class BookingPricingService
             'venue_id' => $venueId,
             'total_slots_sent' => count($details)
         ]);
-        
+
         $activeOrder = $this->getActiveMembershipOrder($phone, $venueId);
         $quotaLeft = $activeOrder ? (int)$activeOrder->remaining_discount_limits : 0;
-        
+
         Log::info('[PRICING_SERVICE][MEMBERSHIP_STATUS]', [
             'found' => $activeOrder ? true : false,
             'order_no' => $activeOrder?->order_no,
@@ -102,13 +103,13 @@ class BookingPricingService
         ]);
 
         foreach ($details as $index => $item) {
-            $original = (float) $item['original_price']; 
+            $original = (float) $item['original_price'];
             $discount = 0;
-            $isApplied = false; 
+            $isApplied = false;
 
             if ($activeOrder && $quotaLeft > 0) {
                 $discount = $this->calculateDiscountFromMembership($activeOrder, $original, $item['booking_date']);
-                
+
                 if ($discount > 0) {
                     $quotaLeft--;
                     $isApplied = true;
@@ -141,7 +142,7 @@ class BookingPricingService
             'total_price' => $totalOriginal - $totalDiscount,
             'details' => $calculatedDetails,
             'membership_order_id' => $activeOrder?->id,
-            'discounted_items_count' => $discountedItemsCount 
+            'discounted_items_count' => $discountedItemsCount
         ];
 
         Log::info('[PRICING_SERVICE][RESULT]', [
@@ -159,10 +160,10 @@ class BookingPricingService
 
         $normalizedPhone = NumberPhoneHelper::normalize($phone);
 
-        $rawOrder = MembershipOrder::whereHas('membershipCard', function($q) use ($normalizedPhone, $venueId) {
-                $q->where('phone_number', $normalizedPhone)
+        $rawOrder = MembershipOrder::whereHas('membershipCard', function ($q) use ($normalizedPhone, $venueId) {
+            $q->where('phone_number', $normalizedPhone)
                 ->where('venue_id', $venueId);
-            })->latest()->first();
+        })->latest()->first();
 
         if ($rawOrder) {
             Log::info('[DEBUG_DB_CHECK]', [
@@ -190,7 +191,7 @@ class BookingPricingService
             $booking = Carbon::parse($bookingDate);
 
             if ($booking->lt($start) || $booking->gt($end)) {
-                return 0; 
+                return 0;
             }
 
             $discountType = $activeOrder->discount_type_snapshot;

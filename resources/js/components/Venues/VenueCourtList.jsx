@@ -76,7 +76,7 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                 route("admin.venues.courts.show", {
                     venue: venue.slug,
                     court: court.slug,
-                })
+                }),
             );
         } else if (isMerchant) {
             console.log("courts:", courts);
@@ -85,7 +85,7 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                 route("merchant.venues.courts.show", {
                     venue: venue.slug,
                     court: court.slug,
-                })
+                }),
             );
         }
     };
@@ -96,7 +96,7 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                 route("merchant.venues.courts.edit", {
                     venue: venue.slug,
                     court: court.slug,
-                })
+                }),
             );
         }
     };
@@ -107,21 +107,21 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                 route("admin.venues.courts.calendar", {
                     venue: venue.slug,
                     court: court.slug,
-                })
+                }),
             );
         } else if (isMerchant) {
             router.get(
                 route("merchant.venues.courts.calendar", {
                     venue: venue.slug,
                     court: court.slug,
-                })
+                }),
             );
         }
     };
 
     if (!courts || courts.length === 0) {
         return (
-            <div className="text-sm text-center text-gray-500">
+            <div className="text-sm text-center text-secondary-500">
                 Belum ada lapangan yang ditambahkan.
             </div>
         );
@@ -150,17 +150,6 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                 </Button>
             )}
 
-            <div
-                ref={scrollRef}
-                onScroll={checkScroll}
-                className={`overflow-x-auto scrollbar-hide px-2 w-full select-none scroll-smooth ${
-                    isDragging ? "cursor-grabbing" : "cursor-grab"
-                }`}
-                onMouseDown={handleMouseDown}
-                onMouseLeave={handleMouseLeave}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-            ></div>
             <div
                 ref={scrollRef}
                 className={`overflow-x-auto scrollbar-hide px-2 w-full select-none scroll-smooth ${
@@ -195,7 +184,7 @@ export default function VenueCourtList({ courts = [], venue = null }) {
                                     <div className="flex flex-wrap gap-2">
                                         {court.categories?.map((cat, index) => {
                                             const catAttr = getCourtCategory(
-                                                cat.name
+                                                cat.name,
                                             );
                                             return (
                                                 <Badge
@@ -223,7 +212,7 @@ export default function VenueCourtList({ courts = [], venue = null }) {
 
                                 {(() => {
                                     const surfaceAttr = getCourtSurface(
-                                        court.surface
+                                        court.surface,
                                     );
                                     return (
                                         <Badge

@@ -9,8 +9,7 @@ import {
 import Button from "@/components/Common/Button";
 import NotificationCard from "@/components/Common/NotificationCard";
 import Checkbox from "@/components/Common/Checkbox";
-import { Archive, Bell, Eye, Filter, Pin, PinOff, Trash2 } from "lucide-react";
-import IconButton from "@/components/Common/IconButton";
+import { Archive, Bell, Eye, Pin, PinOff, Trash2 } from "lucide-react";
 import DeleteModal from "@/components/Common/DeleteModal";
 import Tippy from "@tippyjs/react";
 import Tabs from "@/components/Common/Tabs";
@@ -26,26 +25,40 @@ export default function Index() {
     const notificationTabs = [
         {
             id: "transactions",
-            label: "Transaksi",
+            label: (
+                <div className="flex items-center gap-2">
+                    <span>Transaksi</span>
+                    {merchantNotification.getCount("transactions", "unread") >
+                        0 && (
+                        <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+                    )}
+                </div>
+            ),
         },
         {
             id: "updates",
-            label: "Update",
+            label: (
+                <div className="relative flex items-center gap-2">
+                    <span>Update</span>
+
+                    <span className="absolute inline-flex -top-2 -right-5 min-w-[18px] h-[18px] items-center justify-center text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                        <Bell className="w-2.5 h-2.5" />
+                    </span>
+                </div>
+            ),
         },
     ];
 
     return (
         <MerchantLayout>
             <Head
-                title={`Daftar Notifikasi - ${merchant?.name || "Merchant"}`}
+                title={`Kelola Notifikasi - ${merchant?.name || "Merchant"}`}
             />
             <div className="mt-2 mb-4 px-4 md:px-2">
                 <h1 className="text-2xl font-bold">Notifikasi</h1>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
                     Kelola Pemberitahuan Mitra{" "}
-                    <span className="font-semibold text-primary-500">
-                        {merchant.name}
-                    </span>
+                    <span className="text-primary-500">{merchant.name}</span>
                 </p>
             </div>
             <Card className="flex flex-col h-full rounded-md shadow-none">

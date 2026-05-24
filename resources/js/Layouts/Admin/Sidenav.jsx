@@ -60,7 +60,7 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
 
     return (
         <aside
-            className={`fixed top-0 left-0 h-[100vh] md:h-[98vh] w-64 z-sidenav transition-transform duration-300 ease-in-out
+            className={`fixed top-0 left-0 bottom-0 h-full w-64 z-sidenav transition-transform duration-300 ease-in-out
             ${isOpen ? "translate-x-0" : "-translate-x-full"} 
             ${className}`}
         >
@@ -109,7 +109,7 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                                 <SidenavLink
                                     href={route("admin.notifications.index")}
                                     routeName="admin.notifications.index"
-                                    label="Notifikasi Aktif"
+                                    label="Notifikasi"
                                     icon={Bell}
                                 />
                             </li>
@@ -181,17 +181,17 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                         <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
                             <li>
                                 <SidenavLink
-                                    href={route("admin.bookings.index")}
-                                    routeName="admin.bookings.index"
-                                    label="Booking"
+                                    href={route("admin.membershipOrders.index")}
+                                    routeName="admin.membershipOrders.index"
+                                    label="Membership"
                                     icon={Book}
                                 />
                             </li>
                             <li>
                                 <SidenavLink
-                                    href={route("admin.membershipOrders.index")}
-                                    routeName="admin.membershipOrders.index"
-                                    label="Membership"
+                                    href={route("admin.bookings.index")}
+                                    routeName="admin.bookings.index"
+                                    label="Booking"
                                     icon={Book}
                                 />
                             </li>
@@ -250,7 +250,7 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                     )}
 
                     {/* KEUANGAN PLATFORM */}
-                    <nav className="my-4">
+                    {/* <nav className="my-4">
                         <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
                             KEUANGAN PLATFORM
                         </div>
@@ -282,12 +282,12 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                                 />
                             </li>
                         </ul>
-                    </nav>
+                    </nav> */}
 
                     {/* KELOLA DATA MASTER ATAU DATA REFERENSI */}
                     <nav className="my-4">
                         <div className="my-2 font-bold text-sm text-dark dark:text-light uppercase">
-                            DATA REFERENSI
+                            DATA MASTER
                         </div>
                         <ul className="py-1 flex flex-col gap-2 text-sm font-medium">
                             <li>

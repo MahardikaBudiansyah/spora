@@ -44,6 +44,7 @@ class MerchantNotificationController extends Controller
 
         $notifications = $merchant->notifications()
             ->where('is_archived', 1)
+            ->orderBy('is_pinned', 'desc')
             ->latest()
             ->paginate(15);
 

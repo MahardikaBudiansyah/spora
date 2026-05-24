@@ -49,7 +49,7 @@ class VenueResource extends JsonResource
 
             'address' => new AddressResource($this->whenLoaded('address')),
 
-            'description' => $this->when($request->routeIs('*.show', '*.edit'), $this->description),
+            'description' => $this->description,
 
             'category_ids' => $this->whenLoaded('categories', fn() => $this->categories->pluck('id')),
 

@@ -105,7 +105,7 @@ export default function MerchantProfileHeader({ merchant, onEdit, onDelete }) {
             />
             <div className="flex flex-col md:flex-row gap-6 relative z-10 -mt-24 md:-mt-16 px-4 md:px-8">
                 <Card className="w-full shadow-sm">
-                    <CardBody className="p-5 flex flex-row justify-between">
+                    <CardBody className="p-5 flex flex-row justify-center md:justify-between">
                         <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
                             <ProfileAvatar
                                 src={merchant?.logo_path}

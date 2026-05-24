@@ -8,16 +8,18 @@ export default function AuthMerchantLayout({ children }) {
         <div className="flex min-h-screen h-full bg-white dark:bg-secondary-900">
             <div className="w-full lg:w-1/2 relative flex flex-col justify-start px-12 py-8">
                 <header className="flex justify-between">
-                    <Link href={route("home")}>
+                    <Link href={route("home")} className="outline-none">
                         <AppLogo
                             variant="newlogo"
                             className="h-14 md:h-20 w-auto"
                             alt="Spora"
                         />
                     </Link>
-                    <ThemeToggle />
+                    <div>
+                        <ThemeToggle />
+                    </div>
                 </header>
-                <main className="md:m-6 mt-20 md:mt-16 flex-1">{children}</main>
+                <main className="md:m-6 mt-16 md:mt-6 flex-1">{children}</main>
                 <footer className="mt-auto py-2 px-8 border-t border-secondary-100 dark:border-secondary-800">
                     <div className="flex flex-col md:flex-row justify-center items-center gap-2">
                         <span className="text-xs text-secondary-400 dark:text-secondary-500">

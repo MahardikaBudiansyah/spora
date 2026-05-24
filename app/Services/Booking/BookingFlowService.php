@@ -60,8 +60,8 @@ class BookingFlowService
         $customerPhone = $input['customer_phone'] ?? null;
 
         $pricing = $this->bookingPricingService->calculateBookingPrice(
-            $input['details'], 
-            $customerPhone, 
+            $input['details'],
+            $customerPhone,
             $venue->id
         );
 
@@ -75,8 +75,8 @@ class BookingFlowService
             ]);
 
             throw ValidationException::withMessages([
-                'total_price' => "Harga tidak cocok. Di sistem: " . number_format($pricing['total_price']) . 
-                                ", di Form: " . number_format($input['total_price'])
+                'total_price' => "Harga tidak cocok. Di sistem: " . number_format($pricing['total_price']) .
+                    ", di Form: " . number_format($input['total_price'])
             ]);
         }
 
@@ -94,7 +94,7 @@ class BookingFlowService
 
             if ($pricing['membership_order_id'] && $pricing['discounted_items_count'] > 0) {
                 $this->membershipOrderService->consumeDiscountLimit(
-                    $pricing['membership_order_id'], 
+                    $pricing['membership_order_id'],
                     $pricing['discounted_items_count']
                 );
             }
@@ -102,7 +102,7 @@ class BookingFlowService
             if (($paymentData['amount'] ?? 0) > 0) {
                 $paymentData['is_merchant_input'] = true;
                 $paymentData['payment_status'] = PaymentStatus::PAID;
-                
+
                 $this->paymentService->createPayment($invoice, $paymentData);
                 $this->bookingService->updateStatusAfterPayment($booking, $paymentData['amount']);
             }
@@ -116,15 +116,15 @@ class BookingFlowService
     public function handleOnlineBooking(int $userId, array $input): array
     {
         Log::info('[BOOKING][FLOW_START]', ['type' => 'ONLINE', 'user_id' => $userId]);
-        
+
         $venue = Venue::findOrFail($input['venue_id']);
         $user = auth()->user();
 
         $selectedCartIds = session('checkout_cart_ids', []);
 
         $summary = $this->bookingPricingService->getBookingSummary(
-            $input['details'], 
-            $user->phone_number, 
+            $input['details'],
+            $user->phone_number,
             $venue->id,
             $input['payment']['type'] ?? 'full_payment'
         );
@@ -138,7 +138,7 @@ class BookingFlowService
                 'customer_name'        => $input['customer']['name'] ?? $summary['customer_name'] ?? null,
                 'customer_phone'       => $input['customer']['phone_number'] ?? $summary['customer_phone'] ?? null,
             ]);
-            
+
 
             $order = $this->bookingService->createBooking($normalizedData, $venue, $userId);
 
@@ -150,22 +150,22 @@ class BookingFlowService
             ];
 
             $invoice = $this->invoiceService->createInvoice($order, $paymentData);
-            
+
             if ($summary['membership_order_id'] && $summary['discounted_items_count'] > 0) {
                 $this->membershipOrderService->consumeDiscountLimit(
-                    $summary['membership_order_id'], 
+                    $summary['membership_order_id'],
                     $summary['discounted_items_count']
                 );
             }
 
             $gatewayData = $this->paymentService->createOnlineTransaction(
                 $invoice,
-                $this->mapOrderToCustomerData($order), 
+                $this->mapOrderToCustomerData($order),
                 null
             );
-                
+
             Log::info('[BOOKNG][ONLINE_GATEWAY_CREATED]', ['token' => $gatewayData['token'] ?? 'N/A']);
-            
+
             if (!empty($selectedCartIds)) {
                 $this->cartService->deleteCarts($selectedCartIds);
             }
@@ -182,15 +182,15 @@ class BookingFlowService
     private function formatPaymentData(array $input): array
     {
         $methodRaw = $input['payment_method'] ?? 'cash';
-        
+
         $paymentDateTime = Carbon::parse(
-            ($input['payment_date'] ?? now()->toDateString()) . ' ' . 
-            ($input['payment_time'] ?? now()->format('H:i')), 
+            ($input['payment_date'] ?? now()->toDateString()) . ' ' .
+                ($input['payment_time'] ?? now()->format('H:i')),
             'Asia/Jakarta'
         );
 
         return [
-            'payment_type'     => $input['payment_type'] ?? 'full_payment', 
+            'payment_type'     => $input['payment_type'] ?? 'full_payment',
             'payment_method'   => match ($methodRaw) {
                 'bank_transfer', 'ewallet' => 'transfer',
                 'qris' => 'qris',
@@ -203,7 +203,7 @@ class BookingFlowService
             'reference_no'     => $input['reference_no'] ?? null,
             'payer_name'       => $input['payer_name'] ?? null,
             'payment_date'     => $paymentDateTime,
-            'proof_of_payment' => request()->file('proof_of_payment'), 
+            'proof_of_payment' => request()->file('proof_of_payment'),
         ];
     }
 
@@ -213,21 +213,21 @@ class BookingFlowService
         $user = $customer?->user;
 
         return [
-            'name'  => $booking->customer_name_snapshot 
-                    ?? $customer->name 
-                    ?? $user?->name 
-                    ?? 'Guest',
+            'name'  => $booking->customer_name_snapshot
+                ?? $customer->name
+                ?? $user?->name
+                ?? 'Guest',
 
-            'email' => $booking->email_snapshot 
-                    ?? $customer->email
-                    ?? $user?->email 
-                    ?? 'customer@example.com',
+            'email' => $booking->email_snapshot
+                ?? $customer->email
+                ?? $user?->email
+                ?? 'customer@example.com',
 
             'phone_number' => $booking->phone_number_snapshot
-                            ?? $customer->phone_number
-                            ?? $user?->phone_number 
-                            ?? null,
-                            
+                ?? $customer->phone_number
+                ?? $user?->phone_number
+                ?? null,
+
             'member_no' => $booking->member_no_snapshot ?? '-',
         ];
     }
@@ -240,7 +240,7 @@ class BookingFlowService
             $this->notificationService->send(
                 $booking->user,
                 NotificationType::BOOKING_CREATED,
-                ['message' => "Booking berhasil! Kode: {$booking->order_no} di {$venue->name}."] 
+                ['message' => "Booking berhasil! Kode: {$booking->order_no} di {$venue->name}."]
             );
         }
 

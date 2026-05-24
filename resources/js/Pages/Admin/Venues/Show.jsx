@@ -13,14 +13,16 @@ import VenueInfo from "@/components/venues/VenueInfo";
 import VenueFacility from "@/components/venues/VenueFacility";
 import VenueAddress from "@/components/venues/VenueAddress";
 import VenueCourtList from "@/components/venues/VenueCourtList";
-import { RectangleEllipsis, Settings } from "lucide-react";
+import { ArrowLeft, RectangleEllipsis, Settings } from "lucide-react";
 import { formatFullDate } from "@/utils/date";
-import VenueMembershipPackage from "@/components/Venues/VenueMembershipPackage";
+import VenueMembershipPackage from "@/features/venues/components/VenueMembershipPackage";
 import VenuePaymentInfo from "@/components/Venues/VenuePaymentInfo";
 
 export default function Show() {
     const { venue: venueResource } = usePage().props;
     const venue = venueResource.data;
+
+    console.log(venue);
 
     const [expandedPackageIds, setExpandedPackageIds] = useState({});
 
@@ -35,11 +37,11 @@ export default function Show() {
         <AdminLayout>
             <Head title="Informasi Venue" />
 
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
+            <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
                     <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
-                        <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-                            <div className="flex flex-col md:flex-row md:gap-1 font-bold text-2xl items-center md:items-baseline">
+                        <div className="flex flex-col md:gap-1 md:text-left">
+                            <div className="flex flex-wrap flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
                                 <span>Informasi Venue</span>
                                 <span className="text-primary-600 dark:text-primary-500">
                                     {venue.name}
@@ -64,9 +66,11 @@ export default function Show() {
                             <Button
                                 variant="warning"
                                 size="xs"
-                                onClick={() => {}}
+                                href={route("admin.venues.verification.index", {
+                                    venue: venue.slug,
+                                })}
                             >
-                                Validasi Venue
+                                Verifikasi Venue
                             </Button>
                         </div>
                     </div>
@@ -82,7 +86,7 @@ export default function Show() {
                                     showLabel={true}
                                     name={venue.name}
                                     rating={Number(venue.rating ?? 0).toFixed(
-                                        1
+                                        1,
                                     )}
                                     description={venue.description}
                                     phone_number={venue.phone_number}
@@ -90,29 +94,34 @@ export default function Show() {
                                     categories={venue.venue_categories ?? []}
                                     social_media={venue.social_media}
                                 />
-
-                                <VenueAddress
-                                    showLabel={true}
-                                    address={venue.address}
-                                />
-                                {venue.payment_type && (
-                                    <VenuePaymentInfo
-                                        paymentType={venue.payment_type}
+                                {venue.address && (
+                                    <VenueAddress
+                                        showLabel={false}
+                                        address={venue.address}
                                     />
                                 )}
+
+                                <VenuePaymentInfo
+                                    paymentPolicies={venue.payment_policies}
+                                    venueSlug={venue.slug}
+                                />
                             </div>
                         </div>
-                        <div className="flex flex-col gap-4 py-4 space-y-4">
-                            <VenueFacility
-                                showLabel={true}
-                                facilities={venue.facilities}
-                            />
+                        <div className="flex flex-col gap-4 py-4">
+                            {venue.facilities?.length > 0 && (
+                                <VenueFacility
+                                    showLabel={true}
+                                    facilities={venue.facilities}
+                                />
+                            )}
 
                             {venue.membership_packages?.length > 0 && (
                                 <VenueMembershipPackage
+                                    venue={venue}
                                     packages={venue.membership_packages}
+                                    mode="merchant-show"
                                     showLabel={true}
-                                    mode="admin"
+                                    showSettings={false}
                                     expandedPackageIds={expandedPackageIds}
                                     onTogglePackage={handleTogglePackage}
                                 />
@@ -120,8 +129,11 @@ export default function Show() {
 
                             <div className="flex flex-col">
                                 <div className="py-4 flex flex-col lg:flex-row justify-between gap-2 items-start lg:items-center">
-                                    <div className="text-lg font-bold">
-                                        Lapangan:
+                                    <div className="flex items-center justify-between ">
+                                        <h3 className="text-lg font-bold flex items-center gap-2 ">
+                                            <div className="w-1.5 h-6 bg-primary-500 rounded-full"></div>
+                                            Daftar Lapangan
+                                        </h3>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
@@ -130,11 +142,11 @@ export default function Show() {
                                             onClick={() =>
                                                 router.get(
                                                     route(
-                                                        "merchant.venues.courts.index",
+                                                        "admin.venues.courts.index",
                                                         {
                                                             venue: venue.slug,
-                                                        }
-                                                    )
+                                                        },
+                                                    ),
                                                 )
                                             }
                                             className="flex items-center w-auto gap-1.5 px-3 min-w-max"
@@ -156,10 +168,12 @@ export default function Show() {
                 <CardFooter className="p-6 md:p-8 flex gap-2 justify-end">
                     <Button
                         variant="light"
-                        type="button"
+                        size="xs"
                         onClick={() => router.get(route("admin.venues.index"))}
+                        className="flex gap-2"
                     >
-                        Kembali
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Kembali</span>
                     </Button>
                 </CardFooter>
             </Card>

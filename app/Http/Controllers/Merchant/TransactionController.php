@@ -56,7 +56,4 @@ class TransactionController extends Controller
             'totals' => $totals,
         ]);
     }
-
-
-
 }

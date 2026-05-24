@@ -41,7 +41,7 @@ export default function Register() {
 
     return (
         <AuthMerchantLayout>
-            <Head title="Register Mitra" />
+            <Head title="Pendaftaran Mitra" />
             <div className="w-full max-w-xs mx-auto">
                 <Card className="border-none shadow-none">
                     <CardHeader className="border-none">

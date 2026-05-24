@@ -119,7 +119,7 @@ export default function MerchantTable({
                         size="xs"
                         onClick={() => handleVerification(row)}
                     >
-                        Validasi
+                        Verifikasi
                     </Button>
                     <Button
                         variant="info"
@@ -141,7 +141,7 @@ export default function MerchantTable({
     ];
 
     return (
-        <div className="py-2 flex-1 overflow-x-auto">
+        <div className="py-2 flex-1 overflow-visible overflow-x-auto">
             <Table
                 columns={columns}
                 data={merchants}

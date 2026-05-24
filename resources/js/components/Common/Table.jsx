@@ -84,23 +84,44 @@ export default function Table({
                                         {columns.map((col) => {
                                             const cellValue = row[col.key];
 
-                                            let content =
+                                            let content;
+
+                                            if (
+                                                typeof renderCell === "function"
+                                            ) {
+                                                content = renderCell(
+                                                    col,
+                                                    row,
+                                                    rowIndex,
+                                                );
+                                            }
+
+                                            if (
+                                                content === undefined &&
                                                 typeof col.render === "function"
-                                                    ? col.render(
-                                                          cellValue,
-                                                          row,
-                                                          rowIndex,
-                                                      )
-                                                    : typeof cellValue ===
-                                                            "object" &&
-                                                        cellValue !== null
-                                                      ? ""
-                                                      : cellValue;
+                                            ) {
+                                                content = col.render(
+                                                    cellValue,
+                                                    row,
+                                                    rowIndex,
+                                                );
+                                            }
+
+                                            if (content === undefined) {
+                                                content =
+                                                    typeof cellValue ===
+                                                        "object" &&
+                                                    cellValue !== null
+                                                        ? ""
+                                                        : cellValue;
+                                            }
 
                                             const isEmpty =
                                                 content === null ||
                                                 content === undefined ||
-                                                content === "";
+                                                content === "" ||
+                                                (typeof content === "string" &&
+                                                    content.trim() === "");
 
                                             const forceCenter =
                                                 isEmpty &&
@@ -127,11 +148,11 @@ export default function Table({
                                                     key={col.key}
                                                     className={twMerge(
                                                         "px-4 py-3",
-                                                        col.className, // Alignment dari definisi kolom (misal: text-right)
-                                                        tdClassName, // Class dari props dinamis
-                                                        cellClass, // Class dari logic kolom
+                                                        col.className,
+                                                        tdClassName,
+                                                        cellClass,
                                                         forceCenter &&
-                                                            "text-center", // Override ke tengah hanya jika data kosong
+                                                            "text-center",
                                                     )}
                                                     {...tdProps}
                                                 >

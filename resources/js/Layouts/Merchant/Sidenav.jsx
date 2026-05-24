@@ -7,7 +7,7 @@ import AccountSection from "@/Layouts/Merchant/Sidenav/AccountSection";
 import DashboardSection from "@/Layouts/Merchant/Sidenav/DashboardSection";
 import VenueSection from "@/Layouts/Merchant/Sidenav/VenueSection";
 import SidenavLink from "@/components/Common/SidenavLink";
-import { Archive, Bell, Book, Settings2 } from "lucide-react";
+import { Archive, Bell, Book, LayoutDashboard, Settings2 } from "lucide-react";
 
 export default function Sidenav({ className = "", isOpen, onClose }) {
     const { auth } = usePage().props;
@@ -56,7 +56,7 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
 
     return (
         <aside
-            className={`fixed top-0 left-0 h-[100vh] md:h-[98vh] w-64 z-sidenav transition-transform duration-300 ease-in-out
+            className={`fixed top-0 left-0 bottom-0 h-full w-64 z-sidenav transition-transform duration-300 ease-in-out
             ${isOpen ? "translate-x-0" : "-translate-x-full"} 
             ${className}`}
         >
@@ -93,11 +93,21 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                     </nav>
 
                     <nav className="my-4">
-                        <DashboardSection
+                        {/* <DashboardSection
                             role={role}
                             isOpen={menuToggles.isOpen("dashboard")}
                             toggle={() => menuToggles.toggle("dashboard")}
-                        />
+                        /> */}
+                        <ul className="py-1 flex flex-col gap-2 text-xs font-medium">
+                            <li>
+                                <SidenavLink
+                                    href={route("merchant.dashboard")}
+                                    routeName="merchant.dashboard"
+                                    label="Dashboard"
+                                    icon={LayoutDashboard}
+                                />
+                            </li>
+                        </ul>
                     </nav>
 
                     <nav className="my-4">
@@ -109,7 +119,7 @@ export default function Sidenav({ className = "", isOpen, onClose }) {
                                 <SidenavLink
                                     href={route("merchant.venues.index")}
                                     routeName="merchant.venues.index"
-                                    label="Semua Venue"
+                                    label="Kelola Venue"
                                     icon={Book}
                                 />
                             </li>

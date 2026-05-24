@@ -24,20 +24,21 @@ export function useVenueCourtAvailability(venue, selectedDate) {
                     },
                 );
 
-                console.log("Full API Response:", response.data);
+                // console.log("Full API Response:", response.data);
 
-                const courts = response.data.courts || [];
-                const debug = response.data.debug_info;
+                // const courts = response.data.courts || [];
+                // const debug = response.data.debug_info;
 
-                if (debug) {
-                    console.group("🖥️ Backend Debug Info");
-                    console.log("Tanggal di Query:", debug.request_date);
-                    console.log(
-                        "Jumlah Jadwal Ditemukan:",
-                        debug.schedules_count,
-                    );
-                    console.groupEnd();
-                }
+                // if (debug) {
+                //     console.group("🖥️ Backend Debug Info");
+                //     console.log("Tanggal di Query:", debug.request_date);
+                //     console.log(
+                //         "Jumlah Jadwal Ditemukan:",
+                //         debug.schedules_count,
+                //     );
+                //     console.groupEnd();
+                // }
+
                 setAvailabilityData(response.data.courts || null);
             } catch (err) {
                 if (axios.isCancel(err)) return;

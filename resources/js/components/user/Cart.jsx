@@ -3,10 +3,9 @@ import { useCart } from "@/contexts/CartContext";
 import { Card, CardBody, CardHeader } from "@/components/common/Card";
 import Modal from "@/components/common/Modal";
 import Button from "@/components/common/Button";
-import IconButton from "@/components/Common/IconButton";
 import CloseButtonModal from "@/components/Common/CloseButtonModal";
 import Checkbox from "@/components/common/Checkbox";
-import { Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import BannerAlert from "@/components/Common/BannerAlert";
 import { formatRupiah } from "@/utils/currency";
 import { formatFullDate } from "@/utils/date";
@@ -39,6 +38,7 @@ export default function Cart({ isOpen, onClose }) {
         >
             <Card className="relative px-2 rounded-none border-none shadow-none text-gray-700 dark:text-gray-100 text-xs">
                 <CloseButtonModal onClose={onClose} />
+
                 <CardHeader className="py-6 dark:border-none">
                     <div className="text-lg font-semibold">
                         Slot Jadwal Dipilih
@@ -85,7 +85,7 @@ export default function Cart({ isOpen, onClose }) {
 
                         return (
                             <div key={venue.venue.id} className="mb-4">
-                                <h2 className="text-base font-bold dark:text-white mb-2 dark:border-gray-700">
+                                <h2 className="text-base font-bold dark:text-white mb-2">
                                     {venue.venue.name}
                                 </h2>
 
@@ -120,11 +120,11 @@ export default function Cart({ isOpen, onClose }) {
                                                     <div
                                                         key={slot.cart_id}
                                                         className={`relative px-3 py-3 flex items-center border-l-4 rounded-md mb-2 transition-all
-                            ${
-                                disableVenue
-                                    ? "bg-gray-100 dark:bg-gray-800 border-gray-400 opacity-50 cursor-not-allowed"
-                                    : "bg-primary-50 dark:bg-primary-900/30 border-primary-600 hover:bg-primary-100"
-                            }`}
+                                                            ${
+                                                                disableVenue
+                                                                    ? "bg-gray-100 dark:bg-gray-800 border-gray-400 opacity-50 cursor-not-allowed"
+                                                                    : "bg-primary-50 dark:bg-primary-900/30 border-primary-600 hover:bg-primary-100"
+                                                            }`}
                                                     >
                                                         <div className="flex flex-row gap-3 items-center w-full">
                                                             <Checkbox
@@ -156,12 +156,12 @@ export default function Cart({ isOpen, onClose }) {
                                                                     </span>
 
                                                                     <span className="font-medium text-xs text-gray-600 dark:text-gray-300">
-                                                                        {slot?.start_time?.substring(
+                                                                        {slot.start_time?.substring(
                                                                             0,
                                                                             5,
                                                                         )}{" "}
                                                                         -{" "}
-                                                                        {slot?.end_time?.substring(
+                                                                        {slot.end_time?.substring(
                                                                             0,
                                                                             5,
                                                                         )}

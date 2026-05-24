@@ -202,7 +202,6 @@ export default function Show() {
                     </div>
                 </div>
 
-                {/* FASILITAS */}
                 {venue.facilities?.length > 0 && (
                     <div className="flex flex-col gap-2 mt-6">
                         <VenueFacility
@@ -212,7 +211,6 @@ export default function Show() {
                     </div>
                 )}
 
-                {/* MEMBERSHIP */}
                 <div className="py-8">
                     {venue.membership_packages?.length > 0 && (
                         <VenueMembershipPackage
@@ -227,9 +225,11 @@ export default function Show() {
                         />
                     )}
                 </div>
-                {venue.payment_type && (
+                {venue.payment_policies && (
                     <div className="flex">
-                        <VenuePaymentInfo paymentType={venue.payment_type} />
+                        <VenuePaymentInfo
+                            paymentPolicies={venue.payment_policies}
+                        />
                     </div>
                 )}
 

@@ -29,6 +29,10 @@ export default function VenueMembershipPackage({
             return "grid grid-cols-1 2xl:grid-cols-2 gap-4";
         }
 
+        if (mode === "admin-verification") {
+            return "grid grid-cols-1 2xl:grid-cols-2 gap-4";
+        }
+
         return "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2";
     };
 
@@ -50,9 +54,7 @@ export default function VenueMembershipPackage({
             route("user.memberships.selectPackages"),
             { package_id: pkg.id },
             {
-                onStart: () => {
-                    // Opsional: Bisa pasang loading state di sini
-                },
+                onStart: () => {},
                 onError: (errors) => {
                     toast.error("Gagal memilih paket. Silakan coba lagi.");
                     console.error(errors);
@@ -63,7 +65,9 @@ export default function VenueMembershipPackage({
 
     if (!packages.length) {
         return (
-            <p className="text-sm text-gray-500">Belum ada paket membership.</p>
+            <p className="text-sm text-center text-secondary-500">
+                Belum ada paket membership.
+            </p>
         );
     }
 

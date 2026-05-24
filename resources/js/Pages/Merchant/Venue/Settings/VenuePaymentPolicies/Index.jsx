@@ -81,7 +81,7 @@ export default function Index() {
 
     return (
         <MerchantLayout>
-            <Head title={`Kebijakan Pembayaran - ${venue.name}`} />
+            <Head title={`Pengaturan Pembayaran - ${venue.name}`} />
             <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
                     <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
@@ -92,11 +92,10 @@ export default function Index() {
                                     Pembayaran
                                 </span>
                             </div>
-                            <p className="text-sm text-secondary-500">
-                                <span className="font-semibold">
-                                    {venue?.name}
-                                </span>
-                            </p>
+                            <div className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
+                                <span>Venue </span>
+                                <span>{venue.name}</span>
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
@@ -142,7 +141,6 @@ export default function Index() {
                                             variant="primary"
                                             size="xs"
                                         >
-                                            <Save className="w-4 h-4 mr-2" />
                                             {processing
                                                 ? "Menyimpan..."
                                                 : "Simpan"}

@@ -25,23 +25,22 @@ class TransactionResource extends JsonResource
                 'due' => $this->due_date,
             ],
 
-            'order_type' => $this->order_type, 
-            'order_detail' => $this->whenLoaded('order', function() {
+            'order_type' => $this->order_type,
+            'order_detail' => $this->whenLoaded('order', function () {
                 return [
                     'order_no' => $this->order->order_no,
-                    'items' => $this->order_type === OrderType::BOOKING 
-                        ? BookingDetailResource::collection($this->order->details) 
+                    'items' => $this->order_type === OrderType::BOOKING
+                        ? BookingDetailResource::collection($this->order->details)
                         : null,
                 ];
             }),
 
             'payment_history' => PaymentResource::collection($this->whenLoaded('payments')),
-            
-            'latest_payment' => $this->whenLoaded('payments', function() {
-                $last = $this->payments->first(); 
+
+            'latest_payment' => $this->whenLoaded('payments', function () {
+                $last = $this->payments->first();
                 return $last ? new PaymentResource($last) : null;
             }),
         ];
     }
-
 }

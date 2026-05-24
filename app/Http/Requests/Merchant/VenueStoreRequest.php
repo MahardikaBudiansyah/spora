@@ -8,7 +8,7 @@ class VenueStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth('merchant')->check() && auth('merchant')->user()->status === 'active';
+        return true;
     }
 
     public function rules(): array
@@ -27,13 +27,13 @@ class VenueStoreRequest extends FormRequest
             'images' => 'required|array|min:1',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:2048',
             'main_image_index' => 'integer|min:0',
-            
+
             'full_address' => 'nullable|string',
             'province_code' => 'required|exists:indonesia_provinces,code',
             'city_code' => 'required|exists:indonesia_cities,code',
             'district_code' => 'required|exists:indonesia_districts,code',
             'village_code' => 'required|exists:indonesia_villages,code',
-            
+
             'postal_code' => 'nullable|string|max:10',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',

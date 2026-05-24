@@ -59,24 +59,22 @@ export default function CourtForm({
                             </div>
 
                             {mode === "create" && (
-                                <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                                    <div>
-                                        <span>Venue </span>
-                                        <span>{venue?.name}</span>
-                                    </div>
+                                <div className="text-sm text-secondary-500 dark:text-secondary-400 font-medium">
+                                    <span>Venue </span>
+                                    <span>{venue.name}</span>
                                 </div>
                             )}
                             {mode === "edit" && court && (
-                                <div className="text-xs text-secondary-500">
+                                <div className="text-xs text-secondary-500 dark:text-secondary-400 font-medium">
                                     <div>
                                         <span>Ditambahkan: </span>
-                                        <span className="font-medium">
+                                        <span className="font-bold">
                                             {formatFullDate(court.created_at)}
                                         </span>
                                     </div>
                                     <div>
                                         <span>Terakhir diperbarui: </span>
-                                        <span className="font-medium">
+                                        <span className="font-bold">
                                             {formatFullDate(court.updated_at)}
                                         </span>
                                     </div>
@@ -126,12 +124,12 @@ export default function CourtForm({
                                             (type) => ({
                                                 label: type.name,
                                                 value: type.id,
-                                            })
+                                            }),
                                         )}
                                         onChange={(val) =>
                                             setData(
                                                 "court_surface_id",
-                                                Number(val)
+                                                Number(val),
                                             )
                                         }
                                         placeholder="Pilih Tipe Lapangan"
@@ -160,7 +158,7 @@ export default function CourtForm({
                                         onChange={(e) =>
                                             setData(
                                                 "description",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                         className="w-full h-[150px]"
@@ -248,7 +246,7 @@ export default function CourtForm({
                             router.get(
                                 route("merchant.venues.courts.index", {
                                     venue: venue.slug,
-                                })
+                                }),
                             )
                         }
                         className="flex gap-2"

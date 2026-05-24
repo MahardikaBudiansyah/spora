@@ -7,6 +7,7 @@ import { formatFullDateTime } from "@/utils/date";
 import { getCourtSurface } from "@/utils/attributes/courtAttribute";
 
 export default function CourtTable({ auth, venue, courts, handleDelete }) {
+    console.log(courts);
     const baseColumns = [
         {
             key: "number",
@@ -57,7 +58,6 @@ export default function CourtTable({ auth, venue, courts, handleDelete }) {
                   key: "merchant_name",
                   header: "Mitra",
                   className: "text-center content-start whitespace-nowrap",
-                  render: (val, row) => row.venue?.merchant?.name || "-",
               },
           ]
         : [];
@@ -165,7 +165,7 @@ export default function CourtTable({ auth, venue, courts, handleDelete }) {
     ];
 
     return (
-        <div className="py-2 flex-1 overflow-x-auto">
+        <div className="py-2 flex-1 overflow-visible overflow-x-auto">
             <Table
                 columns={columns}
                 data={courts}

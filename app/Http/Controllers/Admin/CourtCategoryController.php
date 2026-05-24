@@ -11,16 +11,15 @@ class CourtCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        // Buat query builder
         $query = CourtCategory::query();
 
-        // Opsional: filter search
         if ($request->search) {
             $query->where('label', 'like', "%{$request->search}%");
         }
 
-        // Ambil data dengan pagination
-        $court_categories = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $court_categories = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/MasterData/CourtCategory/Index', [
             'court_categories' => $court_categories,
@@ -71,7 +70,7 @@ class CourtCategoryController extends Controller
             ]);
         }
 
-      
+
         $category->courts()->detach();
 
         // Baru hapus kategori

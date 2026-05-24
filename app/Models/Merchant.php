@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class Merchant extends Authenticatable
 {
@@ -118,9 +119,11 @@ class Merchant extends Authenticatable
             'primaryPayoutMethodSubmission'
         ]);
 
-        $payoutMethod = $this->primaryPayoutMethod instanceof Collection
-            ? $this->primaryPayoutMethod->first()
-            : $this->primaryPayoutMethod;
+        // $payoutMethod = $this->primaryPayoutMethod instanceof Collection
+        //     ? $this->primaryPayoutMethod->first()
+        //     : $this->primaryPayoutMethod;
+
+        $payoutMethod = $this->primaryPayoutMethodSubmission ?: $this->primaryPayoutMethod;
 
         $isProfileApproved = $this->profile?->status === MerchantProfileStatus::APPROVED;
         $isOwnerApproved = $this->owner?->status === MerchantOwnerStatus::APPROVED;
@@ -129,6 +132,12 @@ class Merchant extends Authenticatable
         $hasPendingProfile = $this->profileSubmission?->status === MerchantProfileStatus::PENDING;
         $hasPendingOwner = $this->ownerSubmission?->status === MerchantOwnerStatus::PENDING;
         $hasPendingPayout = $this->payoutMethodSubmissions()->where('status', MerchantPayoutMethodStatus::PENDING)->exists();
+
+        // --- BAGIAN DEBUG START ---
+        // Log::debug("=== SYNC MERCHANT STATUS [ID: {$this->id}] ===");
+        // Log::debug("Profile Status: " . ($this->profile?->status->value ?? 'NULL'));
+        // Log::debug("Owner Status: " . ($this->owner?->status->value ?? 'NULL'));
+        // Log::debug("Payout Status: " . ($payoutMethod?->status->value ?? 'NULL'));
 
         $isProfileRejected = $this->profile?->status === MerchantProfileStatus::REJECTED;
         $isOwnerRejected = $this->owner?->status === MerchantOwnerStatus::REJECTED;
@@ -142,7 +151,15 @@ class Merchant extends Authenticatable
 
         $canSubmitForVerification = $isProfileReady && $isOwnerReady && $isPayoutReady;
 
+        // Log::debug("Logical Checks:");
+        // Log::debug("- isProfileRejected: " . ($isProfileRejected ? 'TRUE' : 'FALSE'));
+        // Log::debug("- isOwnerRejected: " . ($isOwnerRejected ? 'TRUE' : 'FALSE'));
+        // Log::debug("- isPayoutRejected: " . ($isPayoutRejected ? 'TRUE' : 'FALSE'));
+        // Log::debug("- canSubmitForVerification: " . ($canSubmitForVerification ? 'TRUE' : 'FALSE'));
+        // Log::debug("- Current Merchant Status: " . $this->status->value);
+
         if ($isProfileApproved && $isOwnerApproved && $isPayoutApproved) {
+            // Log::debug("Result: Masuk blok APPROVED");
             $this->update(['is_reverification_required' => $reverificationRequired]);
 
             if ($this->status !== MerchantStatus::APPROVED) {
@@ -157,6 +174,7 @@ class Merchant extends Authenticatable
                 }
             }
         } elseif ($isProfileRejected || $isOwnerRejected || $isPayoutRejected) {
+            // Log::debug("Result: Masuk blok REJECTED");
             if ($this->status !== MerchantStatus::REJECTED) {
                 $this->update([
                     'status' => MerchantStatus::REJECTED,
@@ -169,10 +187,12 @@ class Merchant extends Authenticatable
                 $this->notify(new MerchantVerificationRejectedNotification($this));
             }
         } elseif ($canSubmitForVerification) {
+            // Log::debug("Result: Masuk blok PENDING");
             if (in_array($this->status, [MerchantStatus::DRAFT, MerchantStatus::REJECTED])) {
                 $this->update(['status' => MerchantStatus::PENDING, 'is_active' => false, 'is_reverification_required' => false]);
             }
         } else {
+            // Log::debug("Result: Masuk blok ELSE (DRAFT)");
             if (in_array($this->status, [MerchantStatus::PENDING, MerchantStatus::REJECTED, MerchantStatus::APPROVED])) {
                 $this->update(['status' => MerchantStatus::DRAFT, 'is_active' => false]);
             }

@@ -81,14 +81,14 @@ export default function BookingTable({
     const customerColumn = [
         {
             key: "name",
-            header: "Nama Penyewa",
+            header: "Nama Konsumen",
             render: (val, row) =>
                 row.customers?.map((c) => c.name).join(", ") || "-",
             className: "text-left content-center truncate",
         },
         {
             key: "phone_number",
-            header: "Nomor Handphone Penyewa",
+            header: "Nomor Handphone Konsumen",
             render: (val, row) =>
                 row.customers
                     ?.map((c) => formatTo08(c.phone_number))

@@ -18,10 +18,15 @@ export default function VenueList({ merchant, venues = [] }) {
     }
 
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div
+            className={`grid gap-6 ${
+                venues.length === 1
+                    ? "grid-cols-1"
+                    : "grid-cols-1 xl:grid-cols-2"
+            }`}
+        >
             {venues.map((venue) => (
                 <Card key={venue.id} className="shadow-sm border-secondary-50">
-                    {/* Header Venue */}
                     <CardHeader className="p-4 flex justify-between items-start gap-4">
                         <div className="flex gap-3">
                             <div className="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-500 flex items-center justify-center text-primary-600 dark:text-primary-50 flex-shrink-0">

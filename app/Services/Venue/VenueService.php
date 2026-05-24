@@ -50,16 +50,6 @@ class VenueService
                 $venue->images()->createMany($uploadedImages);
             }
 
-            $venue->venuePaymentType()->create([
-                'enable_dp'                => false,
-                'dp_type'                  => 'fixed',
-                'dp_value'                 => 0,
-                'apply_to_merchant'        => false,
-                'full_payment_days_before' => 1,
-                'max_full_payment_days'    => 3,
-                'is_active'                => true,
-            ]);
-
             return $venue;
         });
     }
@@ -77,7 +67,7 @@ class VenueService
             $venue->facilities()->sync($validated['facility_ids'] ?? []);
 
             $venue->address()->updateOrCreate(
-                [], 
+                [],
                 [
                     'address'       => $validated['full_address'] ?? null,
                     'province_code' => $validated['province_code'] ?? null,

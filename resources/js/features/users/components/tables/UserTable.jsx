@@ -29,28 +29,28 @@ export default function UserTable({
 
                 return (currentPage - 1) * perPage + index + 1;
             },
-            className: "text-center content-start",
+            className: "text-center content-center",
         },
         {
             key: "name",
             header: "Nama User",
-            className: "content-start whitespace-nowrap",
+            className: "content-center whitespace-nowrap",
         },
         {
             key: "email",
             header: "email",
-            className: "text-left content-start truncate",
+            className: "text-left content-center truncate",
         },
         {
             key: "phone_number",
             header: "No Handphone",
             render: (val, row) => formatTo08(row.phone_number) || "-",
-            className: "text-center content-start",
+            className: "text-center content-center",
         },
         {
             key: "membership_cards_count",
             header: "Membership",
-            className: "text-center content-start whitespace-nowrap",
+            className: "text-center content-center whitespace-nowrap",
             render: (val, row) => {
                 const { label, color } = getUserMembershipStatus(
                     row.membership_cards_count,
@@ -61,7 +61,7 @@ export default function UserTable({
         {
             key: "bookings_count",
             header: "Riwayat Booking",
-            className: "text-center content-start whitespace-nowrap",
+            className: "text-center content-center whitespace-nowrap",
             render: (val, row) => {
                 const { label, color } = getUserBookingStatus(
                     row.booking_customers_count,
@@ -73,7 +73,7 @@ export default function UserTable({
             key: "created_at",
             header: "Pendaftaran",
             render: (val, row) => formatFullDateTime(row.created_at) || "-",
-            className: "text-center content-start whitespace-nowrap",
+            className: "text-center content-center whitespace-nowrap",
         },
         {
             key: "status",
@@ -95,12 +95,12 @@ export default function UserTable({
                     </div>
                 );
             },
-            className: "text-center content-start",
+            className: "text-center content-center",
         },
         {
             key: "action",
             header: "Aksi",
-            className: "text-center content-start",
+            className: "text-center content-center",
             render: (val, row) => (
                 <div className="flex gap-2 justify-center">
                     <ButtonToggle
@@ -134,7 +134,7 @@ export default function UserTable({
     ];
 
     return (
-        <div className="py-2 flex-1 overflow-x-auto">
+        <div className="py-2 flex-1 overflow-visible overflow-x-auto">
             <Table
                 columns={columns}
                 data={users}

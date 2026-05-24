@@ -35,7 +35,7 @@ export default function Index() {
                 route("merchant.venues.memberships.packages.toggle", {
                     venue: venue.slug,
                     package: pkg.slug,
-                })
+                }),
             );
             toast.success(`Status paket "${pkg.name}" berhasil diperbarui.`);
             router.reload({ only: ["packages"] });
@@ -60,7 +60,7 @@ export default function Index() {
                 route("merchant.venues.memberships.packages.destroy", {
                     venue: venue.slug,
                     package: deleteState.item.slug,
-                })
+                }),
             );
             if (res.data.success) {
                 toast.success(res.data.message);
@@ -75,18 +75,18 @@ export default function Index() {
 
     return (
         <MerchantLayout>
-            <Head title={`Membership ${venue.name}`} />
+            <Head title={`Kelola Paket Membership ${venue.name}`} />
             <Card className="flex flex-col h-full rounded-md shadow-none">
                 <CardHeader className="p-4 md:p-6">
                     <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
                         <div className="flex flex-col md:gap-1 md:text-left">
                             <div className="flex flex-wrap flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
-                                <span>Paket</span>
+                                <span>Kelola</span>
                                 <span className="text-primary-600 dark:text-primary-500">
-                                    Membership
+                                    Paket Membership
                                 </span>
                             </div>
-                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
+                            <div className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
                                 <span>Venue </span>
                                 <span>{venue.name}</span>
                             </div>

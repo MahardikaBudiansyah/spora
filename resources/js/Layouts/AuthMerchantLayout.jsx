@@ -19,7 +19,7 @@ export default function AuthMerchantLayout({ children }) {
                         <ThemeToggle />
                     </div>
                 </header>
-                <main className="md:m-6 mt-20 md:mt-16 flex-1">{children}</main>
+                <main className="md:m-6 mt-16 md:mt-6 flex-1">{children}</main>
                 <footer className="mt-auto py-2 px-8 border-t border-secondary-100 dark:border-secondary-800">
                     <div className="flex flex-col md:flex-row justify-center items-center gap-2">
                         <span className="text-xs text-secondary-400 dark:text-secondary-500">

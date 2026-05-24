@@ -186,9 +186,7 @@ export default function MerchantPayoutInfo({
                     variant="ghost"
                     size="xs"
                     onClick={() => onEdit(current)}
-                    disabled={
-                        current?.status === "pending" || current?.is_primary
-                    }
+                    disabled={current?.status === "pending"}
                     className="text-primary-600 font-semibold px-2 py-1.5"
                 >
                     {!current?.provider_name || current?.provider_name === ""

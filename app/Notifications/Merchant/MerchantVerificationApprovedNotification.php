@@ -2,6 +2,8 @@
 
 namespace App\Notifications\Merchant;
 
+use App\Enums\NotificationCategory;
+use App\Enums\NotificationSource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -32,11 +34,13 @@ class MerchantVerificationApprovedNotification extends Notification
     public function toDatabase($notifiable)
     {
         return [
+            'type' => 'merchant_verification_approved',
+            'source' => NotificationSource::ADMIN,
+            'category' => NotificationCategory::ACCOUNT,
             'title' => 'Verifikasi Mitra Berhasil! 🎉',
             'message' => 'Selamat! Profil merchant Anda telah disetujui. Sekarang Anda bisa mulai mengelola venue.',
             'status' => $this->merchant->status,
             'action_url' => route('merchant.profile.index'),
-            'type' => 'merchant_verification_approved'
         ];
     }
 }

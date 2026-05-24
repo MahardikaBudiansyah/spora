@@ -1,11 +1,13 @@
 <?php
+
 namespace App\Services\Court;
 
-use Carbon\Carbon;
 use App\Models\Court;
+use App\Models\CourtSchedule;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class CourtScheduleService 
+class CourtScheduleService
 {
     public function syncMasterPrices(Court $court, array $slots, array $prices)
     {
@@ -21,17 +23,25 @@ class CourtScheduleService
                             'price'    => $prices[$type][$slotId] ?? 0
                         ];
                     }
-                    
+
                     $court->timeSlots()->attach($syncData);
                 }
             }
         });
     }
 
+    public function updateSingleSchedule(Court $court, int $timeslotId, string $date, int $statusId)
+    {
+        return $this->updateSchedules($court, [
+            'date' => $date,
+            'status_id' => $statusId,
+            'timeslot_ids' => [$timeslotId],
+        ]);
+    }
+
     public function updateSchedules(Court $court, array $data)
     {
         return DB::transaction(function () use ($court, $data) {
-            // Konversi format ISO 8601 ke Y-m-d
             $formattedDate = Carbon::parse($data['date'])->format('Y-m-d');
 
             $timeSlots = $court->timeSlots()->whereIn('time_slots.id', $data['timeslot_ids'])->get();
@@ -43,7 +53,7 @@ class CourtScheduleService
                 $court->schedules()->updateOrCreate(
                     [
                         'time_slot_id' => $timeslotId,
-                        'date'         => $formattedDate, // Gunakan yang sudah diformat
+                        'date'         => $formattedDate,
                     ],
                     [
                         'status_id' => $data['status_id'],

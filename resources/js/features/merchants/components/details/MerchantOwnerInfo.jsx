@@ -32,6 +32,8 @@ export default function MerchantOwnerInfo({ merchant, onEdit }) {
     );
     const StatusIcon = statusOwner.icon;
 
+    console.log(owner);
+
     const isOwnerComplete = checkSectionCompletion(merchant, "owner");
     const progress = getSectionProgress(merchant, "owner");
     const getProgressColor = (value) => {

@@ -89,6 +89,7 @@ export default function AccountSection({ src, user, role, isOpen, toggle }) {
                             label="Keluar"
                             method="post"
                             as="button"
+                            className="w-full text-left"
                         />
                     </li>
                 </div>

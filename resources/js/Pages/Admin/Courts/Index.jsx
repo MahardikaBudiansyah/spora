@@ -18,20 +18,27 @@ export default function Index() {
 
     return (
         <AdminLayout>
-            <Head title="Daftar Lapangan" />
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
-                <CardHeader className="">
-                    <div className="flex flex-row justify-between items-center p-4">
-                        <div className="font-bold uppercase text-lg">
-                            Daftar Data Lapangan
+            <Head title="Kelola Data Lapangan" />
+            <Card className="flex flex-col h-full rounded-md shadow-none">
+                <CardHeader className="p-4 md:p-6">
+                    <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
+                        <div className="flex flex-col md:gap-1 md:text-left">
+                            <div className="flex flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
+                                <span>Kelola</span>
+                                <span className="text-primary-600 dark:text-primary-500">
+                                    Data Lapangan
+                                </span>
+                            </div>
                         </div>
-                        <Button
-                            variant="primary"
-                            size="xs"
-                            onClick={() => handlePrint()}
-                        >
-                            Cetak Data
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="primary"
+                                size="xs"
+                                onClick={() => handlePrint()}
+                            >
+                                Cetak Data
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">

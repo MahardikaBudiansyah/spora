@@ -22,7 +22,11 @@ import { formatFullDate } from "@/utils/date";
 import { getAdminStatus } from "@/utils/attributes/adminAttribute";
 
 export default function Index() {
-    const { auth, admins = [] } = usePage().props;
+    const {
+        auth,
+        admins: { data: admins },
+    } = usePage().props;
+    console.log("admins: ", admins);
     const isSuperAdmin = auth.admin.role === "superadmin";
 
     const [showFormModal, setShowFormModal] = useState(false);
@@ -31,7 +35,18 @@ export default function Index() {
     const [selectedAdmin, setSelectedAdmin] = useState(null);
 
     const baseColumns = [
-        { key: "number", header: "#", className: "text-center content-center" },
+        {
+            key: "number",
+            header: "#",
+            render: (_, __, index) => {
+                const currentPage =
+                    admins.current_page || admins.meta?.current_page || 1;
+                const perPage = admins.per_page || admins.meta?.per_page || 10;
+
+                return (currentPage - 1) * perPage + index + 1;
+            },
+            className: "text-center content-center",
+        },
         { key: "name", header: "Nama Admin", className: "content-center" },
         {
             key: "role",
@@ -41,13 +56,13 @@ export default function Index() {
         {
             key: "email",
             header: "Email",
-            className: "text-center content-center",
+            className: "text-left content-center",
         },
         {
             key: "phone_number",
             header: "No Handphone",
-            render: (val, row) => formatTo08(row.phone_number) || "-",
-            className: "text-center content-center",
+            render: (val, row) => formatTo08(row.profile?.phone_number) || "-",
+            className: "text-center content-center whitespace-nowrap",
         },
         {
             key: "status",
@@ -137,15 +152,15 @@ export default function Index() {
                         toast.success(
                             `Data "${row.name}" berhasil ${
                                 newStatus ? "diaktifkan" : "dinonaktifkan"
-                            }.`
+                            }.`,
                         );
                     },
                     onError: () => {
                         toast.error(
-                            `Gagal mengubah status Data Admin "${row.name}".`
+                            `Gagal mengubah status Data Admin "${row.name}".`,
                         );
                     },
-                }
+                },
             );
         } catch (err) {
             toast.error("Terjadi kesalahan saat mengubah status.");
@@ -161,30 +176,35 @@ export default function Index() {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success(
-                        `Anggota "${selectedAdmin.name}" berhasil dihapus!`
+                        `Anggota "${selectedAdmin.name}" berhasil dihapus!`,
                     );
                     setShowDeleteModal(false);
                     setSelectedAdmin(null);
                 },
                 onError: () => {
                     toast.error(
-                        `Gagal menghapus anggota "${selectedAdmin.name}"!`
+                        `Gagal menghapus anggota "${selectedAdmin.name}"!`,
                     );
                 },
-            }
+            },
         );
     };
 
     return (
         <AdminLayout>
-            <Head title="Anggota Admin" />
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
-                <CardHeader className="">
-                    <div className="flex flex-row justify-between items-center p-4">
-                        <div className="font-bold uppercase text-lg">
-                            Semua Anggota Admin
+            <Head title="Kelola Anggota Admin" />
+            <Card className="flex flex-col h-full rounded-md shadow-none">
+                <CardHeader className="p-4 md:p-6">
+                    <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
+                        <div className="flex flex-col md:gap-1 md:text-left">
+                            <div className="flex flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
+                                <span>Kelola</span>
+                                <span className="text-primary-600 dark:text-primary-500">
+                                    Anggota Admin
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex flex-row gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {isSuperAdmin && (
                                 <Button
                                     variant="primary"
@@ -198,33 +218,36 @@ export default function Index() {
                     </div>
                 </CardHeader>
 
-                <CardBody className="px-0 pb-8">
-                    <Table
-                        columns={columns}
-                        data={admins.data}
-                        wrapperClassName="border-none rounded-none shadow-none"
-                        tableClassName="text-xs"
-                        emptyState={
-                            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                                Tidak ada data.{" "}
-                                {isSuperAdmin && (
-                                    <button
-                                        type="button"
-                                        onClick={handleCreate}
-                                        className="text-gray-900 hover:underline dark:text-primary-400 font-semibold"
-                                    >
-                                        Tambahkan anggota Admin sekarang!
-                                    </button>
-                                )}
-                            </div>
-                        }
-                    />
-                    <Pagination
-                        links={admins.links}
-                        meta={admins}
-                        className="p-6 my-2"
-                    />
+                <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                    <div className="py-2 flex-1 overflow-visible overflow-x-auto">
+                        <Table
+                            columns={columns}
+                            data={admins}
+                            wrapperClassName="border-none rounded-none shadow-none"
+                            tableClassName="text-xs"
+                            emptyState={
+                                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                                    Tidak ada data.{" "}
+                                    {isSuperAdmin && (
+                                        <button
+                                            type="button"
+                                            onClick={handleCreate}
+                                            className="text-gray-900 hover:underline dark:text-primary-400 font-semibold"
+                                        >
+                                            Tambahkan anggota Admin sekarang!
+                                        </button>
+                                    )}
+                                </div>
+                            }
+                        />
+                        <Pagination
+                            links={admins}
+                            meta={admins}
+                            className="p-6 my-2"
+                        />
+                    </div>
                 </CardBody>
+                <CardFooter className="p-6 md:p-8 flex gap-2 justify-end"></CardFooter>
 
                 <AdminFormModal
                     show={showFormModal}

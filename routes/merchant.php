@@ -6,6 +6,7 @@ use App\Http\Controllers\Merchant\CourtController;
 use App\Http\Controllers\Merchant\CourtScheduleController;
 use App\Http\Controllers\Merchant\CourtTimeSlotController;
 use App\Http\Controllers\Merchant\CustomerUtilityController;
+use App\Http\Controllers\Merchant\DashboardController;
 use App\Http\Controllers\Merchant\MerchantBookingController;
 use App\Http\Controllers\Merchant\MerchantController;
 use App\Http\Controllers\Merchant\MerchantMembershipCardController;
@@ -40,10 +41,7 @@ Route::middleware('guest:merchant')->prefix('merchant')->name('merchant.')->grou
 });
 
 Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Merchant/Dashboard');
-    })->name('dashboard');
-
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::prefix('notifications')->name('notifications.')->group(function () {
@@ -186,6 +184,7 @@ Route::middleware(['auth:merchant'])->prefix('merchant')->name('merchant.')->gro
                     Route::get('/getCalendarWeekDays', [CourtController::class, 'getCalendarWeekDays'])->name('getCalendarWeekDays');
                     Route::get('/get-time-slot-by-court', [TimeSlotController::class, 'getTimeSlotsByCourt'])->name('getTimeSlotsByCourt');
                     Route::put('/update-court-time-slots', [CourtTimeSlotController::class, 'updateCourtTimeSlots'])->name('updateCourtTimeSlots');
+                    Route::post('/update-court-single-schedules', [CourtScheduleController::class, 'updateCourtSingleSchedule'])->name('updateCourtSingleSchedule');
                     Route::post('/update-court-schedules', [CourtScheduleController::class, 'updateCourtSchedules'])->name('updateCourtSchedules');
                 });
             });

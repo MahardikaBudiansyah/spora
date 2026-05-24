@@ -53,16 +53,16 @@ export default function Show() {
                                     {venue.name}
                                 </span>
                             </div>
-                            <div className="text-xs text-secondary-600 dark:text-secondary-400">
+                            <div className="text-xs text-secondary-500 dark:text-secondary-400 font-medium">
                                 <div>
                                     <span>Ditambahkan: </span>
-                                    <span>
+                                    <span className="font-bold">
                                         {formatFullDate(venue.created_at)}
                                     </span>
                                 </div>
                                 <div>
                                     <span>Terakhir diperbarui: </span>
-                                    <span>
+                                    <span className="font-bold">
                                         {formatFullDate(venue.updated_at)}
                                     </span>
                                 </div>
@@ -98,23 +98,20 @@ export default function Show() {
                                     )}
                                     description={venue.description}
                                     phone_number={venue.phone_number}
-                                    address={venue.address}
                                     categories={venue.venue_categories ?? []}
                                     social_media={venue.social_media}
                                 />
                                 {venue.address && (
                                     <VenueAddress
-                                        showLabel={true}
+                                        showLabel={false}
                                         address={venue.address}
                                     />
                                 )}
 
-                                {venue.payment_type && (
-                                    <VenuePaymentInfo
-                                        paymentType={venue.payment_type}
-                                        venueSlug={venue.slug} // Tambahkan ini agar komponen tahu venue mana yang diatur
-                                    />
-                                )}
+                                <VenuePaymentInfo
+                                    paymentPolicies={venue.payment_policies}
+                                    venueSlug={venue.slug}
+                                />
                             </div>
                         </div>
                         <div className="flex flex-col gap-4 py-4">
@@ -127,6 +124,7 @@ export default function Show() {
 
                             {venue.membership_packages?.length > 0 && (
                                 <VenueMembershipPackage
+                                    venue={venue}
                                     packages={venue.membership_packages}
                                     mode="merchant-show"
                                     showLabel={true}
@@ -141,7 +139,7 @@ export default function Show() {
                                     <div className="flex items-center justify-between ">
                                         <h3 className="text-lg font-bold flex items-center gap-2 ">
                                             <div className="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-                                            Daftar Court
+                                            Daftar Lapangan
                                         </h3>
                                     </div>
                                     <div className="flex gap-2">

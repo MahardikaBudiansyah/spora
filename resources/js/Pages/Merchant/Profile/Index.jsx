@@ -66,7 +66,7 @@ export default function Index() {
     };
 
     const handleCreateVenue = () => {
-        if (merchant.status !== "active") {
+        if (merchant.status !== "approved") {
             toast.error(
                 "Akun Anda belum aktif. Silakan tunggu verifikasi admin",
             );
@@ -161,7 +161,7 @@ export default function Index() {
                             </div>
                             <AnimatePresence>
                                 {showErrorBanner &&
-                                    merchant.status !== "active" && (
+                                    merchant.status !== "approved" && (
                                         <BannerAlert
                                             type={
                                                 merchant.status === "rejected"

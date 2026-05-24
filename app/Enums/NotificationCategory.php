@@ -8,6 +8,7 @@ enum NotificationCategory: string
     case ACCOUNT = 'account';
     case TRANSACTION = 'transaction';
     case INFO = 'info';
+    case FINANCE = 'finance';
 
     public function label(): string
     {
@@ -15,7 +16,8 @@ enum NotificationCategory: string
             self::PROMO => 'Promo & Penawaran',
             self::ACCOUNT => 'Keamanan & Akun',
             self::TRANSACTION => 'Aktivitas Transaksi',
-            self::INFO => 'Berita & Info Spora',
+            self::INFO => 'Berita & Info',
+            self::FINANCE => 'Keuangan',
         };
     }
 }

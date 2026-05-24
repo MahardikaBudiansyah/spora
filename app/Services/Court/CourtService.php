@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Court;
 
 use App\Models\Court;
@@ -69,12 +70,19 @@ class CourtService
         });
     }
 
-    private function syncCategories(Court $court, array $categories)
+    private function syncCategories(Court $court, array $categories = [])
     {
+        if (empty($categories)) {
+            $court->categories()->detach();
+            return;
+        }
+
         $syncData = [];
         foreach ($categories as $cat) {
+            if (!isset($cat['id'])) continue;
+
             $syncData[$cat['id']] = [
-                'is_primary' => $cat['is_primary'],
+                'is_primary' => $cat['is_primary'] ?? false,
                 'notes'      => $cat['notes'] ?? null,
                 'order'      => $cat['order'] ?? 0,
             ];

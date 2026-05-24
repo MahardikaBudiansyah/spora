@@ -25,12 +25,12 @@ export default function Edit() {
         images: mapImagesForEdit(venueData.images),
         main_image_index: getFeaturedImageIndex(venueData.images),
 
+        full_address: venueData.address?.full_address ?? "",
         province_code: venueData.address?.province_code ?? null,
         city_code: venueData.address?.city_code ?? null,
         district_code: venueData.address?.district_code ?? null,
         village_code: venueData.address?.village_code ?? null,
         postal_code: venueData.address?.postal_code ?? "",
-        full_address: venueData.address?.full_address ?? "",
         latitude: venueData.address?.latitude ?? "",
         longitude: venueData.address?.longitude ?? "",
     });
@@ -46,7 +46,7 @@ export default function Edit() {
             existing_image_ids: JSON.stringify(
                 oldData.images
                     .filter((img) => img.isExisting)
-                    .map((img) => img.id)
+                    .map((img) => img.id),
             ),
 
             main_image_index: parseInt(oldData.main_image_index),

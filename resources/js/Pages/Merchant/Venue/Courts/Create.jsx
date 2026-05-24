@@ -41,7 +41,20 @@ export default function Create() {
 
         post(route("merchant.venues.courts.store", { venue: venue.slug }), {
             forceFormData: true,
-
+            onBefore: () => {
+                transform((oldData) => ({
+                    ...oldData,
+                    // Pastikan file gambar murni File Object
+                    images: oldData.images.map((img) => img.file),
+                    // Konversi kategori ke format yang aman untuk FormData
+                    categories: oldData.categories.map((cat) => ({
+                        id: cat.id,
+                        is_primary: cat.is_primary ? 1 : 0, // Kirim sebagai integer
+                        notes: cat.notes || "",
+                        order: cat.order || 0,
+                    })),
+                }));
+            },
             onSuccess: () => toast.success("Lapangan berhasil ditambahkan"),
             onError: (err) => {
                 toast.error("Gagal menambahkan lapangan");

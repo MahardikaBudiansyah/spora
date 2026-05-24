@@ -19,6 +19,10 @@ class MerchantController extends Controller
                 'profile.address.city',
                 'profile.address.district',
                 'profile.address.village',
+                'profileSubmission.address.province',
+                'profileSubmission.address.city',
+                'profileSubmission.address.district',
+                'profileSubmission.address.village',
                 'primaryPayoutMethod',
             ])
             ->orderBy('created_at', 'asc')

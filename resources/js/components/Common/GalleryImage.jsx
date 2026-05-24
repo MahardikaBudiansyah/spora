@@ -55,7 +55,7 @@ export default function GalleryImage({
 
     if (!images || images.length === 0) {
         return (
-            <div className={twMerge("w-full lg:w-6/12", className)}>
+            <div className={twMerge("w-full", className)}>
                 <img
                     src={getImageUrl(null)}
                     className="w-full h-[300px] lg:h-[400px] object-cover rounded-lg"
@@ -69,7 +69,7 @@ export default function GalleryImage({
         <div
             className={twMerge(
                 "flex flex-col gap-4 w-full lg:w-6/12",
-                className
+                className,
             )}
         >
             <div className="relative group">
@@ -82,7 +82,7 @@ export default function GalleryImage({
                     variant="light"
                     onClick={(e) => {
                         const idx = images.findIndex(
-                            (img) => getImageUrl(img[pathKey]) === mainImage
+                            (img) => getImageUrl(img[pathKey]) === mainImage,
                         );
                         openZoomAt(e, idx >= 0 ? idx : 0);
                     }}
@@ -128,7 +128,7 @@ export default function GalleryImage({
                                     "h-20 aspect-video object-cover rounded-lg cursor-pointer transition-all border-2",
                                     active
                                         ? "border-primary-500 scale-104 shadow-sm"
-                                        : "border-transparent opacity-70 hover:opacity-100"
+                                        : "border-transparent opacity-70 hover:opacity-100",
                                 )}
                                 alt={`Thumb ${index}`}
                             />
@@ -143,7 +143,7 @@ export default function GalleryImage({
                 onClose={() => setIsZoomOpen(false)}
                 onPrev={() =>
                     setZoomIndex(
-                        (prev) => (prev - 1 + images.length) % images.length
+                        (prev) => (prev - 1 + images.length) % images.length,
                     )
                 }
                 onNext={() =>

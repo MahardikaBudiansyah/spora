@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Head, router, usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import MerchantLayout from "@/Layouts/MerchantLayout";
 import {
     Card,
@@ -10,150 +9,95 @@ import {
 import Button from "@/components/Common/Button";
 import NotificationCard from "@/components/Common/NotificationCard";
 import Checkbox from "@/components/Common/Checkbox";
-import { Bell, Eye, Filter, Pin, Trash2 } from "lucide-react";
-import IconButton from "@/components/Common/IconButton";
+import { Archive, Bell, Eye, Pin, PinOff, Trash2 } from "lucide-react";
 import DeleteModal from "@/components/Common/DeleteModal";
 import Tippy from "@tippyjs/react";
+import Tabs from "@/components/Common/Tabs";
+import MerchantTransactionNotification from "@/features/notifications/components/contents/MerchantTransactionNotification";
+import MerchantUpdateNotification from "@/features/notifications/components/contents/MerchantUpdateNotification";
+import { useMerchantNotification } from "@/features/notifications/hooks/useMerchantNotification";
 
-export default function Archive() {
-    const {
-        merchant,
-        notification_list: { data: notifications, links, meta },
-    } = usePage().props;
+export default function Index() {
+    const { merchant } = usePage().props;
 
-    const hasUnread = notifications.some((n) => !n.is_read);
+    const merchantNotification = useMerchantNotification();
 
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    const [selectedNotifications, setSelectedNotifications] = useState([]);
-
-    const toggleSelectAll = (e) => {
-        const isChecked = e.target.checked;
-
-        if (isChecked) {
-            setSelectedNotifications(notifications.map((n) => n.id));
-        } else {
-            setSelectedNotifications([]);
-        }
-    };
-
-    const toggleSelectOne = (id) => {
-        setSelectedNotifications((prev) =>
-            prev.includes(id)
-                ? prev.filter((nid) => nid !== id)
-                : [...prev, id],
-        );
-    };
-
-    const applyAction = (action, id = null) => {
-        const idsToProcess = id ? [id] : selectedNotifications;
-
-        if (idsToProcess.length === 0) {
-            return;
-        }
-
-        setIsProcessing(true);
-
-        router.post(
-            route("merchant.notifications.bulkAction"),
-            {
-                ids: idsToProcess,
-                action: action,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: (page) => {
-                    if (!id) setSelectedNotifications([]);
-                    closeDeleteModal();
-                },
-                onError: (errors) => {},
-                onFinish: () => {
-                    setIsProcessing(false);
-                },
-            },
-        );
-    };
-
-    const handleNotificationClick = (id) => {
-        if (isProcessing) return;
-        router.post(route("merchant.notifications.markAsRead", id));
-    };
-
-    const handleMarkAllRead = () => {
-        setIsProcessing(true);
-        router.post(
-            route("merchant.notifications.markAllRead"),
-            {},
-            {
-                preserveScroll: true,
-                onFinish: () => setIsProcessing(false),
-            },
-        );
-    };
-
-    const [confirmDelete, setConfirmDelete] = useState({
-        show: false,
-        id: null,
-    });
-
-    const confirmAction = (id = null) => {
-        setConfirmDelete({
-            show: true,
-            id: id,
-        });
-    };
-
-    const handleConfirmDelete = () => {
-        applyAction("delete", confirmDelete.id);
-    };
-
-    const closeDeleteModal = () => {
-        if (isProcessing) return;
-        setConfirmDelete({ show: false, id: null });
-    };
+    const notificationTabs = [
+        {
+            id: "transactions",
+            label: "Transaksi",
+        },
+        {
+            id: "updates",
+            label: "Update",
+        },
+    ];
 
     return (
         <MerchantLayout>
             <Head
-                title={`Daftar Notifikasi - ${merchant?.name || "Merchant"}`}
+                title={`Kelola Arsip Notifikasi - ${merchant?.name || "Merchant"}`}
             />
+            <div className="mt-2 mb-4 px-4 md:px-2">
+                <h1 className="text-2xl font-bold">Arsip Notifikasi</h1>
+                <p className="text-sm text-secondary-500 dark:text-secondary-400 font-semibold">
+                    Kelola Arsip Pemberitahuan Mitra{" "}
+                    <span className="text-primary-500">{merchant.name}</span>
+                </p>
+            </div>
             <Card className="flex flex-col h-full rounded-md shadow-none">
-                <CardHeader className="p-4 md:p-6">
-                    <div className="p-2 flex flex-col md:flex-row justify-between gap-6 md:items-center">
-                        <div className="flex flex-col md:gap-1 md:text-left">
-                            <div className="flex flex-row md:flex-row gap-2 font-bold text-2xl items-center ">
-                                <span>Arsip Notifikasi</span>
-                            </div>
-                            <div className="text-sm text-secondary-600 dark:text-secondary-400">
-                                <span>Mitra </span>
-                                <span>{merchant.name}</span>
-                            </div>
-                        </div>
-                    </div>
+                <CardHeader className="pt-4 pb-0 mb-0 border-none">
+                    <Tabs
+                        tabs={notificationTabs}
+                        onChange={(idx, tab) =>
+                            merchantNotification.setActiveCategory(tab.id)
+                        }
+                    />
                 </CardHeader>
-                <CardBody className="py-4 md:py-6 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                <CardBody className="py-4 md:py-0 px-0 min-h-[280px] sm:min-h-[310px] flex flex-col">
+                    {merchantNotification.activeCategory === "transactions" ? (
+                        <MerchantTransactionNotification
+                            activeFilter={merchantNotification.transSubFilter}
+                            setFilter={merchantNotification.setTransSubFilter}
+                            getCount={merchantNotification.getCount}
+                        />
+                    ) : (
+                        <MerchantUpdateNotification
+                            activeFilter={merchantNotification.subFilter}
+                            setFilter={merchantNotification.setSubFilter}
+                            getCount={merchantNotification.getCount}
+                        />
+                    )}
+
                     <div className="py-2 flex-1 overflow-visible overflow-x-auto">
                         <div className="py-2 px-6 md:px-12 flex flex-col-reverse md:flex-row gap-2 items-center">
-                            {selectedNotifications.length > 0 && (
+                            {merchantNotification.selectedNotifications.length >
+                                0 && (
                                 <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-4 justify-start items-start md:items-center">
                                     <div className="flex flex-row gap-2">
                                         <Checkbox
                                             tooltip="Pilih Semua Notifikasi"
                                             checked={
-                                                notifications.length > 0 &&
-                                                selectedNotifications.length ===
-                                                    notification.length
+                                                merchantNotification
+                                                    .filteredNotifications
+                                                    .length > 0 &&
+                                                merchantNotification
+                                                    .selectedNotifications
+                                                    .length ===
+                                                    merchantNotification
+                                                        .filteredNotifications
+                                                        .length
                                             }
-                                            indeterminate={
-                                                selectedNotifications.length >
-                                                    0 &&
-                                                selectedNotifications.length <
-                                                    notifications.length
+                                            onChange={
+                                                merchantNotification.toggleSelectAll
                                             }
-                                            onChange={toggleSelectAll}
                                         />
                                         <span className="text-xs font-medium text-primary-600 dark:text-primary-400 whitespace-nowrap">
-                                            {selectedNotifications.length}{" "}
+                                            {
+                                                merchantNotification
+                                                    .selectedNotifications
+                                                    .length
+                                            }{" "}
                                             terpilih
                                         </span>
                                     </div>
@@ -163,8 +107,14 @@ export default function Archive() {
                                             variant="success"
                                             size="xs"
                                             tooltip="Tandai Dibaca Notifikasi Yang Dipilih"
-                                            onClick={() => applyAction("read")}
-                                            disabled={isProcessing}
+                                            onClick={() =>
+                                                merchantNotification.applyAction(
+                                                    "read",
+                                                )
+                                            }
+                                            disabled={
+                                                merchantNotification.isProcessing
+                                            }
                                             className="p-1 px-2 flex gap-1 items-center text-[10px] rounded-md"
                                         >
                                             {" "}
@@ -176,9 +126,13 @@ export default function Archive() {
                                             size="xs"
                                             tooltip="Arsipkan Notifikasi Yang Dipilih"
                                             onClick={() =>
-                                                applyAction("archive")
+                                                merchantNotification.applyAction(
+                                                    "archive",
+                                                )
                                             }
-                                            disabled={isProcessing}
+                                            disabled={
+                                                merchantNotification.isProcessing
+                                            }
                                             className="p-1 px-2 flex gap-1 items-center text-[10px] rounded-md"
                                         >
                                             <Archive size={12} />
@@ -187,21 +141,48 @@ export default function Archive() {
                                         <Button
                                             variant="warning"
                                             size="xs"
-                                            tooltip="Pin Notifikasi Yang Dipilih"
-                                            onClick={() => applyAction("pin")}
-                                            disabled={isProcessing}
+                                            tooltip={
+                                                merchantNotification
+                                                    .bulkPinStatus.allPinned
+                                                    ? "Lepas Pin Terpilih"
+                                                    : "Pin Terpilih"
+                                            }
+                                            onClick={() =>
+                                                merchantNotification.applyAction(
+                                                    "pin",
+                                                )
+                                            }
+                                            disabled={
+                                                merchantNotification.isProcessing
+                                            }
                                             className="p-1 px-2 flex gap-1 items-center text-[10px] rounded-md"
                                         >
-                                            {" "}
-                                            <Pin size={12} />
-                                            Tandai Pin
+                                            {merchantNotification.bulkPinStatus
+                                                .allPinned ? (
+                                                <>
+                                                    <PinOff size={12} />
+                                                    Lepas Pin
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Pin
+                                                        size={12}
+                                                        className="rotate-45"
+                                                    />
+                                                    Tandai Pin
+                                                </>
+                                            )}
                                         </Button>
                                         <Button
                                             variant="danger"
                                             size="xs"
                                             tooltip="Hapus Notifikasi Yang Dipilih"
-                                            onClick={() => confirmAction()}
-                                            disabled={isProcessing}
+                                            onClick={() =>
+                                                merchantNotification.confirmAction()
+                                            }
+                                            disabled={
+                                                merchantNotification.isProcessing
+                                            }
                                             className="p-1 px-2 flex gap-1 items-center text-[10px] rounded-md"
                                         >
                                             {" "}
@@ -211,101 +192,133 @@ export default function Archive() {
                                     </div>
                                 </div>
                             )}
-                            {notifications.length > 0 && (
+                            {merchantNotification.filteredNotifications.length >
+                                0 && (
                                 <div className="ms-auto flex flex-row gap-2 items-center">
-                                    {selectedNotifications.length === 0 && (
+                                    {merchantNotification.selectedNotifications
+                                        .length === 0 && (
                                         <Button
                                             variant="success"
                                             size="xs"
-                                            onClick={handleMarkAllRead}
+                                            onClick={() =>
+                                                merchantNotification.applyAction(
+                                                    "read",
+                                                    merchantNotification.filteredNotifications.map(
+                                                        (n) => n.id,
+                                                    ),
+                                                )
+                                            }
                                             disabled={
-                                                isProcessing || !hasUnread
+                                                merchantNotification.isProcessing ||
+                                                !merchantNotification.filteredNotifications.some(
+                                                    (n) => !n.is_read,
+                                                )
                                             }
                                             className="px-2 py-1.5 rounded-md text-xs"
                                         >
-                                            {isProcessing
+                                            {merchantNotification.isProcessing
                                                 ? "Memproses..."
                                                 : "Semua Dibaca"}
                                         </Button>
                                     )}
-                                    <IconButton
+                                    {/*  <IconButton
                                         variant="primary"
                                         size="xs"
                                         tooltip="Filter"
                                         className="rounded-md"
                                     >
                                         <Filter size={12} />
-                                    </IconButton>
+                                    </IconButton> */}
                                 </div>
                             )}
                         </div>
 
-                        <div className="py-2 px-2 md:px-8 flex flex-col max-h-[60vh] overflow-y-auto">
-                            {notifications.length > 0 ? (
-                                notifications.map((n, i) => (
-                                    <Tippy
-                                        key={n.id || i}
-                                        content={
-                                            n.is_read
-                                                ? "Lihat detail"
-                                                : "Tandai sudah dibaca"
-                                        }
-                                        disabled={
-                                            isProcessing ||
-                                            selectedNotifications.includes(n.id)
-                                        }
-                                        placement="top"
-                                        delay={[500, 0]}
-                                    >
-                                        <div
-                                            onClick={() =>
-                                                handleNotificationClick(n.id)
+                        <div className="py-2 px-2 md:px-8 flex flex-col  overflow-y-auto">
+                            {merchantNotification.filteredNotifications.length >
+                            0 ? (
+                                merchantNotification.filteredNotifications.map(
+                                    (n, i) => (
+                                        <Tippy
+                                            key={n.id || i}
+                                            content={
+                                                n.is_read
+                                                    ? "Lihat detail"
+                                                    : "Tandai sudah dibaca"
                                             }
-                                            className="cursor-pointer transition"
-                                        >
-                                            <NotificationCard
-                                                key={n.data.id}
-                                                title={n.data.title}
-                                                type={n.data.type}
-                                                message={n.data.message}
-                                                time={n.created_at_human}
-                                                isRead={n.is_read}
-                                                className="w-full"
-                                                checked={selectedNotifications.includes(
+                                            disabled={
+                                                merchantNotification.isProcessing ||
+                                                merchantNotification.selectedNotifications.includes(
                                                     n.id,
-                                                )}
-                                                isProcessing={isProcessing}
-                                                onChange={() =>
-                                                    toggleSelectOne(n.id)
-                                                }
-                                                onArchive={() =>
-                                                    applyAction("archive", n.id)
-                                                }
-                                                onPin={() =>
-                                                    applyAction(
-                                                        n.is_pinned
-                                                            ? "unpin"
-                                                            : "pin",
+                                                )
+                                            }
+                                            placement="top"
+                                            delay={[500, 0]}
+                                        >
+                                            <div
+                                                onClick={() =>
+                                                    merchantNotification.handleNotificationClick(
                                                         n.id,
                                                     )
                                                 }
-                                                onDelete={() =>
-                                                    confirmAction(n.id)
-                                                }
-                                            />
-                                        </div>
-                                    </Tippy>
-                                ))
+                                                className="cursor-pointer transition"
+                                            >
+                                                <NotificationCard
+                                                    key={n.id}
+                                                    title={n.data.title}
+                                                    type={n.data.type}
+                                                    message={n.data.message}
+                                                    category={n.category}
+                                                    source={n.source}
+                                                    time={n.created_at_human}
+                                                    isRead={n.is_read}
+                                                    isPinned={n.is_pinned}
+                                                    className="w-full"
+                                                    checked={merchantNotification.selectedNotifications.includes(
+                                                        n.id,
+                                                    )}
+                                                    isProcessing={
+                                                        merchantNotification.isProcessing
+                                                    }
+                                                    onChange={() =>
+                                                        merchantNotification.toggleSelectOne(
+                                                            n.id,
+                                                        )
+                                                    }
+                                                    onArchive={() =>
+                                                        merchantNotification.applyAction(
+                                                            "archive",
+                                                            n.id,
+                                                        )
+                                                    }
+                                                    onPin={() =>
+                                                        merchantNotification.applyAction(
+                                                            n.is_pinned
+                                                                ? "unpin"
+                                                                : "pin",
+                                                            n.id,
+                                                        )
+                                                    }
+                                                    onDelete={() =>
+                                                        merchantNotification.confirmAction(
+                                                            n.id,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                        </Tippy>
+                                    ),
+                                )
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <div className="bg-secondary-100 dark:bg-secondary-800 p-4 rounded-full mb-4">
                                         <Bell className="w-8 h-8 text-secondary-400" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-secondary-900 dark:text-white">
-                                        Tidak ada Arsip Notifikasi
+                                        Tidak ada notifikasi
                                     </h3>
                                     <p className="text-sm text-secondary-500 dark:text-secondary-400 max-w-xs mx-auto">
-                                        Semua notifikasi Anda belum diarsipkan.
+                                        Belum ada pemberitahuan terbaru saat
+                                        ini.
                                     </p>
                                 </div>
                             )}
@@ -315,15 +328,15 @@ export default function Archive() {
                 <CardFooter className="p-6 md:p-8 flex gap-2 justify-end"></CardFooter>
             </Card>
             <DeleteModal
-                show={confirmDelete.show}
-                onClose={closeDeleteModal}
-                onConfirm={handleConfirmDelete}
-                isProcessing={isProcessing}
+                show={merchantNotification.confirmDelete.show}
+                onClose={merchantNotification.closeDeleteModal}
+                onConfirm={merchantNotification.confirmAction}
+                isProcessing={merchantNotification.isProcessing}
                 title="Hapus Notifikasi"
                 description={
-                    confirmDelete.id
+                    merchantNotification.confirmDelete.id
                         ? "Apakah Anda yakin ingin menghapus notifikasi ini?"
-                        : `Apakah Anda yakin ingin menghapus ${selectedNotifications.length} notifikasi yang dipilih?`
+                        : `Apakah Anda yakin ingin menghapus ${merchantNotification.selectedNotifications.length} notifikasi yang dipilih?`
                 }
                 confirmText="Hapus Sekarang"
             />

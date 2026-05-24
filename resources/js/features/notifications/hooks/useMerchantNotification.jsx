@@ -2,8 +2,9 @@ import { useState, useMemo } from "react";
 import { router, usePage } from "@inertiajs/react";
 
 export const useMerchantNotification = () => {
-    const { data: notifications = [] } =
-        usePage().props.notification_list || {};
+    const { notification_list } = usePage().props;
+
+    const notifications = notification_list?.data || [];
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedNotifications, setSelectedNotifications] = useState([]);

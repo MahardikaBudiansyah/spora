@@ -11,18 +11,15 @@ class VenueCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        // Buat query builder
         $query = VenueCategory::query();
 
-        // Opsional: filter search
         if ($request->search) {
             $query->where('label', 'like', "%{$request->search}%");
         }
 
-        // Ambil data dengan pagination
         $venue_categories = $query->orderBy('created_at', 'desc')
-                                  ->paginate(10)
-                                  ->withQueryString();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/MasterData/VenueCategory/Index', [
             'venue_categories' => $venue_categories,
@@ -85,7 +82,4 @@ class VenueCategoryController extends Controller
             'message' => 'Kategori berhasil dihapus.'
         ]);
     }
-
-
-
 }

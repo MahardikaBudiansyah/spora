@@ -52,13 +52,13 @@ export default function CourtCalendar() {
                 {
                     params: { date: toISODate(selectedDate) },
                     cancelToken: source.token,
-                }
+                },
             )
             .then((res) => setTimeslots(res.data.timeslots))
             .catch((err) => {
                 if (!axios.isCancel(err)) {
                     toast.error(
-                        "Gagal mengambil data slot jadwal. Silakan coba lagi."
+                        "Gagal mengambil data slot jadwal. Silakan coba lagi.",
                     );
                     console.error(err);
                 }
@@ -121,7 +121,7 @@ export default function CourtCalendar() {
                     console.error("Error fetchCalendarData:", err);
                 });
         },
-        [venue.slug, courtData.slug]
+        [venue.slug, courtData.slug],
     );
 
     useEffect(() => {
@@ -134,7 +134,7 @@ export default function CourtCalendar() {
             setSelectedSlotInfo(slot);
             open("info");
         },
-        [open]
+        [open],
     );
 
     const handleDateSelect = useCallback((date) => {
@@ -145,7 +145,7 @@ export default function CourtCalendar() {
         (start, end, view) => {
             fetchCalendarData(start, end, view);
         },
-        [fetchCalendarData]
+        [fetchCalendarData],
     );
 
     return (
@@ -227,7 +227,7 @@ export default function CourtCalendar() {
                                     <div className="text-center font-bold text-sm">
                                         <div className="text-center font-bold text-xl">
                                             {formatFullDateWithDay(
-                                                selectedDate
+                                                selectedDate,
                                             ) || "-"}
                                         </div>
                                     </div>{" "}
@@ -239,8 +239,8 @@ export default function CourtCalendar() {
                                                 router.get(
                                                     route(
                                                         "merchant.venues.bookings.create",
-                                                        { venue: venue.slug }
-                                                    )
+                                                        { venue: venue.slug },
+                                                    ),
                                                 )
                                             }
                                         >
@@ -262,19 +262,17 @@ export default function CourtCalendar() {
                                         <div className="my-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
                                             {timeslots.map((slot) => (
                                                 <TimeSlotButton
-                                                    key={slot.timeslot_id}
+                                                    key={slot.id}
                                                     slot={{
                                                         start_time:
                                                             slot.start_time,
                                                         end_time: slot.end_time,
-                                                        status:
-                                                            slot.status_label ||
-                                                            slot.status,
+                                                        status: slot.status,
                                                         price: slot.price,
                                                     }}
                                                     selected={
-                                                        selectedSlotInfo?.timeslot_id ===
-                                                        slot.timeslot_id
+                                                        selectedSlotInfo?.id ===
+                                                        slot.id
                                                     }
                                                     onClick={() =>
                                                         handleSlotClick(slot)
@@ -297,7 +295,7 @@ export default function CourtCalendar() {
                             router.get(
                                 route("merchant.venues.courts.index", {
                                     venue: venue.slug,
-                                })
+                                }),
                             )
                         }
                         className="flex gap-2"
@@ -318,7 +316,11 @@ export default function CourtCalendar() {
             <TimeSlotInfoModal
                 show={isOpen("info")}
                 onClose={close}
+                court={courtData}
+                selectedDate={selectedDate}
                 slot={selectedSlotInfo}
+                statusType={statusType}
+                refreshTimeslots={fetchTimeslots}
             />
             <CourtScheduleFormModal
                 isOpen={isOpen("status")}

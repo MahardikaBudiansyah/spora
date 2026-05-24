@@ -2,44 +2,33 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Log;
-use Inertia\Inertia;
+use App\Helpers\NumberPhoneHelper;
+use App\Http\Controllers\Admin\Controller;
+use App\Http\Resources\AdminResource;
 use App\Models\Admin;
 use Illuminate\Http\Request;
-use App\Helpers\NumberPhoneHelper;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Admin\Controller;
+use Inertia\Inertia;
+use Log;
 
 class AdminController extends Controller
 {
     public function index(Request $request)
     {
         $admins = Admin::query()
-            ->orderBy('created_at', 'asc') 
+            ->with([
+                'latestStatusHistory',
+                'profile.address.province',
+                'profile.address.city',
+                'profile.address.district',
+                'profile.address.village',
+            ])
+            ->orderBy('created_at', 'asc')
             ->paginate(10)
             ->withQueryString();
 
-        $currentPage = $admins->currentPage();
-        $perPage = $admins->perPage();
-
-        
-        $admins->getCollection()->transform(function ($admin, $index) use ($currentPage, $perPage) {
-            return [
-                'number' => ($currentPage - 1) * $perPage + $index + 1,
-                'id' => $admin->id,
-                'name' => $admin->name,
-                'role' => $admin->role,
-                'email' => $admin->email,
-                'password' => $admin->password,
-                'avatar_path' => $admin->avatar_path,
-                'is_active' => $admin->is_active,
-                'created_at' => $admin->created_at,
-                'updated_at' => $admin->updated_at,
-            ];
-        });
-
         return Inertia::render('Admin/Admins/Index', [
-            'admins' => $admins,
+            'admins' => AdminResource::collection($admins),
         ]);
     }
 
@@ -78,7 +67,7 @@ class AdminController extends Controller
             'email' => $validated['email'],
             'password' => $validated['password'],
             'role' => 'admin',
-            'is_active' => 1, 
+            'is_active' => 1,
         ]);
 
         return redirect()->route('admin.admins.index')
@@ -119,7 +108,4 @@ class AdminController extends Controller
 
         return back()->with('success', 'Data Admin berhasil dihapus');
     }
-
-
-
 }

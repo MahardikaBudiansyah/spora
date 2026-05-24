@@ -14,8 +14,9 @@ import Button from "@/components/Common/Button";
 import PhoneInput from "@/components/Common/PhoneInput";
 import PasswordInput from "@/components/common/PasswordInput";
 
-import { X } from "lucide-react";
 import { toast } from "react-toastify";
+import CloseButtonModal from "@/components/Common/CloseButtonModal";
+import SelectInput from "@/components/Common/SelectInput";
 
 export default function AdminFormModal({
     show,
@@ -23,21 +24,27 @@ export default function AdminFormModal({
     mode = "create",
     selectedAdmin = null,
 }) {
+    const roleOptions = [
+        { value: "admin", label: "Admin" },
+        { value: "superadmin", label: "Superadmin" },
+    ];
+
     const form = useForm({
         name: selectedAdmin?.name || "",
+        role: selectedAdmin?.role || "admin",
         phone_number: selectedAdmin?.phone_number || "",
         email: selectedAdmin?.email || "",
         password: "",
         password_confirmation: "",
     });
 
-    // Reset form saat modal ditutup atau admin yang diedit berubah
     useEffect(() => {
-        if (!show) return; // Biar tidak reset saat modal ditutup
+        if (!show) return;
 
         if (mode === "edit" && selectedAdmin) {
             form.setData({
                 name: selectedAdmin.name,
+                role: selectedAdmin.role,
                 phone_number: selectedAdmin.phone_number || "",
                 email: selectedAdmin.email,
                 password: "",
@@ -70,49 +77,50 @@ export default function AdminFormModal({
                 toast.success(
                     mode === "create"
                         ? "Admin berhasil ditambahkan."
-                        : "Admin berhasil diperbarui."
+                        : "Admin berhasil diperbarui.",
                 );
                 handleClose();
             },
             onError: (errors) => {
-                // Ambil 1 error pertama saja
                 const firstError = Object.values(errors)[0];
                 if (firstError) {
                     toast.error(firstError);
                 }
             },
-            onFinish: () => {
-                // Stop loading, kalau mau kontrol loader
-            },
+            onFinish: () => {},
         });
     };
 
     return (
-        <Modal show={show} onClose={handleClose} maxWidth="md" closeable={true}>
-            <Card className="flex flex-col h-full rounded-lg shadow-none dark:border-none">
-                <button
-                    onClick={handleClose}
-                    className="absolute top-5 right-5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
-                    aria-label="Close modal"
-                >
-                    <X className="w-5 h-5" />
-                </button>
+        <Modal
+            show={show}
+            onClose={handleClose}
+            maxWidth="lg"
+            closeable={true}
+            className="p-4 w-full"
+        >
+            <Card className="relative py-2 rounded-lg shadow-none border-none dark:border-none overflow-visible">
+                <CloseButtonModal onClose={onClose} />
                 <form onSubmit={handleSubmit}>
-                    <CardHeader className="py-6 px-8">
-                        <h2 className="font-bold text-lg">
+                    <CardHeader className="py-2 px-4 border-none space-y-1.5 md:mr-8">
+                        <h2 className="font-bold text-lg uppercase leading-tight tracking-wide">
                             {" "}
                             {mode === "edit" ? "Edit Admin" : "Tambah Admin"}
                         </h2>
+                        <p className="text-xs text-secondary-600 dark:text-secondary-300">
+                            {mode === "edit"
+                                ? "Perbarui detail informasi dan hak akses untuk akun admin ini."
+                                : "Tambahkan anggota baru ke tim pengelola Spora. Pastikan email yang didaftarkan aktif."}
+                        </p>
                     </CardHeader>
 
-                    <CardBody className="w-full">
-                        <div className="p-4 flex flex-col gap-2">
-                            {/* Nama */}
-                            <div>
+                    <CardBody className="py-4 overflow-visible flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row gap-2 items-center">
+                            <div className="space-y-1 w-full">
                                 <InputLabel
                                     htmlFor="name"
                                     value="Nama Admin:"
-                                    className="mb-2 text-xs font-bold"
+                                    className="text-xs font-bold"
                                 />
                                 <TextInput
                                     id="name"
@@ -126,13 +134,33 @@ export default function AdminFormModal({
                                 />
                                 <InputError message={form.errors.name} />
                             </div>
+                            <div className="space-y-1 w-full">
+                                <InputLabel
+                                    htmlFor="role"
+                                    value="Role:"
+                                    className="text-xs font-bold"
+                                />
+                                <SelectInput
+                                    id="role"
+                                    options={roleOptions}
+                                    value={form.data.role}
+                                    onChange={(val) =>
+                                        form.setData("role", val)
+                                    }
+                                    isClearable={false}
+                                    isSearchable={false}
+                                    placeholder="Pilih Role Admin..."
+                                />
 
-                            {/* Nomor Telepon */}
-                            <div>
+                                <InputError message={form.errors.role} />
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row gap-2 items-center">
+                            <div className="space-y-1 w-full">
                                 <InputLabel
                                     htmlFor="phone_number"
                                     value="Nomor Handphone:"
-                                    className="mb-2 text-xs font-bold"
+                                    className="text-xs font-bold"
                                 />
                                 <PhoneInput
                                     id="phone_number"
@@ -141,7 +169,7 @@ export default function AdminFormModal({
                                     onChange={(e) => {
                                         form.setData(
                                             "phone_number",
-                                            e.target.value
+                                            e.target.value,
                                         );
                                     }}
                                     className="w-full"
@@ -151,12 +179,11 @@ export default function AdminFormModal({
                                 />
                             </div>
 
-                            {/* Email */}
-                            <div>
+                            <div className="space-y-1 w-full">
                                 <InputLabel
                                     htmlFor="email"
                                     value="Email:"
-                                    className="mb-2 text-xs font-bold"
+                                    className="text-xs font-bold"
                                 />
                                 <TextInput
                                     id="email"
@@ -173,9 +200,10 @@ export default function AdminFormModal({
                                 />
                                 <InputError message={form.errors.email} />
                             </div>
+                        </div>
 
-                            {/* Password */}
-                            <div>
+                        <div className="flex flex-col md:flex-row gap-2 items-center">
+                            <div className="space-y-1 w-full">
                                 <InputLabel
                                     htmlFor="password"
                                     value={
@@ -183,7 +211,7 @@ export default function AdminFormModal({
                                             ? "Ganti Kata Sandi:"
                                             : "Kata Sandi:"
                                     }
-                                    className="mb-2 text-xs font-bold"
+                                    className="text-xs font-bold"
                                 />
                                 <PasswordInput
                                     id="password"
@@ -192,20 +220,18 @@ export default function AdminFormModal({
                                     onChange={(e) =>
                                         form.setData("password", e.target.value)
                                     }
-                                    placeholder="********"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required={mode === "create"}
                                     showInitially={mode === "edit"}
                                 />
                                 <InputError message={form.errors.password} />
                             </div>
 
-                            {/* Konfirmasi Password */}
-                            <div>
+                            <div className="space-y-1 w-full">
                                 <InputLabel
                                     htmlFor="password_confirmation"
                                     value="Konfirmasi Kata Sandi:"
-                                    className="mb-2 text-xs font-bold"
+                                    className="text-xs font-bold"
                                 />
                                 <PasswordInput
                                     id="password_confirmation"
@@ -214,11 +240,10 @@ export default function AdminFormModal({
                                     onChange={(e) =>
                                         form.setData(
                                             "password_confirmation",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
-                                    placeholder="********"
-                                    className="mt-1 block w-full"
+                                    className="w-full"
                                     required={mode === "create"}
                                 />
                                 <InputError
@@ -228,7 +253,7 @@ export default function AdminFormModal({
                         </div>
                     </CardBody>
 
-                    <CardFooter className="px-8 py-6 flex justify-end gap-2">
+                    <CardFooter className="py-2 px-4 flex justify-end items-center gap-2 border-none">
                         <Button
                             variant="primary"
                             type="submit"
@@ -239,8 +264,8 @@ export default function AdminFormModal({
                                     ? "Memperbarui..."
                                     : "Menambahkan..."
                                 : mode === "edit"
-                                ? "Perbarui"
-                                : "Tambah"}
+                                  ? "Perbarui"
+                                  : "Tambah"}
                         </Button>
                         <Button
                             variant="light"

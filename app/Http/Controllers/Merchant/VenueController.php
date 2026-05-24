@@ -125,13 +125,16 @@ class VenueController extends Controller
             'facilities',
             'categories',
             'socialMedia',
-            'addresses.province',
-            'addresses.city',
-            'addresses.district',
-            'addresses.village',
+            'address.province',
+            'address.city',
+            'address.district',
+            'address.village',
             'membershipPackages.discounts',
             'membershipPackages.others',
-            'paymentPolicies'
+            'paymentPolicies' => function ($query) {
+                $query->where('order_type', 'booking')
+                    ->where('is_active', true);
+            }
         ])->loadAvg('reviews', 'venue_rating')->loadCount('reviews');
 
         return Inertia::render('Merchant/Venue/Show', [
@@ -145,10 +148,10 @@ class VenueController extends Controller
             'categories',
             'facilities',
             'images' => fn($q) => $q->orderBy('order'),
-            'addresses.province',
-            'addresses.city',
-            'addresses.district',
-            'addresses.village',
+            'address.province',
+            'address.city',
+            'address.district',
+            'address.village',
         ]);
 
         return Inertia::render('Merchant/Venue/Edit', [

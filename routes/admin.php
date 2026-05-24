@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VenueCategoryController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\VenueFacilityController;
+use App\Http\Controllers\Admin\VenueVerificationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TimeSlotController;
 use Illuminate\Support\Facades\Route;
@@ -121,6 +122,11 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
         Route::prefix('{venue:slug}')->group(function () {
             Route::get('/', [VenueController::class, 'show'])->name('show');
             Route::patch('/toggle-active', [VenueController::class, 'toggleActive'])->name('toggleActive');
+
+            Route::prefix('verification')->name('verification.')->group(function () {
+                Route::get('/', [VenueVerificationController::class, 'index'])->name('index');
+                Route::patch('/verification', [VenueVerificationController::class, 'updateVenueVerification'])->name('updateVenueVerification');
+            });
 
             Route::prefix('courts')->name('courts.')->group(function () {
 

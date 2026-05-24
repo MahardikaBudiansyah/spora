@@ -1,19 +1,19 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\TimeSlotController;
-use App\Http\Controllers\User\CartController;
-use App\Http\Controllers\User\VenueController;
-use App\Http\Controllers\User\BookingController;
-use App\Http\Controllers\User\ProfileController;
-use App\Http\Controllers\User\DashboardController;
-use App\Http\Controllers\XenditCallbackController;
-use App\Http\Controllers\GatewayRedirectController;
-use App\Http\Controllers\MidtransCallbackController;
 use App\Http\Controllers\CourtAvailabilityController;
+use App\Http\Controllers\GatewayRedirectController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MidtransCallbackController;
+use App\Http\Controllers\TimeSlotController;
+use App\Http\Controllers\User\BookingController;
+use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\MembershipOrderController;
+use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\VenueController;
+use App\Http\Controllers\XenditCallbackController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,10 +26,7 @@ use App\Http\Controllers\User\MembershipOrderController;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
-
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::prefix('venues')->name('venues.')->group(function () {
     Route::get('/', [VenueController::class, 'index'])->name('index');

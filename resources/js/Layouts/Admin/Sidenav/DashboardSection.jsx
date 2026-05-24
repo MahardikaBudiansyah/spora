@@ -31,7 +31,15 @@ export default function DashboardSection({ isOpen, toggle }) {
 
     return (
         <ul className="flex flex-col space-y-2 text-sm font-medium">
-            <li
+            <li>
+                <SidenavLink
+                    href={route("admin.dashboard")}
+                    routeName="admin.dashboard"
+                    label="Dashboard"
+                    icon={LayoutDashboard}
+                />
+            </li>
+            {/* <li
                 onClick={() => toggle("dashboard")}
                 className={`flex items-center justify-between gap-2 px-4 py-2 rounded-md cursor-pointer hover:text-secondary-800 hover:bg-primary-400 transition ${
                     isAnyChildActive ? "bg-primary-400 text-dark" : ""
@@ -61,7 +69,7 @@ export default function DashboardSection({ isOpen, toggle }) {
                         </li>
                     ))}
                 </ul>
-            )}
+            )} */}
         </ul>
     );
 }

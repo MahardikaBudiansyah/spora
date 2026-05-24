@@ -4,13 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\CourtCategory;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class CourtCategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $data = [
@@ -33,7 +29,7 @@ class CourtCategorySeeder extends Seeder
 
         foreach ($data as $value) {
             CourtCategory::updateOrCreate(
-                ['name' => $value['name']], 
+                ['name' => $value['name']],
                 ['label' => $value['label']]
             );
         }
